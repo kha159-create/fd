@@ -24,6 +24,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check secrets availability
+        run: |
+          echo "Checking GitHub Secrets..."
+          if [ -z "${{ secrets.VITE_FIREBASE_API_KEY }}" ]; then
+            echo "❌ VITE_FIREBASE_API_KEY is missing"
+          else
+            echo "✅ VITE_FIREBASE_API_KEY is available"
+          fi
+          if [ -z "${{ secrets.VITE_GEMINI_API_KEY }}" ]; then
+            echo "❌ VITE_GEMINI_API_KEY is missing"
+          else
+            echo "✅ VITE_GEMINI_API_KEY is available"
+          fi
+
       - name: Create environment file
         run: |
           echo "VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}" >> .env
@@ -34,6 +48,10 @@ jobs:
           echo "VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}" >> .env
           echo "VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}" >> .env
           echo "VITE_APP_ENVIRONMENT=production" >> .env
+          
+          echo "Environment file created:"
+          echo "VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}"
+          echo "VITE_GEMINI_API_KEY=***hidden***"
 
       - name: Build project
         run: npm run build

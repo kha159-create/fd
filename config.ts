@@ -24,6 +24,15 @@ export const config = {
   }
 };
 
+// طباعة حالة المفاتيح للتشخيص
+console.log('🔍 فحص متغيرات البيئة:', {
+  environment: config.app.environment,
+  firebaseApiKey: config.firebase.apiKey ? '✅ موجود' : '❌ مفقود',
+  firebaseProjectId: config.firebase.projectId || '❌ مفقود',
+  geminiApiKey: config.gemini.apiKey ? '✅ موجود' : '❌ مفقود',
+  allEnvVars: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_'))
+});
+
 // التحقق من صحة الإعدادات
 export const validateConfig = () => {
   const errors: string[] = [];
