@@ -4,6 +4,16 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    
+    // طباعة جميع متغيرات البيئة للتشخيص
+    console.log('🔍 Environment variables loaded:', {
+      mode,
+      envKeys: Object.keys(env).filter(key => key.startsWith('VITE_')),
+      firebaseApiKey: env.VITE_FIREBASE_API_KEY ? '✅ موجود' : '❌ مفقود',
+      firebaseProjectId: env.VITE_FIREBASE_PROJECT_ID ? '✅ موجود' : '❌ مفقود',
+      geminiApiKey: env.VITE_GEMINI_API_KEY ? '✅ موجود' : '❌ مفقود'
+    });
+    
     return {
       base: '/fd/',
       server: {
