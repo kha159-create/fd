@@ -28,10 +28,17 @@ export const config = {
 console.log('🔍 فحص متغيرات البيئة:', {
   environment: config.app.environment,
   firebaseApiKey: config.firebase.apiKey ? '✅ موجود' : '❌ مفقود',
+  firebaseAuthDomain: config.firebase.authDomain || '❌ مفقود',
   firebaseProjectId: config.firebase.projectId || '❌ مفقود',
+  firebaseStorageBucket: config.firebase.storageBucket || '❌ مفقود',
+  firebaseMessagingSenderId: config.firebase.messagingSenderId || '❌ مفقود',
+  firebaseAppId: config.firebase.appId || '❌ مفقود',
   geminiApiKey: config.gemini.apiKey ? '✅ موجود' : '❌ مفقود',
   allEnvVars: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_'))
 });
+
+// طباعة جميع متغيرات البيئة للتشخيص
+console.log('🔍 جميع متغيرات VITE_ في البيئة:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
 
 // التحقق من صحة الإعدادات
 export const validateConfig = () => {
