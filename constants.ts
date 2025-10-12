@@ -18,10 +18,8 @@ export const getInitialState = (): AppState => ({
       currentValue: 0
   },
   cards: {
-    'snb-card': { id: 'snb-card', name: 'SNB الأهلي', limit: 26000, dueDay: 15, statementDay: 25, smsSamples: ['SNB', 'الأهلي', 'إئتمانية'] },
-    'enbd-card': { id: 'enbd-card', name: 'ENBD الإمارات', limit: 10000, dueDay: 18, statementDay: 28, smsSamples: ['ENBD', 'الإمارات', 'Visa card'] },
+    snb: { limit: 26000, dueDay: 15 },
+    enbd: { limit: 10000, dueDay: 18 }
   },
-  bankAccounts: {
-    'bank-default': { id: 'bank-default', name: 'الحساب الجاري', balance: 0, smsSamples: ['مدى', 'mada', 'Alrajhi', 'الراجحي', 'Inma', 'الإنماء', 'بنك'] }
-  }
+  bank: { balance: 0 }
 });

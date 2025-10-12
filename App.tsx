@@ -278,24 +278,7 @@ const App: React.FC = () => {
             onConfirm: () => {
                 try {
                     // Use the exact same logic as the old system
-                    const initialState = {
-                        transactions: [],
-                        cards: { snb: { limit: 26000, dueDay: 15 }, enbd: { limit: 10000, dueDay: 18 } },
-                        bank: { balance: 0 },
-                        categories: [
-                            { id: 'cat-1', name: 'بقالة', icon: '🛒' },
-                            { id: 'cat-2', name: 'مطاعم', icon: '🍔' },
-                            { id: 'cat-3', name: 'وقود', icon: '⛽' },
-                            { id: 'cat-4', name: 'فواتير', icon: '🧾' },
-                            { id: 'cat-9', name: 'سداد فواتير', icon: '💳' },
-                            { id: 'cat-5', name: 'تسوق', icon: '🛍️' },
-                            { id: 'cat-6', name: 'إيجار', icon: '🏠' },
-                            { id: 'cat-8', name: 'صيدلية', icon: '💊' },
-                            { id: 'cat-7', name: 'أخرى', icon: '💸' }
-                        ],
-                        installments: [],
-                        investments: { currentValue: 0 }
-                    };
+                    const initialState = getInitialState();
 
                     // Handle old backup format - convert creditCards to cards format
                     if (restoredState.creditCards && !restoredState.cards) {
@@ -315,14 +298,33 @@ const App: React.FC = () => {
                         restoredState.cards = convertedCards;
                     }
 
-                    // Handle old backup format - convert bank to bankAccounts format
-                    if (restoredState.bank && !restoredState.bankAccounts) {
-                        restoredState.bankAccounts = {
-                            main: {
-                                id: 'main',
-                                name: 'الحساب الرئيسي',
-                                balance: restoredState.bank.balance || 0
+                    // Handle new backup format - convert cards to old format for compatibility
+                    if (restoredState.cards && typeof restoredState.cards === 'object' && !restoredState.cards.snb && !restoredState.cards.enbd) {
+                        // Convert new cards format to old format for compatibility
+                        const oldFormatCards: { [key: string]: any } = {};
+                        Object.entries(restoredState.cards).forEach(([key, card]: [string, any]) => {
+                            // Map new card IDs to old format
+                            if (key === 'snb-card') {
+                                oldFormatCards.snb = {
+                                    limit: card.limit || 0,
+                                    dueDay: card.dueDay || 1
+                                };
+                            } else if (key === 'enbd-card') {
+                                oldFormatCards.enbd = {
+                                    limit: card.limit || 0,
+                                    dueDay: card.dueDay || 1
+                                };
                             }
+                        });
+                        restoredState.cards = oldFormatCards;
+                    }
+
+                    // Handle new backup format - convert bankAccounts to bank format for compatibility
+                    if (restoredState.bankAccounts && !restoredState.bank) {
+                        // Convert bankAccounts to old bank format
+                        const mainAccount = Object.values(restoredState.bankAccounts)[0] as any;
+                        restoredState.bank = {
+                            balance: mainAccount?.balance || 0
                         };
                     }
 
