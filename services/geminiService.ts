@@ -153,6 +153,3 @@ export const generateSmartSummary = (calculations: FinancialCalculations) =>
 
 export const generateBudgetPlan = (totalBudget: number, categories: Category[], recentTransactions: Transaction[]) =>
     callGemini(GEMINI_PROMPTS.BUDGET_PLANNER, `Total monthly budget is: ${totalBudget} SAR. My spending categories are: ${JSON.stringify(categories)}. My transactions from the last 60 days are: ${JSON.stringify(recentTransactions)}`);
-
-export const suggestCategoryIcon = (categoryName: string) =>
-    callGemini(GEMINI_PROMPTS.ICON_SUGGESTER, `Category: ${categoryName}`);

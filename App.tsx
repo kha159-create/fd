@@ -277,9 +277,11 @@ const App: React.FC = () => {
             cancelText: "إلغاء",
             onConfirm: () => {
                 try {
-                    // Use the same logic as the old system: merge with initial state
+                    // Use the exact same logic as the old system
                     const initialState = {
                         transactions: [],
+                        cards: { snb: { limit: 26000, dueDay: 15 }, enbd: { limit: 10000, dueDay: 18 } },
+                        bank: { balance: 0 },
                         categories: [
                             { id: 'cat-1', name: 'بقالة', icon: '🛒' },
                             { id: 'cat-2', name: 'مطاعم', icon: '🍔' },
@@ -292,18 +294,15 @@ const App: React.FC = () => {
                             { id: 'cat-7', name: 'أخرى', icon: '💸' }
                         ],
                         installments: [],
-                        investments: { currentValue: 0 },
-                        cards: {},
-                        bankAccounts: {}
+                        investments: { currentValue: 0 }
                     };
 
-                    // Handle old backup format with creditCards instead of cards
-                    let cards = restoredState.cards || {};
+                    // Handle old backup format - convert creditCards to cards format
                     if (restoredState.creditCards && !restoredState.cards) {
-                        // Convert old format to new format
-                        cards = {};
+                        // Convert old creditCards format to new cards format
+                        const convertedCards: { [key: string]: any } = {};
                         Object.entries(restoredState.creditCards).forEach(([key, card]: [string, any]) => {
-                            cards[key] = {
+                            convertedCards[key] = {
                                 id: key,
                                 name: key.toUpperCase(),
                                 limit: card.creditLimit || 0,
@@ -313,14 +312,13 @@ const App: React.FC = () => {
                                 keywords: []
                             };
                         });
+                        restoredState.cards = convertedCards;
                     }
 
-                    // Merge restored state with initial state (like the old system)
-                    const validatedState: AppState = {
+                    // Use exact same merge logic as old system: state = { ...getInitialState(), ...restoredState }
+                    const validatedState = {
                         ...initialState,
-                        ...restoredState,
-                        cards: cards,
-                        investments: restoredState.investments || initialState.investments
+                        ...restoredState
                     };
                     
                     setState(validatedState);
