@@ -1,6 +1,6 @@
 {
-  "name": "نظام إدارة المصاريف",
-  "short_name": "المصاريف",
+  "name": "MASROF - نظام إدارة المصاريف",
+  "short_name": "MASROF",
   "start_url": "/fd/",
   "display": "standalone",
   "background_color": "#ffffff",
