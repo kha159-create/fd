@@ -2,17 +2,17 @@
 export const config = {
   // Firebase Configuration
   firebase: {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBA1uXbBt5qHfOh9nTFXuI2IVN-uhWYD_g",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "expenses-140c4.firebaseapp.com",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "expenses-140c4",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "expenses-140c4.appspot.com",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "221809737779",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:221809737779:web:a0e2f3d1b9b6c1e1f2d3e4"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || ""
   },
   
   // Gemini API Configuration
   gemini: {
-    apiKey: import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyCU4hOMnyFAWpi1zuy1tRuWW9AV358_njE",
+    apiKey: import.meta.env.VITE_GEMINI_API_KEY || "",
     model: "gemini-2.5-flash"
   },
   
@@ -20,7 +20,7 @@ export const config = {
   app: {
     name: "لوحة التحكم المالية",
     version: "1.0.0",
-    environment: import.meta.env.VITE_APP_ENVIRONMENT || "development"
+    environment: import.meta.env.VITE_APP_ENVIRONMENT || "production"
   }
 };
 
@@ -32,18 +32,32 @@ export const validateConfig = () => {
   if (!config.firebase.apiKey) {
     errors.push("مفتاح Firebase API مفقود");
   }
+  if (!config.firebase.authDomain) {
+    errors.push("Firebase Auth Domain مفقود");
+  }
   if (!config.firebase.projectId) {
     errors.push("معرف مشروع Firebase مفقود");
   }
+  if (!config.firebase.storageBucket) {
+    errors.push("Firebase Storage Bucket مفقود");
+  }
+  if (!config.firebase.messagingSenderId) {
+    errors.push("Firebase Messaging Sender ID مفقود");
+  }
+  if (!config.firebase.appId) {
+    errors.push("Firebase App ID مفقود");
+  }
   
   // التحقق من Gemini
-  if (!config.gemini.apiKey || config.gemini.apiKey === "your-gemini-api-key-here") {
-    errors.push("مفتاح Gemini API مفقود أو غير مُعد");
+  if (!config.gemini.apiKey) {
+    errors.push("مفتاح Gemini API مفقود");
   }
   
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
+    hasFirebase: !!config.firebase.apiKey,
+    hasGemini: !!config.gemini.apiKey
   };
 };
 

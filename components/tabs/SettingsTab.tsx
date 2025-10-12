@@ -11,26 +11,42 @@ const SettingsTab: React.FC<SettingsTabProps> = () => {
     const [validation, setValidation] = useState(validateConfig());
     const [firebaseStatus, setFirebaseStatus] = useState<{connected: boolean, error?: string}>({connected: false});
     const [isLoading, setIsLoading] = useState(true);
+    const [configStatus, setConfigStatus] = useState<{firebase: boolean, gemini: boolean}>({
+        firebase: validation.hasFirebase,
+        gemini: validation.hasGemini
+    });
 
     useEffect(() => {
-        // اختبار الاتصال بـ Firebase
-        const testFirebaseConnection = async () => {
-            try {
-                setIsLoading(true);
-                // محاولة جلب بيانات اختبارية
-                const result = await firebaseService.getData('test', 'connection');
-                setFirebaseStatus({ connected: true });
-            } catch (error) {
-                setFirebaseStatus({ 
-                    connected: false, 
-                    error: error instanceof Error ? error.message : 'خطأ في الاتصال' 
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        // تحديث حالة التكوين
+        const newValidation = validateConfig();
+        setValidation(newValidation);
+        setConfigStatus({
+            firebase: newValidation.hasFirebase,
+            gemini: newValidation.hasGemini
+        });
 
-        testFirebaseConnection();
+        // اختبار الاتصال بـ Firebase فقط إذا كان متوفراً
+        if (newValidation.hasFirebase) {
+            const testFirebaseConnection = async () => {
+                try {
+                    setIsLoading(true);
+                    // محاولة جلب بيانات اختبارية
+                    const result = await firebaseService.getData('test', 'connection');
+                    setFirebaseStatus({ connected: true });
+                } catch (error) {
+                    setFirebaseStatus({ 
+                        connected: false, 
+                        error: error instanceof Error ? error.message : 'خطأ في الاتصال' 
+                    });
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            testFirebaseConnection();
+        } else {
+            setFirebaseStatus({ connected: false, error: 'مفاتيح Firebase غير متوفرة' });
+            setIsLoading(false);
+        }
     }, []);
 
     const StatusIcon = ({ isValid }: { isValid: boolean }) => {
@@ -67,15 +83,22 @@ const SettingsTab: React.FC<SettingsTabProps> = () => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            {firebaseStatus.connected ? (
-                                <>
-                                    <CheckCircleIcon className="w-6 h-6 text-green-500" />
-                                    <span className="text-sm text-green-600">متصل</span>
-                                </>
+                            {configStatus.firebase ? (
+                                firebaseStatus.connected ? (
+                                    <>
+                                        <CheckCircleIcon className="w-6 h-6 text-green-500" />
+                                        <span className="text-sm text-green-600">متصل</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <WarningIcon />
+                                        <span className="text-sm text-yellow-600">مفاتيح موجودة لكن غير متصل</span>
+                                    </>
+                                )
                             ) : (
                                 <>
                                     <XCircleIcon className="w-6 h-6 text-red-500" />
-                                    <span className="text-sm text-red-600">غير متصل</span>
+                                    <span className="text-sm text-red-600">مفاتيح غير متوفرة</span>
                                 </>
                             )}
                         </div>
@@ -93,15 +116,15 @@ const SettingsTab: React.FC<SettingsTabProps> = () => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            {config.gemini.apiKey && config.gemini.apiKey !== "your-gemini-api-key-here" ? (
+                            {configStatus.gemini ? (
                                 <>
                                     <CheckCircleIcon className="w-6 h-6 text-green-500" />
                                     <span className="text-sm text-green-600">مُعد</span>
                                 </>
                             ) : (
                                 <>
-                                    <WarningIcon />
-                                    <span className="text-sm text-yellow-600">غير مُعد</span>
+                                    <XCircleIcon className="w-6 h-6 text-red-500" />
+                                    <span className="text-sm text-red-600">غير مُعد</span>
                                 </>
                             )}
                         </div>
@@ -163,24 +186,29 @@ const SettingsTab: React.FC<SettingsTabProps> = () => {
                     <h3 className="text-lg font-bold mb-4 text-slate-900">📝 تعليمات الإعداد</h3>
                     
                     <div className="space-y-4">
-                        {config.gemini.apiKey === "your-gemini-api-key-here" && (
+                        {!configStatus.gemini && (
                             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                 <h4 className="font-semibold text-yellow-800 mb-2">🤖 إعداد Gemini API:</h4>
                                 <ol className="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
                                     <li>اذهب إلى <a href="https://makersuite.google.com/app/apikey" target="_blank" className="underline">Google AI Studio</a></li>
                                     <li>أنشئ مفتاح API جديد</li>
-                                    <li>انسخ المفتاح وضعه في ملف <code className="bg-yellow-100 px-1 rounded">config.ts</code></li>
-                                    <li>استبدل <code className="bg-yellow-100 px-1 rounded">your-gemini-api-key-here</code> بالمفتاح الحقيقي</li>
+                                    <li>أضف المفتاح كـ GitHub Secret باسم <code className="bg-yellow-100 px-1 rounded">VITE_GEMINI_API_KEY</code></li>
+                                    <li>أو ضعه في ملف <code className="bg-yellow-100 px-1 rounded">.env.local</code> للتطوير المحلي</li>
                                 </ol>
                             </div>
                         )}
 
-                        {!firebaseStatus.connected && (
+                        {!configStatus.firebase && (
                             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                 <h4 className="font-semibold text-blue-800 mb-2">🔥 إعداد Firebase:</h4>
                                 <p className="text-sm text-blue-700">
-                                    تأكد من أن إعدادات Firebase في ملف <code className="bg-blue-100 px-1 rounded">config.ts</code> صحيحة.
-                                    إذا كانت المشكلة مستمرة، تحقق من اتصال الإنترنت وإعدادات Firestore.
+                                    تأكد من إضافة جميع مفاتيح Firebase كـ GitHub Secrets:
+                                    <br />• VITE_FIREBASE_API_KEY
+                                    <br />• VITE_FIREBASE_AUTH_DOMAIN
+                                    <br />• VITE_FIREBASE_PROJECT_ID
+                                    <br />• VITE_FIREBASE_STORAGE_BUCKET
+                                    <br />• VITE_FIREBASE_MESSAGING_SENDER_ID
+                                    <br />• VITE_FIREBASE_APP_ID
                                 </p>
                             </div>
                         )}
