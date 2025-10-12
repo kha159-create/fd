@@ -270,32 +270,58 @@ const App: React.FC = () => {
     };
 
     const handleRestore = (restoredState: any) => {
-        try {
-            // Ensure all required fields exist with defaults
-            const validatedState: AppState = {
-                transactions: restoredState.transactions || [],
-                categories: restoredState.categories || [],
-                installments: restoredState.installments || [],
-                investments: restoredState.investments || { currentValue: 0 },
-                cards: restoredState.cards || {},
-                bankAccounts: restoredState.bankAccounts || {}
-            };
-            
-            setState(validatedState);
-            setModalConfig({ 
-                title: "تم الاستعادة بنجاح", 
-                body: "<p>تم استعادة بياناتك بنجاح.</p>", 
-                confirmText: 'موافق', 
-                hideCancel: true 
-            });
-        } catch (error) {
-            setModalConfig({ 
-                title: "خطأ في الاستعادة", 
-                body: "<p>حدث خطأ أثناء استعادة البيانات. يرجى المحاولة مرة أخرى.</p>", 
-                confirmText: 'موافق', 
-                hideCancel: true 
-            });
-        }
+        setModalConfig({
+            title: "استعادة نسخة احتياطية",
+            body: "<p>هل أنت متأكد من استعادة هذه البيانات؟ سيتم استبدال جميع البيانات الحالية.</p>",
+            confirmText: "استعادة",
+            cancelText: "إلغاء",
+            onConfirm: () => {
+                try {
+                    // Handle old backup format with creditCards instead of cards
+                    let cards = restoredState.cards || {};
+                    if (restoredState.creditCards && !restoredState.cards) {
+                        // Convert old format to new format
+                        cards = {};
+                        Object.entries(restoredState.creditCards).forEach(([key, card]: [string, any]) => {
+                            cards[key] = {
+                                id: key,
+                                name: key.toUpperCase(),
+                                limit: card.creditLimit || 0,
+                                balance: card.currentBalance || 0,
+                                dueDay: card.dueDay || 1,
+                                smsSamples: [],
+                                keywords: []
+                            };
+                        });
+                    }
+
+                    // Ensure all required fields exist with defaults
+                    const validatedState: AppState = {
+                        transactions: restoredState.transactions || [],
+                        categories: restoredState.categories || [],
+                        installments: restoredState.installments || [],
+                        investments: restoredState.investments || { currentValue: 0 },
+                        cards: cards,
+                        bankAccounts: restoredState.bankAccounts || {}
+                    };
+                    
+                    setState(validatedState);
+                    setModalConfig({ 
+                        title: "تم الاستعادة بنجاح", 
+                        body: "<p>تم استعادة بياناتك بنجاح.</p>",
+                        confirmText: 'موافق',
+                        hideCancel: true
+                    });
+                } catch (error) {
+                    setModalConfig({
+                        title: "خطأ في الاستعادة",
+                        body: "<p>حدث خطأ أثناء استعادة البيانات. يرجى المحاولة مرة أخرى.</p>",
+                        confirmText: 'موافق',
+                        hideCancel: true
+                    });
+                }
+            }
+        });
     };
     
     const openCardFormModal = (cardId?: string) => setCardForm({ isOpen: true, initialData: cardId ? state.cards[cardId] : null });
