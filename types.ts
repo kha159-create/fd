@@ -89,7 +89,7 @@ export interface FinancialCalculations {
     expensesByCategory: { [key: string]: number };
 }
 
-export type Tab = 'summary' | 'budget' | 'investment' | 'ai-assistant' | 'transactions' | 'cards' | 'bank' | 'installments' | 'categories' | 'export' | 'analysis' | 'settings';
+export type Tab = 'summary' | 'budget' | 'investment' | 'ai-assistant' | 'transactions' | 'cards' | 'bank' | 'installments' | 'analysis' | 'settings';
 
 export interface Message {
     id: string;

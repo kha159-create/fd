@@ -17,8 +17,6 @@ const ALL_TABS: { id: Tab; label: string; icon?: React.FC<{className?: string}> 
     { id: 'cards', label: '💳 إدارة البطاقات' },
     { id: 'bank', label: '🏦 البنك' },
     { id: 'installments', label: '📱 الأقساط' },
-    { id: 'categories', label: '📂 الفئات' },
-    { id: 'export', label: '💾 تصدير' },
     { id: 'settings', label: '⚙️ الإعدادات' },
 ];
 

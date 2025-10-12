@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { config, validateConfig } from '../../config';
 import { firebaseService } from '../../services/firebaseService';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '../common/Icons';
+import { AppState, Category } from '../../types';
 
 interface SettingsTabProps {
-    // يمكن إضافة props أخرى هنا إذا لزم الأمر
+    state: AppState;
+    setState: (state: AppState) => void;
+    setModal: (config: any) => void;
+    setLoading: (loading: boolean, text?: string) => void;
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = () => {
+const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, setLoading }) => {
     const [validation, setValidation] = useState(validateConfig());
     const [firebaseStatus, setFirebaseStatus] = useState<{connected: boolean, error?: string}>({connected: false});
     const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +63,97 @@ const SettingsTab: React.FC<SettingsTabProps> = () => {
     const WarningIcon = () => (
         <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500" />
     );
+
+    // إدارة الفئات
+    const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
+    const [editingCategory, setEditingCategory] = useState<string | null>(null);
+
+    const handleAddCategory = () => {
+        if (!newCategory.name.trim() || !newCategory.icon.trim()) {
+            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وأيقونة للفئة.</p>', hideCancel: true, confirmText: 'موافق' });
+            return;
+        }
+
+        const newId = `cat-${Date.now()}`;
+        const category: Category = {
+            id: newId,
+            name: newCategory.name.trim(),
+            icon: newCategory.icon.trim()
+        };
+
+        setState(prev => ({
+            ...prev,
+            categories: [...prev.categories, category]
+        }));
+
+        setNewCategory({ name: '', icon: '' });
+        setModal({ title: 'نجح', body: '<p>تم إضافة الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+    };
+
+    const handleDeleteCategory = (id: string) => {
+        if (state.transactions.some(t => t.categoryId === id)) {
+            setModal({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف هذه الفئة لأنها مستخدمة في بعض الحركات. يرجى تغيير فئة الحركات أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+        } else {
+            setState(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }));
+            setModal({ title: 'نجح', body: '<p>تم حذف الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        }
+    };
+
+    // النسخ الاحتياطي
+    const handleBackup = () => {
+        try {
+            const backupData = JSON.stringify(state, null, 2);
+            const blob = new Blob([backupData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `masrof_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            setModal({ title: 'نجح', body: '<p>تم إنشاء النسخة الاحتياطية بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        } catch (error) {
+            setModal({ title: 'خطأ', body: '<p>فشل إنشاء النسخة الاحتياطية.</p>', hideCancel: true, confirmText: 'موافق' });
+        }
+    };
+
+    const handleRestore = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const restoredState = JSON.parse(e.target?.result as string);
+                if (restoredState?.transactions && restoredState?.categories) {
+                    setModal({
+                        show: true,
+                        title: "استعادة نسخة احتياطية",
+                        body: "<p>هل أنت متأكد؟ سيتم الكتابة فوق جميع بياناتك الحالية.</p>",
+                        confirmText: 'نعم، استعادة',
+                        onConfirm: () => {
+                            const validatedState: AppState = {
+                                transactions: restoredState.transactions || [],
+                                categories: restoredState.categories || [],
+                                installments: restoredState.installments || [],
+                                investments: restoredState.investments || { currentValue: 0 },
+                                cards: restoredState.cards || {},
+                                bankAccounts: restoredState.bankAccounts || {}
+                            };
+                            setState(validatedState);
+                            setModal({ title: "تم الاستعادة بنجاح", body: "<p>تم استعادة بياناتك بنجاح.</p>", confirmText: 'موافق', hideCancel: true });
+                        }
+                    });
+                } else {
+                    throw new Error("Invalid backup file format.");
+                }
+            } catch (error) {
+                setModal({ show: true, title: "خطأ", body: "<p>فشل في استعادة النسخة الاحتياطية. الملف غير صالح.</p>", confirmText: 'موافق', hideCancel: true });
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    };
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -215,6 +310,91 @@ const SettingsTab: React.FC<SettingsTabProps> = () => {
                     </div>
                 </div>
             )}
+
+            {/* إدارة الفئات */}
+            <div className="glass-card p-6">
+                <h3 className="text-lg font-bold mb-4 text-slate-900">📂 إدارة الفئات</h3>
+                
+                {/* إضافة فئة جديدة */}
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg">
+                    <h4 className="font-semibold text-slate-800 mb-3">➕ إضافة فئة جديدة</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                            type="text"
+                            placeholder="اسم الفئة"
+                            value={newCategory.name}
+                            onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                            className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                            type="text"
+                            placeholder="الأيقونة (مثل: 🍔)"
+                            value={newCategory.icon}
+                            onChange={(e) => setNewCategory(prev => ({ ...prev, icon: e.target.value }))}
+                            className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    <button
+                        onClick={handleAddCategory}
+                        className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                        ➕ إضافة الفئة
+                    </button>
+                </div>
+
+                {/* قائمة الفئات */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {state.categories.map((category) => (
+                        <div key={category.id} className="p-3 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-lg">{category.icon}</span>
+                                <span className="text-sm font-medium text-slate-800">{category.name}</span>
+                            </div>
+                            <button
+                                onClick={() => handleDeleteCategory(category.id)}
+                                className="text-red-500 hover:text-red-700 text-sm"
+                                title="حذف الفئة"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* النسخ الاحتياطي */}
+            <div className="glass-card p-6">
+                <h3 className="text-lg font-bold mb-4 text-slate-900">💾 النسخ الاحتياطي والاستعادة</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 className="font-semibold text-slate-800 mb-2">📤 إنشاء نسخة احتياطية</h4>
+                        <p className="text-slate-600 mb-3 text-sm">احفظ جميع بياناتك في ملف آمن.</p>
+                        <button
+                            onClick={handleBackup}
+                            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        >
+                            💾 إنشاء نسخة احتياطية
+                        </button>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-slate-800 mb-2">📥 استعادة البيانات</h4>
+                        <p className="text-slate-600 mb-3 text-sm">استعد بياناتك من ملف نسخة احتياطية.</p>
+                        <input
+                            type="file"
+                            id="backup-file"
+                            accept=".json"
+                            className="hidden"
+                            onChange={handleRestore}
+                        />
+                        <button
+                            onClick={() => document.getElementById('backup-file')?.click()}
+                            className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+                        >
+                            📥 استعادة البيانات
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             {/* زر إعادة التحقق */}
             <div className="text-center">

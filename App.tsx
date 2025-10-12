@@ -12,8 +12,6 @@ import SkeletonDashboard from './components/layout/SkeletonDashboard';
 import DashboardTab from './components/tabs/DashboardTab';
 import TransactionsTab from './components/tabs/TransactionsTab';
 import AIAssistantTab from './components/tabs/AIAssistantTab';
-import CategoriesTab from './components/tabs/CategoriesTab';
-import ExportTab from './components/tabs/ExportTab';
 import AnalysisTab from './components/tabs/AnalysisTab';
 import BudgetTab from './components/tabs/BudgetTab';
 import InvestmentTab from './components/tabs/InvestmentTab';
@@ -192,21 +190,6 @@ const App: React.FC = () => {
         });
     };
     
-    const handleAddCategory = (category: Omit<Category, 'id'>) => {
-        setState(prev => ({
-            ...prev,
-            categories: [...prev.categories, { ...category, id: `cat-${Date.now()}` }]
-        }));
-    };
-    
-    const handleDeleteCategory = (id: string) => {
-        // Check if category is in use
-        if (state.transactions.some(t => t.categoryId === id)) {
-            setModalConfig({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف هذه الفئة لأنها مستخدمة في بعض الحركات. يرجى تغيير فئة الحركات أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
-        } else {
-            setState(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }));
-        }
-    };
     
     const handleSaveCard = (card: Omit<CardConfig, 'id'>, id?: string) => {
         setState(prev => {
@@ -330,15 +313,13 @@ const App: React.FC = () => {
             case 'summary': return <DashboardTab calculations={calculations} categories={state.categories} />;
             case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={state.transactions} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={() => {}} state={state} />;
             case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} />;
-            case 'categories': return <CategoriesTab categories={state.categories} addCategory={handleAddCategory} deleteCategory={handleDeleteCategory} setModal={setModalConfig} setLoading={setLoading}/>;
-            case 'export': return <ExportTab state={state} onRestore={handleRestore} calculations={calculations} getFilteredTransactions={getFilteredTransactions} setLoading={setLoading} setModal={setModalConfig} selectedPeriod={selectedPeriodText} />;
             case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} />;
             case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} />;
             case 'investment': return <InvestmentTab state={state} setState={setState} calculations={calculations} setModal={setModalConfig} />;
             case 'cards': return <CardsTab state={state} openCardFormModal={openCardFormModal} deleteCard={handleDeleteCard} />;
             case 'bank': return <BankTab state={state} setState={setState} calculations={calculations} filteredTransactions={filteredTransactions} categories={state.categories} setModal={setModalConfig} openBankAccountFormModal={openBankAccountFormModal} deleteBankAccount={handleDeleteBankAccount} />;
             case 'installments': return <InstallmentsTab state={state} setState={setState} filteredTransactions={filteredTransactions} setModal={setModalConfig} />;
-            case 'settings': return <SettingsTab />;
+            case 'settings': return <SettingsTab state={state} setState={setState} setModal={setModalConfig} setLoading={setLoading} />;
             default: return <div>Tab not found</div>;
         }
     };
