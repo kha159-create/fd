@@ -315,6 +315,17 @@ const App: React.FC = () => {
                         restoredState.cards = convertedCards;
                     }
 
+                    // Handle old backup format - convert bank to bankAccounts format
+                    if (restoredState.bank && !restoredState.bankAccounts) {
+                        restoredState.bankAccounts = {
+                            main: {
+                                id: 'main',
+                                name: 'الحساب الرئيسي',
+                                balance: restoredState.bank.balance || 0
+                            }
+                        };
+                    }
+
                     // Use exact same merge logic as old system: state = { ...getInitialState(), ...restoredState }
                     const validatedState = {
                         ...initialState,

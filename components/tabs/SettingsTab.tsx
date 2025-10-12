@@ -101,14 +101,19 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         setLoading(true, "جاري البحث عن أيقونة...");
         
         try {
-            const { geminiService } = await import('../../services/geminiService');
-            const iconSuggestion = await geminiService.suggestCategoryIcon(categoryName);
+            // استيراد الدوال بشكل مباشر
+            const { suggestCategoryIcon, initializeAi } = await import('../../services/geminiService');
             
-            if (iconSuggestion) {
-                setNewCategory(prev => ({ ...prev, icon: iconSuggestion }));
+            // تهيئة Gemini قبل الاستدعاء
+            initializeAi();
+            
+            const iconSuggestion = await suggestCategoryIcon(categoryName);
+            
+            if (iconSuggestion && iconSuggestion.trim()) {
+                setNewCategory(prev => ({ ...prev, icon: iconSuggestion.trim() }));
                 setModal({ 
                     title: 'تم اقتراح أيقونة', 
-                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion}" للفئة "${categoryName}".</p>`, 
+                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion.trim()}" للفئة "${categoryName}".</p>`, 
                     hideCancel: true, 
                     confirmText: 'موافق' 
                 });
@@ -117,7 +122,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             }
         } catch (error) {
             console.error("Icon suggestion error:", error);
-            setModal({ title: 'خطأ', body: '<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ 
+                title: 'خطأ', 
+                body: `<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API بشكل صحيح.</p><p>تفاصيل الخطأ: ${error.message}</p>`, 
+                hideCancel: true, 
+                confirmText: 'موافق' 
+            });
         } finally {
             setLoading(false);
         }
