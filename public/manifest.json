@@ -1,0 +1,15 @@
+{
+  "name": "نظام إدارة المصاريف",
+  "short_name": "المصاريف",
+  "start_url": "/fd/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2dyYWQnIHgxPScwJScgeTE9JzAlJyB4Mj0nMTAwJScgeTI9JzEwMCUnPjxzdG9wIG9mZnNldD0nMCUnIHN0eWxlPSdzdG9wLWNvbG9yOiMzYjgyZjY7c3RvcC1vcGFjaXR5OjEnIC8+PHN0b3Agb2Zmc2V0PScxMDAlJyBzdHlsZT0nc3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxJyAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjInIGZpbGw9J3VybCgjZ3JhZCknLz48ZyBmaWxsPSd3aGl0ZSc+PHJlY3QgeD0nMzAnIHk9JzUwJyB3aWR0aD0nMTUnIGhlaWdodD0nMjUnIHJ4PSc0JyAvPjxyZWN0IHg9JzU1JyB5PScyNScgd2lkdGg9JzE1JyBoZWlnaHQ9JzUwJyByeD0nNCcgLz48L2c+PC9zdmc+",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ]
+}

@@ -1,14 +1,35 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
-import { config } from '../config';
+import { config, validateConfig } from '../config';
 
-// تهيئة Firebase
-const app = initializeApp(config.firebase);
+let app: any = null;
+let db: Firestore | null = null;
+let auth: Auth | null = null;
 
-// تهيئة الخدمات
-export const db: Firestore = getFirestore(app);
-export const auth: Auth = getAuth(app);
+// تهيئة Firebase مع معالجة أفضل للأخطاء
+const initializeFirebaseApp = () => {
+  try {
+    const validation = validateConfig();
+    if (!validation.hasFirebase) {
+      console.warn("⚠️ تحذير: مفاتيح Firebase API غير متوفرة. لن يتم تهيئة Firebase.");
+      return { success: false, error: 'مفاتيح Firebase غير متوفرة' };
+    }
+
+    app = initializeApp(config.firebase);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    
+    console.log('🔥 تم تهيئة Firebase بنجاح');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ خطأ في تهيئة Firebase:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'خطأ غير معروف' };
+  }
+};
+
+// تهيئة Firebase عند تحميل الملف
+const initResult = initializeFirebaseApp();
 
 // إعداد وضع التطوير (اختياري)
 if (config.app.environment === 'development' && typeof window !== 'undefined') {
@@ -21,6 +42,10 @@ if (config.app.environment === 'development' && typeof window !== 'undefined') {
 export const firebaseService = {
   // حفظ البيانات في Firestore
   async saveData(collection: string, docId: string, data: any) {
+    if (!db) {
+      return { success: false, error: 'Firebase غير مهيأ' };
+    }
+    
     try {
       const { doc, setDoc } = await import('firebase/firestore');
       const docRef = doc(db, collection, docId);
@@ -37,6 +62,10 @@ export const firebaseService = {
 
   // جلب البيانات من Firestore
   async getData(collection: string, docId: string) {
+    if (!db) {
+      return { success: false, error: 'Firebase غير مهيأ' };
+    }
+    
     try {
       const { doc, getDoc } = await import('firebase/firestore');
       const docRef = doc(db, collection, docId);
@@ -55,6 +84,10 @@ export const firebaseService = {
 
   // جلب جميع المستندات من مجموعة
   async getAllDocuments(collection: string) {
+    if (!db) {
+      return { success: false, error: 'Firebase غير مهيأ' };
+    }
+    
     try {
       const { collection: col, getDocs } = await import('firebase/firestore');
       const querySnapshot = await getDocs(col(db, collection));
@@ -76,6 +109,10 @@ export const firebaseService = {
 
   // حذف مستند
   async deleteDocument(collection: string, docId: string) {
+    if (!db) {
+      return { success: false, error: 'Firebase غير مهيأ' };
+    }
+    
     try {
       const { doc, deleteDoc } = await import('firebase/firestore');
       const docRef = doc(db, collection, docId);
@@ -117,16 +154,7 @@ export const firebaseService = {
 
 // تهيئة خدمة Firebase
 export const initializeFirebase = () => {
-  try {
-    console.log('🔥 تهيئة Firebase...');
-    console.log('📊 Firestore:', db);
-    console.log('🔐 Authentication:', auth);
-    console.log('✅ Firebase جاهز للاستخدام');
-    return { success: true };
-  } catch (error) {
-    console.error('❌ خطأ في تهيئة Firebase:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'خطأ غير معروف' };
-  }
+  return initResult;
 };
 
 // تصدير التطبيق للاستخدام الخارجي إذا لزم الأمر
