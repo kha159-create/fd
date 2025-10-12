@@ -285,6 +285,35 @@ const App: React.FC = () => {
             });
         }
     };
+
+    const handleRestore = (restoredState: any) => {
+        try {
+            // Ensure all required fields exist with defaults
+            const validatedState: AppState = {
+                transactions: restoredState.transactions || [],
+                categories: restoredState.categories || [],
+                installments: restoredState.installments || [],
+                investments: restoredState.investments || { currentValue: 0 },
+                cards: restoredState.cards || {},
+                bankAccounts: restoredState.bankAccounts || {}
+            };
+            
+            setState(validatedState);
+            setModalConfig({ 
+                title: "تم الاستعادة بنجاح", 
+                body: "<p>تم استعادة بياناتك بنجاح.</p>", 
+                confirmText: 'موافق', 
+                hideCancel: true 
+            });
+        } catch (error) {
+            setModalConfig({ 
+                title: "خطأ في الاستعادة", 
+                body: "<p>حدث خطأ أثناء استعادة البيانات. يرجى المحاولة مرة أخرى.</p>", 
+                confirmText: 'موافق', 
+                hideCancel: true 
+            });
+        }
+    };
     
     const openCardFormModal = (cardId?: string) => setCardForm({ isOpen: true, initialData: cardId ? state.cards[cardId] : null });
     const openBankAccountFormModal = (accountId?: string) => setBankAccountForm({ isOpen: true, initialData: accountId ? state.bankAccounts[accountId] : null });
@@ -302,7 +331,7 @@ const App: React.FC = () => {
             case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={state.transactions} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={() => {}} state={state} />;
             case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} />;
             case 'categories': return <CategoriesTab categories={state.categories} addCategory={handleAddCategory} deleteCategory={handleDeleteCategory} setModal={setModalConfig} setLoading={setLoading}/>;
-            case 'export': return <ExportTab state={state} onRestore={setState} calculations={calculations} getFilteredTransactions={getFilteredTransactions} setLoading={setLoading} setModal={setModalConfig} selectedPeriod={selectedPeriodText} />;
+            case 'export': return <ExportTab state={state} onRestore={handleRestore} calculations={calculations} getFilteredTransactions={getFilteredTransactions} setLoading={setLoading} setModal={setModalConfig} selectedPeriod={selectedPeriodText} />;
             case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} />;
             case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} />;
             case 'investment': return <InvestmentTab state={state} setState={setState} calculations={calculations} setModal={setModalConfig} />;
