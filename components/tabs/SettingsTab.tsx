@@ -91,6 +91,38 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         setModal({ title: 'نجح', body: '<p>تم إضافة الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
     };
 
+    const handleSuggestIcon = async () => {
+        const categoryName = newCategory.name.trim();
+        if (!categoryName) {
+            setModal({ title: 'خطأ', body: '<p>الرجاء إدخال اسم الفئة أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            return;
+        }
+
+        setLoading(true, "جاري البحث عن أيقونة...");
+        
+        try {
+            const { geminiService } = await import('../../services/geminiService');
+            const iconSuggestion = await geminiService.suggestCategoryIcon(categoryName);
+            
+            if (iconSuggestion) {
+                setNewCategory(prev => ({ ...prev, icon: iconSuggestion }));
+                setModal({ 
+                    title: 'تم اقتراح أيقونة', 
+                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion}" للفئة "${categoryName}".</p>`, 
+                    hideCancel: true, 
+                    confirmText: 'موافق' 
+                });
+            } else {
+                setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
+            }
+        } catch (error) {
+            console.error("Icon suggestion error:", error);
+            setModal({ title: 'خطأ', body: '<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API.</p>', hideCancel: true, confirmText: 'موافق' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleDeleteCategory = (id: string) => {
         if (state.transactions.some(t => t.categoryId === id)) {
             setModal({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف هذه الفئة لأنها مستخدمة في بعض الحركات. يرجى تغيير فئة الحركات أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
@@ -331,13 +363,24 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                             onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
                             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <input
-                            type="text"
-                            placeholder="الأيقونة (مثل: 🍔)"
-                            value={newCategory.icon}
-                            onChange={(e) => setNewCategory(prev => ({ ...prev, icon: e.target.value }))}
-                            className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="الأيقونة (مثل: 🍔)"
+                                value={newCategory.icon}
+                                onChange={(e) => setNewCategory(prev => ({ ...prev, icon: e.target.value }))}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleSuggestIcon}
+                                disabled={!newCategory.name.trim()}
+                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                title="اقتراح أيقونة بالذكاء الاصطناعي"
+                            >
+                                🤖
+                            </button>
+                        </div>
                     </div>
                     <button
                         onClick={handleAddCategory}

@@ -277,6 +277,26 @@ const App: React.FC = () => {
             cancelText: "إلغاء",
             onConfirm: () => {
                 try {
+                    // Use the same logic as the old system: merge with initial state
+                    const initialState = {
+                        transactions: [],
+                        categories: [
+                            { id: 'cat-1', name: 'بقالة', icon: '🛒' },
+                            { id: 'cat-2', name: 'مطاعم', icon: '🍔' },
+                            { id: 'cat-3', name: 'وقود', icon: '⛽' },
+                            { id: 'cat-4', name: 'فواتير', icon: '🧾' },
+                            { id: 'cat-9', name: 'سداد فواتير', icon: '💳' },
+                            { id: 'cat-5', name: 'تسوق', icon: '🛍️' },
+                            { id: 'cat-6', name: 'إيجار', icon: '🏠' },
+                            { id: 'cat-8', name: 'صيدلية', icon: '💊' },
+                            { id: 'cat-7', name: 'أخرى', icon: '💸' }
+                        ],
+                        installments: [],
+                        investments: { currentValue: 0 },
+                        cards: {},
+                        bankAccounts: {}
+                    };
+
                     // Handle old backup format with creditCards instead of cards
                     let cards = restoredState.cards || {};
                     if (restoredState.creditCards && !restoredState.cards) {
@@ -295,14 +315,12 @@ const App: React.FC = () => {
                         });
                     }
 
-                    // Ensure all required fields exist with defaults
+                    // Merge restored state with initial state (like the old system)
                     const validatedState: AppState = {
-                        transactions: restoredState.transactions || [],
-                        categories: restoredState.categories || [],
-                        installments: restoredState.installments || [],
-                        investments: restoredState.investments || { currentValue: 0 },
+                        ...initialState,
+                        ...restoredState,
                         cards: cards,
-                        bankAccounts: restoredState.bankAccounts || {}
+                        investments: restoredState.investments || initialState.investments
                     };
                     
                     setState(validatedState);
