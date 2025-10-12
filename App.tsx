@@ -91,12 +91,20 @@ const App: React.FC = () => {
         const bankAccountDetails: { [key: string]: any } = {};
 
         // Initialize details objects
-        Object.values(state.cards).forEach((card: CardConfig) => {
-            cardDetails[card.id] = { ...card, balance: 0, available: card.limit, usagePercentage: 0 };
-        });
-        Object.values(state.bankAccounts).forEach((account: BankAccountConfig) => {
-            bankAccountDetails[account.id] = { ...account, deposits: 0, withdrawals: 0 };
-        });
+        if (state.cards && typeof state.cards === 'object') {
+            Object.values(state.cards).forEach((card: any) => {
+                if (card && card.id) {
+                    cardDetails[card.id] = { ...card, balance: 0, available: card.limit, usagePercentage: 0 };
+                }
+            });
+        }
+        if (state.bankAccounts && typeof state.bankAccounts === 'object') {
+            Object.values(state.bankAccounts).forEach((account: any) => {
+                if (account && account.id) {
+                    bankAccountDetails[account.id] = { ...account, deposits: 0, withdrawals: 0 };
+                }
+            });
+        }
 
         let totalIncome = 0;
         let totalExpenses = 0;
@@ -298,33 +306,43 @@ const App: React.FC = () => {
                         restoredState.cards = convertedCards;
                     }
 
-                    // Handle new backup format - convert cards to old format for compatibility
-                    if (restoredState.cards && typeof restoredState.cards === 'object' && !restoredState.cards.snb && !restoredState.cards.enbd) {
-                        // Convert new cards format to old format for compatibility
-                        const oldFormatCards: { [key: string]: any } = {};
-                        Object.entries(restoredState.cards).forEach(([key, card]: [string, any]) => {
-                            // Map new card IDs to old format
-                            if (key === 'snb-card') {
-                                oldFormatCards.snb = {
-                                    limit: card.limit || 0,
-                                    dueDay: card.dueDay || 1
-                                };
-                            } else if (key === 'enbd-card') {
-                                oldFormatCards.enbd = {
-                                    limit: card.limit || 0,
-                                    dueDay: card.dueDay || 1
-                                };
-                            }
-                        });
-                        restoredState.cards = oldFormatCards;
+                    // Handle old backup format - convert old cards format to new format
+                    if (restoredState.cards && typeof restoredState.cards === 'object' && (restoredState.cards.snb || restoredState.cards.enbd)) {
+                        // Convert old cards format to new format
+                        const newFormatCards: { [key: string]: any } = {};
+                        if (restoredState.cards.snb) {
+                            newFormatCards['snb-card'] = {
+                                id: 'snb-card',
+                                name: 'SNB الأهلي',
+                                limit: restoredState.cards.snb.limit || 0,
+                                dueDay: restoredState.cards.snb.dueDay || 1,
+                                statementDay: 25,
+                                smsSamples: ['SNB', 'الأهلي', 'إئتمانية']
+                            };
+                        }
+                        if (restoredState.cards.enbd) {
+                            newFormatCards['enbd-card'] = {
+                                id: 'enbd-card',
+                                name: 'ENBD الإمارات',
+                                limit: restoredState.cards.enbd.limit || 0,
+                                dueDay: restoredState.cards.enbd.dueDay || 1,
+                                statementDay: 28,
+                                smsSamples: ['ENBD', 'الإمارات', 'Visa card']
+                            };
+                        }
+                        restoredState.cards = newFormatCards;
                     }
 
-                    // Handle new backup format - convert bankAccounts to bank format for compatibility
-                    if (restoredState.bankAccounts && !restoredState.bank) {
-                        // Convert bankAccounts to old bank format
-                        const mainAccount = Object.values(restoredState.bankAccounts)[0] as any;
-                        restoredState.bank = {
-                            balance: mainAccount?.balance || 0
+                    // Handle old backup format - convert bank to bankAccounts format
+                    if (restoredState.bank && !restoredState.bankAccounts) {
+                        // Convert old bank format to new bankAccounts format
+                        restoredState.bankAccounts = {
+                            'bank-default': {
+                                id: 'bank-default',
+                                name: 'الحساب الجاري',
+                                balance: restoredState.bank.balance || 0,
+                                smsSamples: ['مدى', 'mada', 'Alrajhi', 'الراجحي', 'Inma', 'الإنماء', 'بنك']
+                            }
                         };
                     }
 
