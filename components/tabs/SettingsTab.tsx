@@ -9,9 +9,10 @@ interface SettingsTabProps {
     setState: (state: AppState) => void;
     setModal: (config: any) => void;
     setLoading: (loading: boolean, text?: string) => void;
+    onRestore?: (restoredState: any) => void;
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, setLoading }) => {
+const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, setLoading, onRestore }) => {
     const [validation, setValidation] = useState(validateConfig());
     const [firebaseStatus, setFirebaseStatus] = useState<{connected: boolean, error?: string}>({connected: false});
     const [isLoading, setIsLoading] = useState(true);
@@ -126,24 +127,28 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             try {
                 const restoredState = JSON.parse(e.target?.result as string);
                 if (restoredState?.transactions && restoredState?.categories) {
-                    setModal({
-                        show: true,
-                        title: "استعادة نسخة احتياطية",
-                        body: "<p>هل أنت متأكد؟ سيتم الكتابة فوق جميع بياناتك الحالية.</p>",
-                        confirmText: 'نعم، استعادة',
-                        onConfirm: () => {
-                            const validatedState: AppState = {
-                                transactions: restoredState.transactions || [],
-                                categories: restoredState.categories || [],
-                                installments: restoredState.installments || [],
-                                investments: restoredState.investments || { currentValue: 0 },
-                                cards: restoredState.cards || {},
-                                bankAccounts: restoredState.bankAccounts || {}
-                            };
-                            setState(validatedState);
-                            setModal({ title: "تم الاستعادة بنجاح", body: "<p>تم استعادة بياناتك بنجاح.</p>", confirmText: 'موافق', hideCancel: true });
-                        }
-                    });
+                    if (onRestore) {
+                        onRestore(restoredState);
+                    } else {
+                        setModal({
+                            show: true,
+                            title: "استعادة نسخة احتياطية",
+                            body: "<p>هل أنت متأكد؟ سيتم الكتابة فوق جميع بياناتك الحالية.</p>",
+                            confirmText: 'نعم، استعادة',
+                            onConfirm: () => {
+                                const validatedState: AppState = {
+                                    transactions: restoredState.transactions || [],
+                                    categories: restoredState.categories || [],
+                                    installments: restoredState.installments || [],
+                                    investments: restoredState.investments || { currentValue: 0 },
+                                    cards: restoredState.cards || {},
+                                    bankAccounts: restoredState.bankAccounts || {}
+                                };
+                                setState(validatedState);
+                                setModal({ title: "تم الاستعادة بنجاح", body: "<p>تم استعادة بياناتك بنجاح.</p>", confirmText: 'موافق', hideCancel: true });
+                            }
+                        });
+                    }
                 } else {
                     throw new Error("Invalid backup file format.");
                 }
