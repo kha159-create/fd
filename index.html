@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المصاريف | لوحة التحكم</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="المصاريف">
+  <meta name="theme-color" content="#3b82f6">
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22grad%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 style=%22stop-color:%233b82f6;stop-opacity:1%22 /><stop offset=%22100%25%22 style=%22stop-color:%232563eb;stop-opacity:1%22 /></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22url(%23grad)%22/><g fill=%22white%22><rect x=%2230%22 y=%2250%22 width=%2215%22 height=%2225%22 rx=%224%22 /><rect x=%2255%22 y=%2225%22 width=%2215%22 height=%2250%22 rx=%224%22 /></g></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:#3b82f6;stop-opacity:1' /><stop offset='100%' style='stop-color:#2563eb;stop-opacity:1' /></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(#grad)'/><g fill='white'><rect x='30' y='50' width='15' height='25' rx='4' /><rect x='55' y='25' width='15' height='50' rx='4' /></g></svg>">
+
+  <link rel="manifest" href='data:application/manifest+json,{"name":"نظام إدارة المصاريف","short_name":"المصاريف","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#3b82f6","icons":[{"src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2dyYWQnIHgxPScwJScgeTE9JzAlJyB4Mj0nMTAwJScgeTI9JzEwMCUnPjxzdG9wIG9mZnNldD0nMCUnIHN0eWxlPSdzdG9wLWNvbG9yOiMzYjgyZjY7c3RvcC1vcGFjaXR5OjEnIC8+PHN0b3Agb2Zmc2V0PScxMDAlJyBzdHlsZT0nc3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxJyAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjInIGZpbGw9J3VybCgjZ3JhZCknLz48ZyBmaWxsPSd3aGl0ZSc+PHJlY3QgeD0nMzAnIHk9JzUwJyB3aWR0aD0nMTUnIGhlaWdodD0nMjUnIHJ4PSc0JyAvPjxyZWN0IHg9JzU1JyB5PScyNScgd2lkdGg9JzE1JyBoZWlnaHQ9JzUwJyByeD0nNCcgLz48L2c+PC9zdmc+","type":"image/svg+xml","sizes":"512x512"}]}' />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+    :root { 
+      --bg-light: #f8fafc;
+      --card-light: #ffffff;
+      --border-light: #e5e7eb;
+      --text-dark: #374151;
+      --text-headings: #111827;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981; 
+      --accent-red: #ef4444; 
+    }
+    * { font-family: 'Cairo', sans-serif; }
+    body { background-color: var(--bg-light); color: var(--text-dark); }
+    .glass-card { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-light); border-radius: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07); }
+    .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); }
+    .number-display { font-family: 'SF Mono', 'Courier New', monospace; direction: ltr; text-align: left; }
+    .tab-bar { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid var(--border-light); }
+    .tab-btn { color: var(--text-dark); background-color: transparent; transition: all 0.3s ease; }
+    .tab-btn:hover { background-color: rgba(229, 231, 235, 0.7); }
+    .tab-btn.active { color: #ffffff; background: var(--accent-blue); box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25); }
+    input, select, textarea { background-color: #f9fafb !important; color: var(--text-dark) !important; border: 1px solid #d1d5db !important; border-radius: 0.5rem; }
+    input::placeholder, textarea::placeholder { color: #9ca3af; }
+    .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(17, 24, 39, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+    .modal-overlay.visible { opacity: 1; visibility: visible; }
+    .modal-content { background: var(--card-light); padding: 1.5rem; border-radius: 1rem; width: 90%; max-width: 500px; border: 1px solid var(--border-light); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); transform: scale(0.95); transition: transform 0.3s; }
+    .modal-overlay.visible .modal-content { transform: scale(1); }
+    .loader { border: 6px solid #e5e7eb; border-top: 6px solid var(--accent-blue); border-radius: 50%; width: 70px; height: 70px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .chat-bubble { max-width: 80%; padding: 10px 15px; border-radius: 20px; }
+    .user-bubble { background-color: var(--accent-blue); color: white; border-bottom-right-radius: 5px; align-self: flex-end; }
+    .ai-bubble { background-color: #f3f4f6; color: var(--text-dark); border-bottom-left-radius: 5px; align-self: flex-start; border: 1px solid var(--border-light); }
+    .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #9ca3af; animation: pulse 1.4s infinite ease-in-out both; }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes pulse { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+    .prose { color: var(--text-dark); }
+    .prose h4 { color: var(--text-headings); }
+    .prose table { width: 100%; }
+    .prose td, .prose th { border: 1px solid var(--border-light); padding: 8px; }
+    .prose thead { background-color: #f3f4f6; }
+    .magical-button { background-color: var(--accent-blue); }
+    .magical-button:hover { background-color: #2563eb; }
+  </style>
+
+<link rel="stylesheet" href="/index.css">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0",
+    "firebase/app": "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js",
+    "chart.js": "https://aistudiocdn.com/chart.js@^4.5.0",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.3.0/"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-DDZPAlRM.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <div id="root"></div>
+</body>
+</html>
