@@ -142,7 +142,24 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
                                     <td className={`p-3 font-semibold number-display ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>{isPositive ? '+' : '-'} {formatCurrency(t.amount)}</td>
                                     <td className="p-3">{category ? `${category.icon} ${category.name}` : 'غير محدد'}</td>
                                     <td className="p-3 text-slate-500 hidden sm:table-cell">{t.description || '-'}</td>
-                                    <td className="p-3 text-center"><button onClick={() => deleteTransaction(t.id)} className="text-slate-400 hover:text-red-500 p-1"><TrashIcon /></button></td>
+                                    <td className="p-3 text-center">
+                                        <div className="flex gap-2 justify-center">
+                                            <button 
+                                                onClick={() => editTransaction(t.id)} 
+                                                className="text-slate-400 hover:text-blue-500 p-1 transition-colors" 
+                                                title="تعديل الحركة"
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button 
+                                                onClick={() => deleteTransaction(t.id)} 
+                                                className="text-slate-400 hover:text-red-500 p-1 transition-colors" 
+                                                title="حذف الحركة"
+                                            >
+                                                <TrashIcon />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             )})}
                         </tbody>

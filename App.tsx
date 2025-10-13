@@ -201,6 +201,13 @@ const App: React.FC = () => {
             }
         });
     };
+
+    const handleEditTransaction = (id: string) => {
+        const transaction = state.transactions.find(t => t.id === id);
+        if (transaction) {
+            setTransactionForm({ isOpen: true, initialData: transaction });
+        }
+    };
     
     
     const handleSaveCard = (card: Omit<CardConfig, 'id'>, id?: string) => {
@@ -398,7 +405,7 @@ const App: React.FC = () => {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'summary': return <DashboardTab calculations={calculations} categories={state.categories} />;
-            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={state.transactions} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={() => {}} state={state} />;
+            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={state.transactions} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} />;
             case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} />;
             case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} />;
             case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} />;
