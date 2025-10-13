@@ -55,7 +55,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, onClose, hideCloseButton
     };
 
     return (
-        <div className={`${hideCloseButton ? '' : 'fixed inset-0 bg-black/60 backdrop-blur-sm z-[70]'} flex items-center justify-center p-4`}>
+        <div className={`${hideCloseButton ? '' : 'fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] overflow-hidden'} flex items-center justify-center p-4`} style={hideCloseButton ? {} : { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-fade-in">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
