@@ -38,8 +38,8 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({ onClose, onSave, init
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div className="modal-consistent" onClick={onClose}>
+            <div className="modal-content-consistent" onClick={e => e.stopPropagation()}>
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold text-slate-800">{initialData ? 'تعديل الحساب' : 'إضافة حساب بنكي'}</h2>

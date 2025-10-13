@@ -726,11 +726,10 @@ const App: React.FC = () => {
             {/* Generic Modal */}
             {modalConfig && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-                    style={{ backdropFilter: 'none' }}
+                    className="modal-consistent"
                     onClick={() => setModalConfig(null)}
                 >
-                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content-consistent max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold text-slate-800 mb-4">{modalConfig.title}</h3>
                         <div className="text-slate-600" dangerouslySetInnerHTML={{ __html: modalConfig.body }}></div>
                         <div className="flex justify-end gap-3 mt-6">
@@ -743,10 +742,7 @@ const App: React.FC = () => {
 
             {/* Loading Overlay */}
             {loadingState.isLoading && (
-                <div 
-                    className="fixed inset-0 bg-black/50 z-50 flex flex-col items-center justify-center"
-                    style={{ backdropFilter: 'none' }}
-                >
+                <div className="modal-consistent">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
                     <p className="text-white mt-4">{loadingState.text || 'جاري التحميل...'}</p>
                 </div>

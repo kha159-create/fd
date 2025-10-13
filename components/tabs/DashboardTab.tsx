@@ -84,8 +84,8 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
-            <div className="glass-card p-6 xl:col-span-1">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">💳 ملخص ديون البطاقات</h3>
+            <div className="card-consistent xl:col-span-1">
+                <h3 className="font-semibold text-lg text-slate-800 mb-4">💳 ملخص ديون البطاقات</h3>
                 <div className="space-y-4">
                     {Object.values(cardDetails).map((card: CardDetails, index) => (
                         <CardDebtWidget key={card.id} title={card.name} details={card} barColor={cardColors[index % cardColors.length]} />
@@ -94,59 +94,66 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                 <div className="mt-4 p-3 bg-slate-100 rounded-lg">
                     <div className="space-y-3">
                         <div className="bg-red-50 p-3 rounded-lg border border-red-200 text-center">
-                            <p className="text-red-600 text-xs font-medium mb-2">إجمالي الديون</p>
-                            <p className="text-sm font-bold text-red-600 number-display">{formatCurrency(totalDebt)}</p>
+                            <p className="text-red-600 font-semibold text-xs mb-2">إجمالي الديون</p>
+                            <p className="font-bold text-sm text-red-600 number-display">{formatCurrency(totalDebt)}</p>
                         </div>
                         <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-center">
-                            <p className="text-emerald-600 text-xs font-medium mb-2">إجمالي المتاح</p>
-                            <p className="text-sm font-bold text-emerald-600 number-display">{formatCurrency(totalAvailable)}</p>
+                            <p className="text-emerald-600 font-semibold text-xs mb-2">إجمالي المتاح</p>
+                            <p className="font-bold text-sm text-emerald-600 number-display">{formatCurrency(totalAvailable)}</p>
                         </div>
                         <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 text-center">
-                            <p className="text-blue-600 text-xs font-medium mb-2 whitespace-nowrap">إجمالي الحدود</p>
-                            <p className="text-sm font-bold text-blue-600 number-display">{formatCurrency(totalLimits)}</p>
+                            <p className="text-blue-600 font-semibold text-xs mb-2 whitespace-nowrap">إجمالي الحدود</p>
+                            <p className="font-bold text-sm text-blue-600 number-display">{formatCurrency(totalLimits)}</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="glass-card p-6 xl:col-span-1">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">🏦 ملخص الحسابات البنكية</h3>
+            <div className="card-consistent xl:col-span-1">
+                <h3 className="font-semibold text-lg text-slate-800 mb-4">🏦 ملخص الحسابات البنكية</h3>
                 <div className="space-y-3">
-                    {Object.values(bankAccountDetails).map((account: BankAccountDetails) => (
-                        <div key={account.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow h-32 flex flex-col justify-between">
-                            <div className="flex justify-between items-start">
-                                <p className="font-bold text-slate-800 text-sm">{account.name}</p>
-                                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span className="text-blue-600 text-sm">🏛️</span>
+                    {Object.values(bankAccountDetails).map((account: BankAccountDetails) => {
+                        const balanceClass = account.balance > 0 ? 'bank-card-positive' : 
+                                           account.balance < 0 ? 'bank-card-negative' : 'bank-card-neutral';
+                        
+                        return (
+                            <div key={account.id} className={`card-consistent ${balanceClass} h-32 flex flex-col justify-between`}>
+                                <div className="flex justify-between items-start">
+                                    <h3 className="font-semibold text-lg text-slate-800">{account.name}</h3>
+                                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span className="text-blue-600 text-sm">🏛️</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="p-3 rounded-lg">
-                                <p className="font-bold text-2xl text-blue-900 number-display text-center">{formatCurrency(account.balance)}</p>
-                            </div>
-                            <div className="flex justify-center gap-6 mt-3">
+                                
+                                {/* Balance Number - Centered */}
                                 <div className="text-center">
-                                    <p className="text-emerald-600 font-semibold text-xs mb-1">الإيداعات</p>
-                                    <p className="text-emerald-700 font-bold text-sm">+{formatCurrency(account.deposits)}</p>
+                                    <p className="font-bold text-2xl text-blue-900 number-display">{formatCurrency(account.balance)}</p>
                                 </div>
-                                <div className="text-center">
-                                    <p className="text-red-600 font-semibold text-xs mb-1">السحوبات</p>
-                                    <p className="text-red-700 font-bold text-sm">-{formatCurrency(account.withdrawals)}</p>
+                                
+                                {/* Deposits and Withdrawals - Tight spacing below balance */}
+                                <div className="flex justify-center gap-6 mt-1">
+                                    <div className="text-center">
+                                        <p className="text-emerald-600 font-semibold text-xs mb-0.5">الإيداعات</p>
+                                        <p className="text-emerald-700 font-bold text-sm">+{formatCurrency(account.deposits)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-red-600 font-semibold text-xs mb-0.5">السحوبات</p>
+                                        <p className="text-red-700 font-bold text-sm">-{formatCurrency(account.withdrawals)}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
-                 <div className="mt-4 bg-white p-4 rounded-xl border border-blue-200 shadow-lg text-center">
-                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p className="text-blue-700 text-sm font-medium mb-2">🏦 إجمالي الأرصدة البنكية</p>
-                        <p className="text-xl font-bold text-blue-900 number-display">{formatCurrency(totalBankBalance)}</p>
-                    </div>
+                 <div className="mt-4 card-consistent text-center">
+                    <h3 className="font-semibold text-lg text-slate-800 mb-2">🏦 إجمالي الأرصدة البنكية</h3>
+                    <p className="font-bold text-xl text-blue-900 number-display">{formatCurrency(totalBankBalance)}</p>
                 </div>
             </div>
-            <div className="glass-card p-6 xl:col-span-1">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">📈 تقرير مالي شامل</h3>
+            <div className="card-consistent xl:col-span-1">
+                <h3 className="font-semibold text-lg text-slate-800 mb-4">📈 تقرير مالي شامل</h3>
                 <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span>إجمالي الدخل:</span><span className="font-bold text-emerald-500 number-display">{formatCurrency(totalIncome)}</span></div>
-                    <div className="flex justify-between"><span>إجمالي المصاريف:</span><span className="font-bold text-red-500 number-display">{formatCurrency(totalExpenses)}</span></div>
+                    <div className="flex justify-between"><span>إجمالي الدخل:</span><span className="font-bold text-sm text-emerald-500 number-display">{formatCurrency(totalIncome)}</span></div>
+                    <div className="flex justify-between"><span>إجمالي المصاريف:</span><span className="font-bold text-sm text-red-500 number-display">{formatCurrency(totalExpenses)}</span></div>
                     <hr className="my-2 border-slate-200" />
                     {Object.values(cardDetails).map((card: CardDetails, index) => (
                          <div key={card.id} className="flex justify-between text-xs"><span className="text-slate-500">مصاريف {card.name}:</span><span className={`font-semibold ${cardColors[index % cardColors.length].replace('bg-','text-')} number-display`}>{formatCurrency(card.balance + (cardPayments[card.id] || 0))}</span></div>
@@ -156,11 +163,11 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                          <div key={cardId} className="flex justify-between text-xs"><span className="text-slate-500">إجمالي سداد {cardDetails[cardId]?.name}:</span><span className="font-semibold text-emerald-500 number-display">{formatCurrency(amount as number)}</span></div>
                     ))}
                     <hr className="my-2 border-slate-200" />
-                    <div className="flex justify-between font-bold text-lg"><span>الصافي:</span><span className={`number-display ${net >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{formatCurrency(net)}</span></div>
+                    <div className="flex justify-between font-bold text-sm"><span>الصافي:</span><span className={`number-display ${net >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{formatCurrency(net)}</span></div>
                 </div>
             </div>
-            <div className="glass-card p-6 xl:col-span-1">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">📊 ملخص الفئات</h3>
+            <div className="card-consistent xl:col-span-1">
+                <h3 className="font-semibold text-lg text-slate-800 mb-4">📊 ملخص الفئات</h3>
                 <CategorySummary calculations={calculations} categories={categories} />
             </div>
         </div>
