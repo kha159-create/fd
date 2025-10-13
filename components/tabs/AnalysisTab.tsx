@@ -30,13 +30,13 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ calculations, categories, all
         const today = new Date();
         for (let i = 5; i >= 0; i--) {
             const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-            const monthString = d.toLocaleString('ar-SA', { month: 'short', year: 'numeric' });
+            const monthString = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
             result[monthString] = { income: 0, expenses: 0 };
         }
         
         allTransactions.forEach(t => {
             const date = new Date(t.date);
-            const monthString = date.toLocaleString('ar-SA', { month: 'short', year: 'numeric' });
+            const monthString = date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
             if (result[monthString]) {
                  if (t.type === 'income') result[monthString].income += t.amount;
                  if (t.type === 'expense' || t.type === 'bnpl-payment') result[monthString].expenses += t.amount;
