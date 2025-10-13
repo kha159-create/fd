@@ -46,33 +46,37 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
     };
 
     const filteredTransactions = useMemo(() => {
-        let sourceData = transactions;
+        // First, apply all filters based on transaction date (not entry time)
+        let filteredData = transactions;
 
+        // Apply date range filter based on transaction date
         if (dateFrom && dateTo) {
             const startDate = new Date(dateFrom);
             const endDate = new Date(dateTo);
             endDate.setHours(23, 59, 59, 999);
-            sourceData = allTransactions.filter(t => {
+            filteredData = allTransactions.filter(t => {
                 const transactionDate = new Date(t.date);
                 return transactionDate >= startDate && transactionDate <= endDate;
             });
         }
 
-        return sourceData
-            .filter(t => {
-                const term = searchTerm.toLowerCase();
-                const category = categories.find(c => c.id === t.categoryId);
-                const searchMatch = t.description.toLowerCase().includes(term) || category?.name.toLowerCase().includes(term);
-                const methodMatch = !filterMethod || t.paymentMethod === filterMethod;
-                const categoryMatch = !filterCategory || t.categoryId === filterCategory;
-                return searchMatch && methodMatch && categoryMatch;
-            })
-            .sort((a, b) => {
-                // Sort by entry time (ID contains timestamp) - newest first
-                const aTime = parseInt(a.id.replace('trans-', '').split('-')[0]);
-                const bTime = parseInt(b.id.replace('trans-', '').split('-')[0]);
-                return bTime - aTime;
-            });
+        // Apply other filters (search, method, category)
+        filteredData = filteredData.filter(t => {
+            const term = searchTerm.toLowerCase();
+            const category = categories.find(c => c.id === t.categoryId);
+            const searchMatch = t.description.toLowerCase().includes(term) || category?.name.toLowerCase().includes(term);
+            const methodMatch = !filterMethod || t.paymentMethod === filterMethod;
+            const categoryMatch = !filterCategory || t.categoryId === filterCategory;
+            return searchMatch && methodMatch && categoryMatch;
+        });
+
+        // Finally, sort by entry time (ID timestamp) - newest entries first
+        return filteredData.sort((a, b) => {
+            // Sort by entry time (ID contains timestamp) - newest first
+            const aTime = parseInt(a.id.replace('trans-', '').split('-')[0]);
+            const bTime = parseInt(b.id.replace('trans-', '').split('-')[0]);
+            return bTime - aTime;
+        });
     }, [transactions, allTransactions, searchTerm, filterMethod, filterCategory, dateFrom, dateTo, categories]);
 
     const totals = useMemo(() => {
