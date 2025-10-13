@@ -13,6 +13,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({ onClose, onSave, init
     const [account, setAccount] = useState<Omit<BankAccountConfig, 'id'>>({
         name: '',
         balance: 0,
+        currency: 'SAR',
         smsSamples: [],
     });
 
@@ -49,9 +50,26 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({ onClose, onSave, init
                             <label htmlFor="name" className="block text-sm font-medium text-slate-600 mb-1">اسم الحساب</label>
                             <input type="text" name="name" value={account.name} onChange={handleChange} className="w-full p-2" required />
                         </div>
-                        <div>
-                            <label htmlFor="balance" className="block text-sm font-medium text-slate-600 mb-1">الرصيد الافتتاحي</label>
-                            <input type="number" name="balance" value={account.balance} onChange={handleChange} className="w-full p-2" required step="10" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="balance" className="block text-sm font-medium text-slate-600 mb-1">الرصيد الافتتاحي</label>
+                                <input type="number" name="balance" value={account.balance} onChange={handleChange} className="w-full p-2" required step="10" />
+                            </div>
+                            <div>
+                                <label htmlFor="currency" className="block text-sm font-medium text-slate-600 mb-1">العملة</label>
+                                <select name="currency" value={account.currency || 'SAR'} onChange={handleChange} className="w-full p-2" required>
+                                    <option value="SAR">🇸🇦 ريال سعودي (SAR)</option>
+                                    <option value="AED">🇦🇪 درهم إماراتي (AED)</option>
+                                    <option value="USD">🇺🇸 دولار أمريكي (USD)</option>
+                                    <option value="EUR">🇪🇺 يورو (EUR)</option>
+                                    <option value="GBP">🇬🇧 جنيه إسترليني (GBP)</option>
+                                    <option value="JOD">🇯🇴 دينار أردني (JOD)</option>
+                                    <option value="KWD">🇰🇼 دينار كويتي (KWD)</option>
+                                    <option value="QAR">🇶🇦 ريال قطري (QAR)</option>
+                                    <option value="BHD">🇧🇭 دينار بحريني (BHD)</option>
+                                    <option value="OMR">🇴🇲 ريال عماني (OMR)</option>
+                                </select>
+                            </div>
                         </div>
                         <div>
                             <label htmlFor="smsSamples" className="block text-sm font-medium text-slate-600 mb-1">الكلمات المفتاحية للرسائل (افصل بفواصل)</label>

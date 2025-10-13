@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { config, validateConfig } from '../../config';
 import { firebaseService } from '../../services/firebaseService';
+import { suggestCategoryIcon } from '../../services/geminiService';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '../common/Icons';
 import { AppState, Category } from '../../types';
 
@@ -143,6 +144,72 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         } else {
             setState(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }));
             setModal({ title: 'نجح', body: '<p>تم حذف الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        }
+    };
+
+    // اقتراح أيقونة لنوع الحركة
+    const handleSuggestTransactionTypeIcon = async () => {
+        const transactionTypeName = newTransactionType.name.trim();
+        if (!transactionTypeName) {
+            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم نوع الحركة أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            return;
+        }
+
+        try {
+            const iconSuggestion = await suggestCategoryIcon(transactionTypeName);
+            
+            if (iconSuggestion && iconSuggestion.trim()) {
+                setNewTransactionType(prev => ({ ...prev, icon: iconSuggestion.trim() }));
+                setModal({ 
+                    title: 'تم اقتراح أيقونة', 
+                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion.trim()}" لنوع الحركة "${transactionTypeName}".</p>`, 
+                    hideCancel: true, 
+                    confirmText: 'موافق' 
+                });
+            } else {
+                setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
+            }
+        } catch (error) {
+            console.error("Transaction type icon suggestion error:", error);
+            setModal({ 
+                title: 'خطأ', 
+                body: `<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API بشكل صحيح.</p><p>تفاصيل الخطأ: ${error.message}</p>`, 
+                hideCancel: true, 
+                confirmText: 'موافق' 
+            });
+        }
+    };
+
+    // اقتراح أيقونة لوسيلة الدفع
+    const handleSuggestPaymentMethodIcon = async () => {
+        const paymentMethodName = newPaymentMethod.name.trim();
+        if (!paymentMethodName) {
+            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وسيلة الدفع أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            return;
+        }
+
+        try {
+            const iconSuggestion = await suggestCategoryIcon(paymentMethodName);
+            
+            if (iconSuggestion && iconSuggestion.trim()) {
+                setNewPaymentMethod(prev => ({ ...prev, icon: iconSuggestion.trim() }));
+                setModal({ 
+                    title: 'تم اقتراح أيقونة', 
+                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion.trim()}" لوسيلة الدفع "${paymentMethodName}".</p>`, 
+                    hideCancel: true, 
+                    confirmText: 'موافق' 
+                });
+            } else {
+                setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
+            }
+        } catch (error) {
+            console.error("Payment method icon suggestion error:", error);
+            setModal({ 
+                title: 'خطأ', 
+                body: `<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API بشكل صحيح.</p><p>تفاصيل الخطأ: ${error.message}</p>`, 
+                hideCancel: true, 
+                confirmText: 'موافق' 
+            });
         }
     };
 
@@ -556,6 +623,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                                 className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             <button
+                                type="button"
+                                onClick={handleSuggestTransactionTypeIcon}
+                                disabled={!newTransactionType.name.trim()}
+                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                title="اقتراح أيقونة بالذكاء الاصطناعي"
+                            >
+                                🤖
+                            </button>
+                            <button
                                 onClick={handleAddTransactionType}
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                             >
@@ -603,6 +679,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                                 onChange={(e) => setNewPaymentMethod(prev => ({ ...prev, icon: e.target.value }))}
                                 className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
+                            <button
+                                type="button"
+                                onClick={handleSuggestPaymentMethodIcon}
+                                disabled={!newPaymentMethod.name.trim()}
+                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                title="اقتراح أيقونة بالذكاء الاصطناعي"
+                            >
+                                🤖
+                            </button>
                             <button
                                 onClick={handleAddPaymentMethod}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

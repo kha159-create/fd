@@ -64,13 +64,16 @@ const AccountCard: React.FC<{
 );
 
 
+const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filteredTransactions, categories, setModal, openBankAccountFormModal, deleteBankAccount }) => {
     const [transferModal, setTransferModal] = useState({ isOpen: false });
     const [transferData, setTransferData] = useState({
         fromAccount: '',
         toAccount: '',
         amount: 0,
-        description: ''
+        description: '',
+        exchangeRate: 1
     });
 
     const handleTransfer = () => {
@@ -84,12 +87,17 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
             return;
         }
 
+        // حساب المبلغ المحول مع معدل التحويل
+        const fromAccount = state.bankAccounts[transferData.fromAccount];
+        const toAccount = state.bankAccounts[transferData.toAccount];
+        const convertedAmount = transferData.amount * transferData.exchangeRate;
+        
         // إنشاء حركتين: سحب من الحساب المصدر وإيداع في الحساب الهدف
         const withdrawalTransaction = {
             id: `trans-${Date.now()}-withdrawal`,
             amount: transferData.amount,
             date: new Date().toISOString().split('T')[0],
-            description: `تحويل إلى ${state.bankAccounts[transferData.toAccount]?.name || 'حساب آخر'}: ${transferData.description}`,
+            description: `تحويل إلى ${toAccount?.name || 'حساب آخر'}: ${transferData.description}${transferData.exchangeRate !== 1 ? ` (معدل: ${transferData.exchangeRate})` : ''}`,
             paymentMethod: transferData.fromAccount,
             type: 'expense' as const,
             categoryId: null
@@ -97,9 +105,9 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
 
         const depositTransaction = {
             id: `trans-${Date.now()}-deposit`,
-            amount: transferData.amount,
+            amount: convertedAmount,
             date: new Date().toISOString().split('T')[0],
-            description: `تحويل من ${state.bankAccounts[transferData.fromAccount]?.name || 'حساب آخر'}: ${transferData.description}`,
+            description: `تحويل من ${fromAccount?.name || 'حساب آخر'}: ${transferData.description}${transferData.exchangeRate !== 1 ? ` (معدل: ${transferData.exchangeRate})` : ''}`,
             paymentMethod: transferData.toAccount,
             type: 'income' as const,
             categoryId: null
@@ -111,7 +119,7 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
         }));
 
         setTransferModal({ isOpen: false });
-        setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '' });
+        setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '', exchangeRate: 1 });
         setModal({ title: 'نجح', body: '<p>تم التحويل بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
     };
     
@@ -227,6 +235,26 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
                                     placeholder="0.00"
                                 />
                             </div>
+                            
+                            {transferData.fromAccount && transferData.toAccount && 
+                             state.bankAccounts[transferData.fromAccount]?.currency !== state.bankAccounts[transferData.toAccount]?.currency && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                        💱 معدل التحويل ({state.bankAccounts[transferData.fromAccount]?.currency} → {state.bankAccounts[transferData.toAccount]?.currency})
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        step="0.0001"
+                                        value={transferData.exchangeRate} 
+                                        onChange={(e) => setTransferData(prev => ({ ...prev, exchangeRate: parseFloat(e.target.value) || 1 }))}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="1.0000"
+                                    />
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        المبلغ المحول: {formatCurrency(transferData.amount * transferData.exchangeRate)} {state.bankAccounts[transferData.toAccount]?.currency}
+                                    </p>
+                                </div>
+                            )}
                             
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">الوصف (اختياري)</label>

@@ -49,6 +49,7 @@ export interface BankAccountConfig {
     id: string;
     name: string;
     balance: number;
+    currency?: string;
     smsSamples?: string[];
 }
 

@@ -22,6 +22,6 @@ export const getInitialState = (): AppState => ({
     'enbd-card': { id: 'enbd-card', name: 'ENBD الإمارات', limit: 10000, dueDay: 18, statementDay: 28, smsSamples: ['ENBD', 'الإمارات', 'Visa card'] },
   },
   bankAccounts: {
-    'bank-default': { id: 'bank-default', name: 'حساب البنك', balance: 0, smsSamples: ['مدى', 'mada', 'Alrajhi', 'الراجحي', 'Inma', 'الإنماء', 'بنك'] }
+    'bank-default': { id: 'bank-default', name: 'حساب البنك', balance: 0, currency: 'SAR', smsSamples: ['مدى', 'mada', 'Alrajhi', 'الراجحي', 'Inma', 'الإنماء', 'بنك'] }
   }
 });
