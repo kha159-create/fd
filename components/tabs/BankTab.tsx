@@ -33,26 +33,31 @@ const AccountCard: React.FC<{
     openBankAccountFormModal: (id: string) => void, 
     deleteBankAccount: (id: string) => void 
 }> = ({ account, openBankAccountFormModal, deleteBankAccount }) => (
-     <div className="glass-card p-6">
+     <div className="bg-gradient-to-br from-blue-50 to-slate-100 p-6 rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-4">
-            <h4 className="text-xl font-bold text-slate-900">🏦 {account.name}</h4>
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 text-xl">🏦</span>
+                </div>
+                <h4 className="text-xl font-bold text-slate-900">{account.name}</h4>
+            </div>
              <div className="flex gap-2 flex-shrink-0">
-                <button onClick={() => openBankAccountFormModal(account.id)} className="text-sm bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors" aria-label={`تعديل حساب ${account.name}`}>✏️</button>
+                <button onClick={() => openBankAccountFormModal(account.id)} className="text-sm bg-white/80 hover:bg-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label={`تعديل حساب ${account.name}`}>✏️</button>
                 <button onClick={() => deleteBankAccount(account.id)} className="text-sm bg-red-100 hover:bg-red-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors" aria-label={`حذف حساب ${account.name}`}><TrashIcon /></button>
             </div>
         </div>
-        <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-blue-600 font-semibold">الرصيد الحالي</p>
-            <p className="text-3xl font-bold text-blue-800 number-display">{formatCurrency(account.balance)}</p>
+        <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-white/50 shadow-inner mb-4">
+            <p className="text-blue-600 font-semibold text-center mb-2">الرصيد الحالي</p>
+            <p className="text-3xl font-bold text-blue-800 number-display text-center">{formatCurrency(account.balance)}</p>
         </div>
-        <div className="flex justify-between mt-4">
-            <div className="text-center">
-                <p className="text-emerald-600 font-semibold">إيداعات الفترة</p>
-                <p className="text-lg font-bold text-emerald-800 number-display">{formatCurrency(account.deposits)}</p>
+        <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-lg border border-emerald-200 text-center">
+                <p className="text-emerald-600 font-semibold text-sm mb-1">إيداعات الفترة</p>
+                <p className="text-lg font-bold text-emerald-600 number-display">{formatCurrency(account.deposits)}</p>
             </div>
-             <div className="text-center">
-                <p className="text-red-600 font-semibold">سحوبات الفترة</p>
-                <p className="text-lg font-bold text-red-800 number-display">{formatCurrency(account.withdrawals)}</p>
+            <div className="bg-gradient-to-br from-red-50 to-red-100 p-3 rounded-lg border border-red-200 text-center">
+                <p className="text-red-600 font-semibold text-sm mb-1">سحوبات الفترة</p>
+                <p className="text-lg font-bold text-red-600 number-display">{formatCurrency(account.withdrawals)}</p>
             </div>
         </div>
     </div>

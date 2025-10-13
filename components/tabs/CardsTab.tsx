@@ -38,33 +38,56 @@ const CreditCardDetails: React.FC<{
     };
 
     return (
-        <div className="glass-card p-6 flex flex-col">
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
             <div className="flex items-start justify-between mb-4">
-                <h3 className="text-xl font-bold text-slate-900">💳 {card.name}</h3>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 text-xl">💳</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">{card.name}</h3>
+                </div>
                 <div className="flex gap-2 flex-shrink-0">
-                    <button onClick={() => openCardFormModal(card.id)} className="text-sm bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors" aria-label={`تعديل بطاقة ${card.name}`}>✏️</button>
+                    <button onClick={() => openCardFormModal(card.id)} className="text-sm bg-white/80 hover:bg-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label={`تعديل بطاقة ${card.name}`}>✏️</button>
                     <button onClick={() => deleteCard(card.id)} className="text-sm bg-red-100 hover:bg-red-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors" aria-label={`حذف بطاقة ${card.name}`}><TrashIcon /></button>
                 </div>
             </div>
             <div className="space-y-3">
-                <div className="bg-slate-100 p-3 rounded-lg">
-                    <div className="flex justify-between items-center">
-                        <span className="text-slate-500 text-sm">المبلغ المستحق للكشف الحالي</span>
-                        <span className="font-bold text-2xl text-amber-500 number-display">{formatCurrency(statementDetails.statementDueAmount)} ريال</span>
+                <div className="bg-gradient-to-r from-amber-50 to-amber-100 p-4 rounded-lg border border-amber-200 shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-amber-700 text-sm font-medium">المبلغ المستحق للكشف الحالي</span>
+                        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                            <span className="text-amber-600 text-lg">📅</span>
+                        </div>
                     </div>
-                    <div className="flex justify-between items-center text-xs mt-1">
-                        <span className="text-slate-400">تاريخ الاستحقاق:</span>
-                        <span className="font-semibold text-slate-600">{statementDetails.dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                    <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner mb-2">
+                        <p className="font-bold text-2xl text-amber-600 number-display text-center">{formatCurrency(statementDetails.statementDueAmount)} ريال</p>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                        <span className="text-amber-600 font-medium">تاريخ الاستحقاق:</span>
+                        <span className="font-semibold text-amber-700 bg-white/60 px-2 py-1 rounded">{statementDetails.dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                     </div>
                 </div>
-                <div className="flex justify-between text-sm"><span>الرصيد الإجمالي المستحق:</span><span className="font-bold text-red-600 number-display">{formatCurrency(card.balance)} ريال</span></div>
-                <div className="flex justify-between text-sm"><span>الحد الائتماني:</span><span className="font-bold number-display">{formatCurrency(card.limit)} ريال</span></div>
-                <div className="flex justify-between text-sm"><span>الرصيد المتاح:</span><span className="font-bold text-green-600 number-display">{formatCurrency(card.available)} ريال</span></div>
-                <div className="flex justify-between text-sm">
-                    <span>نسبة الاستخدام:</span>
-                    <span className={`font-bold ${card.usagePercentage > 80 ? 'text-red-600' : card.usagePercentage > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
-                        {card.usagePercentage.toFixed(1)}%
-                    </span>
+                <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-white/50 shadow-inner">
+                    <div className="grid grid-cols-1 gap-3">
+                        <div className="flex justify-between items-center p-2 bg-red-50 rounded-lg border border-red-200">
+                            <span className="text-red-700 text-sm font-medium">الرصيد الإجمالي المستحق:</span>
+                            <span className="font-bold text-red-600 number-display">{formatCurrency(card.balance)} ريال</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                            <span className="text-blue-700 text-sm font-medium">الحد الائتماني:</span>
+                            <span className="font-bold text-blue-600 number-display">{formatCurrency(card.limit)} ريال</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-green-50 rounded-lg border border-green-200">
+                            <span className="text-green-700 text-sm font-medium">الرصيد المتاح:</span>
+                            <span className="font-bold text-green-600 number-display">{formatCurrency(card.available)} ريال</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-orange-50 rounded-lg border border-orange-200">
+                            <span className="text-orange-700 text-sm font-medium">نسبة الاستخدام:</span>
+                            <span className={`font-bold ${card.usagePercentage > 80 ? 'text-red-600' : card.usagePercentage > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                                {card.usagePercentage.toFixed(1)}%
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className="mt-4 flex-grow flex flex-col">

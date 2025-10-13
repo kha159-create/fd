@@ -93,17 +93,17 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                 </div>
                 <div className="mt-4 p-3 bg-slate-100 rounded-lg">
                     <div className="grid grid-cols-3 gap-3 text-center">
-                        <div className="bg-red-50 p-2 rounded-lg border border-red-200">
-                            <p className="text-red-600 text-xs font-medium">إجمالي الديون</p>
-                            <p className="text-lg font-bold text-red-600 number-display">{formatCurrency(totalDebt)}</p>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-200 min-w-0">
+                            <p className="text-red-600 text-xs font-medium mb-2">إجمالي الديون</p>
+                            <p className="text-sm font-bold text-red-600 number-display break-all">{formatCurrency(totalDebt)}</p>
                         </div>
-                        <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-200">
-                            <p className="text-emerald-600 text-xs font-medium">إجمالي المتاح</p>
-                            <p className="text-lg font-bold text-emerald-600 number-display">{formatCurrency(totalAvailable)}</p>
+                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200 min-w-0">
+                            <p className="text-emerald-600 text-xs font-medium mb-2">إجمالي المتاح</p>
+                            <p className="text-sm font-bold text-emerald-600 number-display break-all">{formatCurrency(totalAvailable)}</p>
                         </div>
-                        <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
-                            <p className="text-blue-600 text-xs font-medium whitespace-nowrap">إجمالي الحدود</p>
-                            <p className="text-lg font-bold text-blue-600 number-display">{formatCurrency(totalLimits)}</p>
+                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 min-w-0">
+                            <p className="text-blue-600 text-xs font-medium mb-2 whitespace-nowrap">إجمالي الحدود</p>
+                            <p className="text-sm font-bold text-blue-600 number-display break-all">{formatCurrency(totalLimits)}</p>
                         </div>
                     </div>
                 </div>
