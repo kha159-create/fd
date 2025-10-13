@@ -78,6 +78,7 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {activeInstallments.length > 0 ? activeInstallments.map(i => {
                     const progress = (i.paid / i.total) * 100;
+                    console.log('📊 عرض قسط:', { id: i.id, paid: i.paid, total: i.total, progress });
                     return (
                         <div key={i.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-3">
