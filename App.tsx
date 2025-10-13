@@ -38,6 +38,7 @@ const App: React.FC = () => {
     const [transactionForm, setTransactionForm] = useState<{ isOpen: boolean; initialData?: Transaction | null }>({ isOpen: false });
     const [cardForm, setCardForm] = useState<{ isOpen: boolean; initialData?: CardConfig | null }>({ isOpen: false });
     const [bankAccountForm, setBankAccountForm] = useState<{ isOpen: boolean; initialData?: BankAccountConfig | null }>({ isOpen: false });
+    const [transferModal, setTransferModal] = useState<{ isOpen: boolean }>({ isOpen: false });
     
     // نظام المصادقة
     const [currentUser, setCurrentUser] = useState<any>(null);
@@ -666,7 +667,7 @@ const App: React.FC = () => {
             case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} />;
             case 'investment': return <InvestmentTab state={state} setState={setState} calculations={calculations} setModal={setModalConfig} />;
             case 'cards': return <CardsTab state={state} openCardFormModal={openCardFormModal} deleteCard={handleDeleteCard} />;
-            case 'bank': return <BankTab state={state} setState={setState} calculations={calculations} filteredTransactions={filteredTransactions} categories={state.categories} setModal={setModalConfig} openBankAccountFormModal={openBankAccountFormModal} deleteBankAccount={handleDeleteBankAccount} />;
+            case 'bank': return <BankTab state={state} setState={setState} calculations={calculations} filteredTransactions={filteredTransactions} categories={state.categories} setModal={setModalConfig} openBankAccountFormModal={openBankAccountFormModal} deleteBankAccount={handleDeleteBankAccount} openTransferModal={() => setTransferModal({ isOpen: true })} />;
             case 'installments': return <InstallmentsTab state={state} setState={setState} filteredTransactions={filteredTransactions} setModal={setModalConfig} />;
             case 'settings': return <SettingsTab state={state} setState={setState} setModal={setModalConfig} setLoading={setLoading} onRestore={handleRestore} />;
             default: return <div>Tab not found</div>;
@@ -720,6 +721,24 @@ const App: React.FC = () => {
                     onSave={handleSaveBankAccount}
                     initialData={bankAccountForm.initialData}
                 />
+            )}
+
+            {/* Transfer Modal */}
+            {transferModal.isOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setTransferModal({ isOpen: false })}>
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-slate-800">💸 تحويل بين الحسابات</h2>
+                                <button onClick={() => setTransferModal({ isOpen: false })} className="text-slate-400 hover:text-slate-600">✕</button>
+                            </div>
+                            <div className="text-center text-slate-600">
+                                <p>نافذة التحويل</p>
+                                <p className="text-sm mt-2">سيتم تطوير هذه النافذة قريباً</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
 
 

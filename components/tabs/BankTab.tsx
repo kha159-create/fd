@@ -12,6 +12,7 @@ interface BankTabProps {
     setModal: (config: any) => void;
     openBankAccountFormModal: (accountId?: string) => void;
     deleteBankAccount: (accountId: string) => void;
+    openTransferModal: () => void;
 }
 
 const getTransactionTypeName = (type: string, state: AppState) => {
@@ -63,62 +64,8 @@ const AccountCard: React.FC<{
     </div>
 );
 
-const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filteredTransactions, categories, setModal, openBankAccountFormModal, deleteBankAccount }) => {
-    const [transferModal, setTransferModal] = useState({ isOpen: false });
-    const [transferData, setTransferData] = useState({
-        fromAccount: '',
-        toAccount: '',
-        amount: 0,
-        description: '',
-        exchangeRate: 1
-    });
+const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filteredTransactions, categories, setModal, openBankAccountFormModal, deleteBankAccount, openTransferModal }) => {
 
-    const handleTransfer = () => {
-        if (!transferData.fromAccount || !transferData.toAccount || transferData.amount <= 0) {
-            setModal({ title: 'خطأ', body: '<p>يرجى ملء جميع البيانات بشكل صحيح.</p>', hideCancel: true, confirmText: 'موافق' });
-            return;
-        }
-
-        if (transferData.fromAccount === transferData.toAccount) {
-            setModal({ title: 'خطأ', body: '<p>لا يمكن التحويل لنفس الحساب.</p>', hideCancel: true, confirmText: 'موافق' });
-            return;
-        }
-
-        // حساب المبلغ المحول مع معدل التحويل
-        const fromAccount = state.bankAccounts[transferData.fromAccount];
-        const toAccount = state.bankAccounts[transferData.toAccount];
-        const convertedAmount = transferData.amount * transferData.exchangeRate;
-        
-        // إنشاء حركتين: سحب من الحساب المصدر وإيداع في الحساب الهدف
-        const withdrawalTransaction = {
-            id: `trans-${Date.now()}-withdrawal`,
-            amount: transferData.amount,
-            date: new Date().toISOString().split('T')[0],
-            description: `تحويل إلى ${toAccount?.name || 'حساب آخر'}: ${transferData.description}${transferData.exchangeRate !== 1 ? ` (معدل: ${transferData.exchangeRate})` : ''}`,
-            paymentMethod: transferData.fromAccount,
-            type: 'expense' as const,
-            categoryId: null
-        };
-
-        const depositTransaction = {
-            id: `trans-${Date.now()}-deposit`,
-            amount: convertedAmount,
-            date: new Date().toISOString().split('T')[0],
-            description: `تحويل من ${fromAccount?.name || 'حساب آخر'}: ${transferData.description}${transferData.exchangeRate !== 1 ? ` (معدل: ${transferData.exchangeRate})` : ''}`,
-            paymentMethod: transferData.toAccount,
-            type: 'income' as const,
-            categoryId: null
-        };
-
-        setState(prev => ({
-            ...prev,
-            transactions: [...prev.transactions, withdrawalTransaction, depositTransaction]
-        }));
-
-        setTransferModal({ isOpen: false });
-        setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '', exchangeRate: 1 });
-        setModal({ title: 'نجح', body: '<p>تم التحويل بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
-    };
     
     return (
         <div className="space-y-6 animate-fade-in">
@@ -126,7 +73,7 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
                 <h2 className="text-2xl font-bold text-slate-900">إدارة الحسابات البنكية</h2>
                 <div className="flex gap-3">
                     {Object.keys(state.bankAccounts).length > 1 && (
-                        <button onClick={() => setTransferModal({ isOpen: true })} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                        <button onClick={openTransferModal} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold">
                             💸 تحويل بين الحسابات
                         </button>
                     )}
@@ -184,122 +131,6 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
                 </div>
             </div>
 
-            {/* نافذة التحويل بين الحسابات */}
-            {transferModal.isOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setTransferModal({ isOpen: false })}>
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg animate-fade-in" onClick={e => e.stopPropagation()}>
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-slate-800">💸 تحويل بين الحسابات</h2>
-                                <button onClick={() => setTransferModal({ isOpen: false })} className="text-slate-400 hover:text-slate-600">✕</button>
-                            </div>
-                        
-                        <div className="space-y-4">
-                            <div>
-                                <label htmlFor="fromAccount" className="block text-sm font-medium text-slate-600 mb-1">من الحساب</label>
-                                <select 
-                                    id="fromAccount"
-                                    name="fromAccount"
-                                    value={transferData.fromAccount} 
-                                    onChange={(e) => setTransferData(prev => ({ ...prev, fromAccount: e.target.value }))}
-                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                >
-                                    <option value="">اختر الحساب المصدر</option>
-                                    {Object.entries(state.bankAccounts).map(([id, account]) => (
-                                        <option key={id} value={id}>{account.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label htmlFor="toAccount" className="block text-sm font-medium text-slate-600 mb-1">إلى الحساب</label>
-                                <select 
-                                    id="toAccount"
-                                    name="toAccount"
-                                    value={transferData.toAccount} 
-                                    onChange={(e) => setTransferData(prev => ({ ...prev, toAccount: e.target.value }))}
-                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                >
-                                    <option value="">اختر الحساب الهدف</option>
-                                    {Object.entries(state.bankAccounts)
-                                        .filter(([id]) => id !== transferData.fromAccount)
-                                        .map(([id, account]) => (
-                                        <option key={id} value={id}>{account.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label htmlFor="amount" className="block text-sm font-medium text-slate-600 mb-1">المبلغ</label>
-                                <input 
-                                    type="number" 
-                                    id="amount"
-                                    name="amount"
-                                    step="0.01"
-                                    value={transferData.amount} 
-                                    onChange={(e) => setTransferData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
-                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="0.00"
-                                    required
-                                />
-                            </div>
-                            
-                            {transferData.fromAccount && transferData.toAccount && 
-                             state.bankAccounts[transferData.fromAccount]?.currency !== state.bankAccounts[transferData.toAccount]?.currency && (
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        💱 معدل التحويل ({state.bankAccounts[transferData.fromAccount]?.currency} → {state.bankAccounts[transferData.toAccount]?.currency})
-                                    </label>
-                                    <input 
-                                        type="number" 
-                                        step="0.0001"
-                                        value={transferData.exchangeRate} 
-                                        onChange={(e) => setTransferData(prev => ({ ...prev, exchangeRate: parseFloat(e.target.value) || 1 }))}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="1.0000"
-                                    />
-                                    <p className="text-xs text-slate-500 mt-1">
-                                        المبلغ المحول: {formatCurrency(transferData.amount * transferData.exchangeRate)} {state.bankAccounts[transferData.toAccount]?.currency}
-                                    </p>
-                                </div>
-                            )}
-                            
-                            <div>
-                                <label htmlFor="description" className="block text-sm font-medium text-slate-600 mb-1">الوصف (اختياري)</label>
-                                <input 
-                                    type="text" 
-                                    id="description"
-                                    name="description"
-                                    value={transferData.description} 
-                                    onChange={(e) => setTransferData(prev => ({ ...prev, description: e.target.value }))}
-                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="مثل: تحويل للطوارئ"
-                                />
-                            </div>
-                        </div>
-                        
-                            <div className="flex justify-end gap-3 mt-6">
-                                <button 
-                                    type="button"
-                                    onClick={() => setTransferModal({ isOpen: false })} 
-                                    className="px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition-colors"
-                                >
-                                    إلغاء
-                                </button>
-                                <button 
-                                    type="button"
-                                    onClick={handleTransfer}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    تحويل
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
