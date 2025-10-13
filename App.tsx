@@ -225,13 +225,31 @@ const App: React.FC = () => {
         // Calculate bank balances and period deposits/withdrawals
         Object.keys(state.bankAccounts).forEach(accountId => {
             const account = state.bankAccounts[accountId];
-            let currentBalance = account.balance;
             let deposits = 0;
             let withdrawals = 0;
             
-            // This is a simplified balance calculation; a real app would use all transactions to calculate the final balance.
-            // For this app, we will rely on the configured starting balance + period transactions.
+            // Calculate current balance based on ALL transactions (not just filtered ones)
+            let currentBalance = account.balance; // Start with configured balance
             
+            state.transactions.forEach(t => {
+                if (t.paymentMethod === accountId) {
+                    if (['income', 'investment-withdrawal'].includes(t.type)) {
+                        currentBalance += t.amount; // Add to balance
+                    } else {
+                        currentBalance -= t.amount; // Subtract from balance
+                    }
+                }
+                // Card payments also affect bank balance (they are withdrawals from bank)
+                if (t.type.endsWith('-payment') && t.paymentMethod === accountId) {
+                    currentBalance -= t.amount; // Subtract from balance
+                }
+                // BNPL first payments also affect bank balance if paid from bank
+                if (t.type === 'expense' && t.isInstallmentPayment && t.paymentMethod === accountId) {
+                    currentBalance -= t.amount; // Subtract from balance
+                }
+            });
+            
+            // Calculate period deposits/withdrawals for display
             filteredTransactions.forEach(t => {
                 if (t.paymentMethod === accountId) {
                     if (['income', 'investment-withdrawal'].includes(t.type)) {
@@ -244,12 +262,13 @@ const App: React.FC = () => {
                 if (t.type.endsWith('-payment') && t.paymentMethod === accountId) {
                     withdrawals += t.amount;
                 }
-                // BNPL first payments also affect bank balance if paid from bank (now they're regular expenses)
+                // BNPL first payments also affect bank balance if paid from bank
                 if (t.type === 'expense' && t.isInstallmentPayment && t.paymentMethod === accountId) {
                     withdrawals += t.amount;
                 }
             });
-            bankAccountDetails[accountId].balance = currentBalance; // Use the configured balance
+            
+            bankAccountDetails[accountId].balance = currentBalance; // Use calculated balance
             bankAccountDetails[accountId].deposits = deposits;
             bankAccountDetails[accountId].withdrawals = withdrawals;
         });
