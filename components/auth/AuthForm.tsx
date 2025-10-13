@@ -4,9 +4,10 @@ import { firebaseService } from '../../services/firebaseService';
 interface AuthFormProps {
     onSuccess: (user: any) => void;
     onClose: () => void;
+    hideCloseButton?: boolean;
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, onClose }) => {
+const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, onClose, hideCloseButton = false }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
         email: '',
@@ -54,19 +55,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+        <div className={`${hideCloseButton ? '' : 'fixed inset-0 bg-black/60 backdrop-blur-sm z-[70]'} flex items-center justify-center p-4`}>
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-fade-in">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold text-slate-900">
                             {isLogin ? '🔐 تسجيل الدخول' : '📝 إنشاء حساب جديد'}
                         </h2>
-                        <button 
-                            onClick={onClose}
-                            className="text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                            ✕
-                        </button>
+                        {!hideCloseButton && (
+                            <button 
+                                onClick={onClose}
+                                className="text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                ✕
+                            </button>
+                        )}
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">

@@ -9,12 +9,11 @@ interface HeaderProps {
     onYearChange: (year: number) => void;
     onMonthChange: (month: number | 'all') => void;
     onAddTransaction: () => void;
-    currentUser?: any;
-    onSignOut?: () => void;
-    onOpenAuth?: () => void;
+    currentUser: any;
+    onSignOut: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChange, onMonthChange, onAddTransaction, currentUser, onSignOut, onOpenAuth }) => {
+const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChange, onMonthChange, onAddTransaction, currentUser, onSignOut }) => {
     const years = useMemo(() => {
         const currentYear = new Date().getFullYear();
         const years = [];
@@ -53,33 +52,24 @@ const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChan
                             </select>
                         </div>
                         
-                        {/* معلومات المستخدم أو زر تسجيل الدخول */}
-                        {currentUser ? (
-                            <div className="flex items-center gap-3">
-                                <div className="text-right">
-                                    <p className="font-semibold text-slate-800 text-sm">{currentUser.displayName || 'المستخدم'}</p>
-                                    <p className="text-xs text-slate-500">{currentUser.email}</p>
-                                </div>
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span className="text-blue-600 font-bold text-sm">
-                                        {(currentUser.displayName || currentUser.email || 'U').charAt(0).toUpperCase()}
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={onSignOut}
-                                    className="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
-                                >
-                                    🚪 خروج
-                                </button>
+                        {/* معلومات المستخدم */}
+                        <div className="flex items-center gap-3">
+                            <div className="text-right">
+                                <p className="font-semibold text-slate-800 text-sm">{currentUser.displayName || 'المستخدم'}</p>
+                                <p className="text-xs text-slate-500">{currentUser.email}</p>
                             </div>
-                        ) : (
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="text-blue-600 font-bold text-sm">
+                                    {(currentUser.displayName || currentUser.email || 'U').charAt(0).toUpperCase()}
+                                </span>
+                            </div>
                             <button
-                                onClick={onOpenAuth}
-                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+                                onClick={onSignOut}
+                                className="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
                             >
-                                🔐 تسجيل الدخول
+                                🚪 خروج
                             </button>
-                        )}
+                        </div>
                         
                         <button onClick={onAddTransaction} className="hidden md:flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg transition-all duration-300">
                             <PlusIcon className="w-5 h-5" />

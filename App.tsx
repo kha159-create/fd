@@ -293,9 +293,6 @@ const App: React.FC = () => {
         loadLocalData();
     };
 
-    const openAuthForm = () => {
-        setShowAuthForm(true);
-    };
     
     
     const handleSaveCard = (card: Omit<CardConfig, 'id'>, id?: string) => {
@@ -507,6 +504,27 @@ const App: React.FC = () => {
         return <SkeletonDashboard />;
     }
 
+    // إذا لم يكن المستخدم مسجل دخول، اعرض نموذج المصادقة فقط
+    if (!currentUser) {
+        return (
+            <div className="bg-slate-100 min-h-screen font-sans flex items-center justify-center">
+                <div className="w-full max-w-md px-4">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">💰</div>
+                        <h1 className="text-2xl font-bold text-slate-900">لوحة التحكم المالية</h1>
+                        <p className="text-slate-600 mt-2">قم بتسجيل الدخول للوصول لنظام إدارة المصاريف</p>
+                    </div>
+                    
+                    <AuthForm 
+                        onSuccess={handleAuthSuccess}
+                        onClose={() => {}}
+                        hideCloseButton={true}
+                    />
+                </div>
+            </div>
+        );
+    }
+
     const selectedPeriodText = `${selectedYear} - ${selectedMonth === 'all' ? 'كل الشهور' : new Date(selectedYear, selectedMonth - 1).toLocaleString('ar-SA', { month: 'long' })}`;
 
     const renderTabContent = () => {
@@ -535,7 +553,6 @@ const App: React.FC = () => {
                 onAddTransaction={() => setTransactionForm({ isOpen: true })}
                 currentUser={currentUser}
                 onSignOut={handleSignOut}
-                onOpenAuth={openAuthForm}
             />
             <main className="container mx-auto px-2 sm:px-4 max-w-7xl mt-8 mb-20">
                 <TabsComponent activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -598,8 +615,8 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {/* Auth Form */}
-            {showAuthForm && (
+            {/* Auth Form Modal (only for logged-in users) */}
+            {showAuthForm && currentUser && (
                 <AuthForm 
                     onSuccess={handleAuthSuccess}
                     onClose={() => setShowAuthForm(false)}
