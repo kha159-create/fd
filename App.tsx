@@ -51,23 +51,33 @@ const App: React.FC = () => {
             initializeAi();
             initializeFirebase();
             
-            // التحقق من المستخدم المسجل
-            try {
-                const user = await firebaseService.getCurrentUser();
-                if (user) {
-                    setCurrentUser(user);
-                    await loadUserData(user.uid);
-                } else {
-                    // إذا لم يكن هناك مستخدم، استخدم البيانات المحلية
+            // الاستماع لتغييرات حالة المصادقة
+            const unsubscribe = firebaseService.onAuthStateChanged(async (user) => {
+                try {
+                    if (user) {
+                        console.log('✅ تم تسجيل دخول المستخدم:', user.email);
+                        setCurrentUser(user);
+                        await loadUserData(user.uid);
+                    } else {
+                        console.log('❌ لا يوجد مستخدم مسجل دخول');
+                        setCurrentUser(null);
+                        await loadLocalData();
+                    }
+                } catch (error) {
+                    console.error('خطأ في تحميل بيانات المستخدم:', error);
                     await loadLocalData();
+                } finally {
+                    setIsCheckingAuth(false);
+                    setIsInitialized(true);
                 }
-            } catch (error) {
-                console.error('خطأ في التحقق من المصادقة:', error);
-                await loadLocalData();
-            } finally {
-                setIsCheckingAuth(false);
-                setIsInitialized(true);
-            }
+            });
+            
+            // تنظيف الاشتراك عند إلغاء التحميل
+            return () => {
+                if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                }
+            };
         };
         
         initializeApp();
@@ -379,10 +389,20 @@ const App: React.FC = () => {
         await loadUserData(user.uid);
     };
 
-    const handleSignOut = () => {
-        setCurrentUser(null);
-        // تحميل البيانات المحلية بعد تسجيل الخروج
-        loadLocalData();
+    const handleSignOut = async () => {
+        try {
+            const result = await firebaseService.signOut();
+            if (result.success) {
+                console.log('✅ تم تسجيل الخروج بنجاح');
+                setCurrentUser(null);
+                // تحميل البيانات المحلية بعد تسجيل الخروج
+                await loadLocalData();
+            } else {
+                console.error('❌ خطأ في تسجيل الخروج:', result.error);
+            }
+        } catch (error) {
+            console.error('❌ خطأ في تسجيل الخروج:', error);
+        }
     };
 
     

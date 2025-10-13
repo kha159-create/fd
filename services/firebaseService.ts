@@ -109,6 +109,20 @@ export const firebaseService = {
     return auth.currentUser;
   },
 
+  // دالة للاستماع لتغييرات حالة المصادقة
+  onAuthStateChanged(callback: (user: any) => void) {
+    if (!auth) {
+      callback(null);
+      return () => {};
+    }
+    
+    const { onAuthStateChanged } = require('firebase/auth');
+    return onAuthStateChanged(auth, (user) => {
+      console.log('🔐 تغيير في حالة المصادقة:', user ? `مسجل دخول: ${user.email}` : 'غير مسجل دخول');
+      callback(user);
+    });
+  },
+
   // حفظ البيانات في Firestore
   async saveData(collection: string, docId: string, data: any) {
     if (!db) {
