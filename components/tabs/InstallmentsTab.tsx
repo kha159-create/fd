@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppState, Transaction, BankAccountConfig, CardConfig } from '../../types';
+import { formatCurrency } from '../../utils/formatting';
 
 interface InstallmentsTabProps {
     state: AppState;
@@ -8,7 +9,6 @@ interface InstallmentsTabProps {
     setModal: (config: any) => void;
 }
 
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const getPaymentMethodName = (key: string, state: AppState): string => {
     const standardMethods: { [key: string]: string } = {
         'cash': '💵 نقدي', 'tabby-bnpl': '📱 تابي', 'tamara-bnpl': '📱 تمارا', 'reconciliation': '🔄 تسوية'

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { AppState, CardConfig, Transaction, CardDetails } from '../../types';
 import { TrashIcon } from '../common/Icons';
+import { formatCurrency } from '../../utils/formatting';
 
 interface CardsTabProps {
     state: AppState;
@@ -8,7 +9,7 @@ interface CardsTabProps {
     deleteCard: (cardId: string) => void;
 }
 
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 
 interface CardStatementDetails {
     statementDueAmount: number;

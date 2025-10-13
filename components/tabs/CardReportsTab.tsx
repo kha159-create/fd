@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, Category, CardConfig } from '../../types';
+import { formatCurrency } from '../../utils/formatting';
 
 interface CardReportsTabProps {
     allTransactions: Transaction[];
@@ -7,7 +8,6 @@ interface CardReportsTabProps {
     cards: { [key: string]: CardConfig };
 }
 
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const CardReportsTab: React.FC<CardReportsTabProps> = ({ allTransactions, categories, cards }) => {
     const [filters, setFilters] = useState({

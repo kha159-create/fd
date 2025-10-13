@@ -1,12 +1,12 @@
 import React from 'react';
 import { FinancialCalculations, Category, CardDetails, BankAccountDetails } from '../../types';
+import { formatCurrency } from '../../utils/formatting';
 
 interface DashboardTabProps {
     calculations: FinancialCalculations;
     categories: Category[];
 }
 
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const CardDebtWidget: React.FC<{ title: string, details: CardDetails, barColor: string }> = ({ title, details, barColor }) => (
     <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow h-32 flex flex-col justify-between">

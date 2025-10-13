@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { AppState, FinancialCalculations, Message, Transaction, TransactionType, BankAccountConfig } from '../../types';
 import { generateInvestmentAdvice } from '../../services/geminiService';
 import { SendIcon } from '../common/Icons';
+import { formatCurrency } from '../../utils/formatting';
 
 interface InvestmentTabProps {
     state: AppState;
@@ -121,7 +122,6 @@ const InvestmentTab: React.FC<InvestmentTabProps> = ({ state, setState, calculat
 };
 
 // Helper to format currency, assuming it might not be available globally
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 
 export default InvestmentTab;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FinancialCalculations, Transaction, Category, AppState, BankAccountDetails } from '../../types';
 import { TrashIcon } from '../common/Icons';
+import { formatCurrency } from '../../utils/formatting';
 
 interface BankTabProps {
     state: AppState;
@@ -13,7 +14,6 @@ interface BankTabProps {
     deleteBankAccount: (accountId: string) => void;
 }
 
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const getTransactionTypeName = (type: string, state: AppState) => {
     const standardTypes: { [key: string]: string } = {
         'income': '💰 دخل', 'expense': '💸 مصاريف',
@@ -62,9 +62,6 @@ const AccountCard: React.FC<{
         </div>
     </div>
 );
-
-
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filteredTransactions, categories, setModal, openBankAccountFormModal, deleteBankAccount }) => {
     const [transferModal, setTransferModal] = useState({ isOpen: false });

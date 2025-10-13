@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, Category, AppState, CardConfig, BankAccountConfig } from '../../types';
 import { TrashIcon } from '../common/Icons';
+import { formatCurrency } from '../../utils/formatting';
 
 interface TransactionsTabProps {
     transactions: Transaction[];
@@ -11,7 +12,6 @@ interface TransactionsTabProps {
     state: AppState;
 }
 
-const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTransactions, categories, deleteTransaction, editTransaction, state }) => {
     const [searchTerm, setSearchTerm] = useState('');
