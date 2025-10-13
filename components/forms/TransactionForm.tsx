@@ -193,7 +193,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                             </div>
                         </div>
                         <div>
-                            <label htmlFor="description" className="form-label">الوصف</label>
+                            <label htmlFor="description" className="form-label">الوصف <span className="text-red-500">*</span></label>
                             <input type="text" name="description" value={transaction.description} onChange={handleChange} className="w-full" required />
                         </div>
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -211,8 +211,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                             </div>
                         </div>
                         <div>
-                            <label htmlFor="categoryId" className="form-label">الفئة</label>
-                            <select name="categoryId" value={transaction.categoryId || ''} onChange={handleChange} className="w-full">
+                            <label htmlFor="categoryId" className="form-label">الفئة <span className="text-red-500">*</span></label>
+                            <select name="categoryId" value={transaction.categoryId || ''} onChange={handleChange} className="w-full" required>
                                 <option value="">-- اختر فئة --</option>
                                 {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                             </select>

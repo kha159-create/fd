@@ -191,10 +191,8 @@ const App: React.FC = () => {
                     expensesByCategory[t.categoryId] = (expensesByCategory[t.categoryId] || 0) + t.amount;
                 }
             } else if (t.type === 'bnpl-payment') {
-                // BNPL payments are expenses but don't count toward main expense total if they're installment payments
-                if (!t.isInstallmentPayment) {
-                    totalExpenses += t.amount;
-                }
+                // BNPL payments are always expenses (installment payments)
+                totalExpenses += t.amount;
                 if (t.categoryId) {
                     expensesByCategory[t.categoryId] = (expensesByCategory[t.categoryId] || 0) + t.amount;
                 }
@@ -216,7 +214,7 @@ const App: React.FC = () => {
         
         // Calculate card balances based on ALL transactions, not just filtered ones
         Object.keys(state.cards).forEach(cardId => {
-             const cardExpenses = state.transactions.filter(t => t.paymentMethod === cardId && (t.type === 'expense' || (t.type === 'bnpl-payment' && !t.isInstallmentPayment))).reduce((sum, t) => sum + t.amount, 0);
+             const cardExpenses = state.transactions.filter(t => t.paymentMethod === cardId && t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
              const cardPaymentsTotal = state.transactions.filter(t => t.type === `${cardId}-payment`).reduce((sum, t) => sum + t.amount, 0);
              const balance = cardExpenses - cardPaymentsTotal;
              cardDetails[cardId].balance = balance;
@@ -246,8 +244,8 @@ const App: React.FC = () => {
                 if (t.type.endsWith('-payment') && t.paymentMethod === accountId) {
                     withdrawals += t.amount;
                 }
-                // BNPL first payments also affect bank balance if paid from bank
-                if (t.type === 'bnpl-payment' && t.isInstallmentPayment && t.paymentMethod === accountId) {
+                // BNPL first payments also affect bank balance if paid from bank (now they're regular expenses)
+                if (t.type === 'expense' && t.isInstallmentPayment && t.paymentMethod === accountId) {
                     withdrawals += t.amount;
                 }
             });
@@ -287,29 +285,25 @@ const App: React.FC = () => {
                         createdAt: transaction.date
                     };
 
-                    // Create first payment transaction
+                    // Create first payment transaction (this is what shows in transactions list)
                     const firstPaymentTransaction: Transaction = {
                         id: `trans-${Date.now()}-1`,
                         amount: transaction.bnplData.installmentAmount,
                         date: transaction.date,
                         description: `الدفعة الأولى لـ: ${transaction.description}`,
                         paymentMethod: transaction.bnplData.initialPaymentSource as PaymentMethod,
-                        type: 'bnpl-payment',
+                        type: 'expense', // This should be expense (negative) not bnpl-payment
                         categoryId: transaction.categoryId,
                         isInstallmentPayment: true,
                         installmentId: installmentPlan.id
                     };
 
-                    // Create main BNPL transaction
-                    const bnplTransaction: Transaction = {
-                        id: `trans-${Date.now()}`,
-                        ...transaction,
-                        type: 'expense' // Main transaction is always expense
-                    };
+                    // DON'T create the main BNPL transaction - it should only exist as installment plan
+                    // The installment plan will handle the remaining amount
 
                     return {
                         ...prev,
-                        transactions: [...prev.transactions, firstPaymentTransaction, bnplTransaction],
+                        transactions: [...prev.transactions, firstPaymentTransaction],
                         installments: [...prev.installments, installmentPlan]
                     };
                 } else {
