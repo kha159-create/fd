@@ -4,7 +4,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig } from './types';
 import { getInitialState } from './constants';
 import { initializeAi } from './services/geminiService';
-import { initializeFirebase } from './services/firebaseService';
+import { initializeFirebase, firebaseService } from './services/firebaseService';
+import AuthForm from './components/auth/AuthForm';
+import UserProfile from './components/auth/UserProfile';
 
 import Header from './components/layout/Header';
 import TabsComponent from './components/layout/Tabs';
@@ -36,85 +38,108 @@ const App: React.FC = () => {
     const [transactionForm, setTransactionForm] = useState<{ isOpen: boolean; initialData?: Transaction | null }>({ isOpen: false });
     const [cardForm, setCardForm] = useState<{ isOpen: boolean; initialData?: CardConfig | null }>({ isOpen: false });
     const [bankAccountForm, setBankAccountForm] = useState<{ isOpen: boolean; initialData?: BankAccountConfig | null }>({ isOpen: false });
+    
+    // نظام المصادقة
+    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [showAuthForm, setShowAuthForm] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-    // Load and save state from/to localStorage and Firebase
+    // تهيئة الخدمات والتحقق من المصادقة
     useEffect(() => {
-        const loadData = async () => {
+        const initializeApp = async () => {
+            // تهيئة الخدمات
+            initializeAi();
+            initializeFirebase();
+            
+            // التحقق من المستخدم المسجل
             try {
-                let loadedState = null;
-                
-                // محاولة تحميل البيانات من Firebase أولاً
-                try {
-                    const { firebaseService } = await import('./services/firebaseService');
-                    const firebaseResult = await firebaseService.getData('users', 'main_user');
-                    if (firebaseResult.success && firebaseResult.data) {
-                        loadedState = firebaseResult.data;
-                        console.log('✅ تم تحميل البيانات من Firebase');
-                    }
-                } catch (error) {
-                    console.log('ℹ️ لم يتم العثور على بيانات في Firebase، سيتم استخدام localStorage');
-                }
-                
-                // إذا لم توجد بيانات في Firebase، استخدم localStorage
-                if (!loadedState) {
-                    const savedState = localStorage.getItem('financial_dashboard_state');
-                    if (savedState) {
-                        loadedState = JSON.parse(savedState);
-                        console.log('✅ تم تحميل البيانات من localStorage');
-                    }
-                }
-                
-                if (loadedState) {
-                    // Simple migration: if old data exists, merge with new initial defaults for keys that might be missing
-                    const initialState = getInitialState();
-                    const mergedState = {
-                        ...initialState,
-                        ...loadedState,
-                        cards: { ...initialState.cards, ...(loadedState.cards || {}) },
-                        bankAccounts: { ...initialState.bankAccounts, ...(loadedState.bankAccounts || {}) },
-                        investments: { ...initialState.investments, ...(loadedState.investments || {}) },
-                    };
-                    setState(mergedState);
+                const user = await firebaseService.getCurrentUser();
+                if (user) {
+                    setCurrentUser(user);
+                    await loadUserData(user.uid);
+                } else {
+                    // إذا لم يكن هناك مستخدم، استخدم البيانات المحلية
+                    await loadLocalData();
                 }
             } catch (error) {
-                console.error("Failed to load state", error);
+                console.error('خطأ في التحقق من المصادقة:', error);
+                await loadLocalData();
             } finally {
+                setIsCheckingAuth(false);
                 setIsInitialized(true);
             }
         };
         
-        loadData();
-        
-        // تهيئة الخدمات
-        initializeAi();
-        initializeFirebase();
+        initializeApp();
     }, []);
 
+    const loadUserData = async (userId: string) => {
+        try {
+            const result = await firebaseService.getData('users', userId);
+            if (result.success && result.data) {
+                const initialState = getInitialState();
+                const mergedState = {
+                    ...initialState,
+                    ...result.data,
+                    cards: { ...initialState.cards, ...(result.data.cards || {}) },
+                    bankAccounts: { ...initialState.bankAccounts, ...(result.data.bankAccounts || {}) },
+                    investments: { ...initialState.investments, ...(result.data.investments || {}) },
+                };
+                setState(mergedState);
+                console.log('✅ تم تحميل بيانات المستخدم من Firebase');
+            }
+        } catch (error) {
+            console.error('خطأ في تحميل بيانات المستخدم:', error);
+        }
+    };
+
+    const loadLocalData = async () => {
+        try {
+            const savedState = localStorage.getItem('financial_dashboard_state');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                const initialState = getInitialState();
+                const mergedState = {
+                    ...initialState,
+                    ...parsedState,
+                    cards: { ...initialState.cards, ...(parsedState.cards || {}) },
+                    bankAccounts: { ...initialState.bankAccounts, ...(parsedState.bankAccounts || {}) },
+                    investments: { ...initialState.investments, ...(parsedState.investments || {}) },
+                };
+                setState(mergedState);
+                console.log('✅ تم تحميل البيانات من localStorage');
+            }
+        } catch (error) {
+            console.error('خطأ في تحميل البيانات المحلية:', error);
+        }
+    };
+
     useEffect(() => {
-        if (isInitialized) {
-            // حفظ في localStorage
+        if (isInitialized && !isCheckingAuth) {
+            // حفظ في localStorage دائماً
             localStorage.setItem('financial_dashboard_state', JSON.stringify(state));
             
-            // حفظ في Firebase (كل 30 ثانية لتجنب الحفظ المتكرر)
-            const saveToFirebase = async () => {
-                try {
-                    const { firebaseService } = await import('./services/firebaseService');
-                    const result = await firebaseService.saveData('users', 'main_user', state);
-                    if (result.success) {
-                        console.log('✅ تم حفظ البيانات في Firebase');
-                    } else {
-                        console.warn('⚠️ فشل في حفظ البيانات في Firebase:', result.error);
+            // حفظ في Firebase إذا كان المستخدم مسجل
+            if (currentUser) {
+                const saveToFirebase = async () => {
+                    try {
+                        const result = await firebaseService.saveData('users', currentUser.uid, state);
+                        if (result.success) {
+                            console.log('✅ تم حفظ البيانات في Firebase');
+                        } else {
+                            console.warn('⚠️ فشل في حفظ البيانات في Firebase:', result.error);
+                        }
+                    } catch (error) {
+                        console.error('❌ خطأ في حفظ البيانات في Firebase:', error);
                     }
-                } catch (error) {
-                    console.error('❌ خطأ في حفظ البيانات في Firebase:', error);
-                }
-            };
-            
-            // تأخير 2 ثانية قبل الحفظ لتجنب الحفظ المتكرر
-            const timeoutId = setTimeout(saveToFirebase, 2000);
-            return () => clearTimeout(timeoutId);
+                };
+                
+                // تأخير 2 ثانية قبل الحفظ لتجنب الحفظ المتكرر
+                const timeoutId = setTimeout(saveToFirebase, 2000);
+                return () => clearTimeout(timeoutId);
+            }
         }
-    }, [state, isInitialized]);
+    }, [state, isInitialized, currentUser, isCheckingAuth]);
     
     const setLoading = (isLoading: boolean, text: string = '') => setLoadingState({ isLoading, text });
 
@@ -253,6 +278,23 @@ const App: React.FC = () => {
         if (transaction) {
             setTransactionForm({ isOpen: true, initialData: transaction });
         }
+    };
+
+    // دوال المصادقة
+    const handleAuthSuccess = async (user: any) => {
+        setCurrentUser(user);
+        setShowAuthForm(false);
+        await loadUserData(user.uid);
+    };
+
+    const handleSignOut = () => {
+        setCurrentUser(null);
+        // تحميل البيانات المحلية بعد تسجيل الخروج
+        loadLocalData();
+    };
+
+    const openAuthForm = () => {
+        setShowAuthForm(true);
     };
     
     
@@ -421,22 +463,23 @@ const App: React.FC = () => {
                     
                     setState(validatedState);
                     
-                    // حفظ البيانات في Firebase بعد الاستعادة
-                    const saveToFirebase = async () => {
-                        try {
-                            const { firebaseService } = await import('./services/firebaseService');
-                            const result = await firebaseService.saveData('users', 'main_user', validatedState);
-                            if (result.success) {
-                                console.log('✅ تم حفظ البيانات المستعادة في Firebase');
-                            } else {
-                                console.warn('⚠️ فشل في حفظ البيانات في Firebase:', result.error);
+                    // حفظ البيانات في Firebase بعد الاستعادة (إذا كان المستخدم مسجل)
+                    if (currentUser) {
+                        const saveToFirebase = async () => {
+                            try {
+                                const result = await firebaseService.saveData('users', currentUser.uid, validatedState);
+                                if (result.success) {
+                                    console.log('✅ تم حفظ البيانات المستعادة في Firebase');
+                                } else {
+                                    console.warn('⚠️ فشل في حفظ البيانات في Firebase:', result.error);
+                                }
+                            } catch (error) {
+                                console.error('❌ خطأ في حفظ البيانات في Firebase:', error);
                             }
-                        } catch (error) {
-                            console.error('❌ خطأ في حفظ البيانات في Firebase:', error);
-                        }
-                    };
-                    
-                    saveToFirebase();
+                        };
+                        
+                        saveToFirebase();
+                    }
                     
                     setModalConfig({ 
                         title: "تم الاستعادة بنجاح", 
@@ -460,7 +503,7 @@ const App: React.FC = () => {
     const openBankAccountFormModal = (accountId?: string) => setBankAccountForm({ isOpen: true, initialData: accountId ? state.bankAccounts[accountId] : null });
 
 
-    if (!isInitialized) {
+    if (!isInitialized || isCheckingAuth) {
         return <SkeletonDashboard />;
     }
 
@@ -490,6 +533,9 @@ const App: React.FC = () => {
                 onYearChange={setSelectedYear}
                 onMonthChange={val => setSelectedMonth(val)}
                 onAddTransaction={() => setTransactionForm({ isOpen: true })}
+                currentUser={currentUser}
+                onSignOut={handleSignOut}
+                onOpenAuth={openAuthForm}
             />
             <main className="container mx-auto px-2 sm:px-4 max-w-7xl mt-8 mb-20">
                 <TabsComponent activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -550,6 +596,14 @@ const App: React.FC = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
                     <p className="text-white mt-4">{loadingState.text || 'جاري التحميل...'}</p>
                 </div>
+            )}
+
+            {/* Auth Form */}
+            {showAuthForm && (
+                <AuthForm 
+                    onSuccess={handleAuthSuccess}
+                    onClose={() => setShowAuthForm(false)}
+                />
             )}
         </div>
     );

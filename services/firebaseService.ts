@@ -40,6 +40,75 @@ if (config.app.environment === 'development' && typeof window !== 'undefined') {
 
 // دوال مساعدة لإدارة البيانات
 export const firebaseService = {
+  // دوال المصادقة
+  async signUp(email: string, password: string, displayName: string) {
+    if (!auth) {
+      return { success: false, error: 'Firebase غير مهيأ' };
+    }
+    
+    try {
+      const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName });
+      
+      // إنشاء مستند المستخدم في Firestore
+      await this.saveData('users', userCredential.user.uid, {
+        email,
+        displayName,
+        createdAt: new Date().toISOString(),
+        // البيانات الافتراضية
+        transactions: [],
+        categories: [],
+        cards: {},
+        bankAccounts: {},
+        investments: { currentValue: 0 },
+        installments: []
+      });
+      
+      return { success: true, user: userCredential.user };
+    } catch (error) {
+      console.error('خطأ في التسجيل:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'خطأ غير معروف' };
+    }
+  },
+
+  async signIn(email: string, password: string) {
+    if (!auth) {
+      return { success: false, error: 'Firebase غير مهيأ' };
+    }
+    
+    try {
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return { success: true, user: userCredential.user };
+    } catch (error) {
+      console.error('خطأ في تسجيل الدخول:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'خطأ غير معروف' };
+    }
+  },
+
+  async signOut() {
+    if (!auth) {
+      return { success: false, error: 'Firebase غير مهيأ' };
+    }
+    
+    try {
+      const { signOut } = await import('firebase/auth');
+      await signOut(auth);
+      return { success: true };
+    } catch (error) {
+      console.error('خطأ في تسجيل الخروج:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'خطأ غير معروف' };
+    }
+  },
+
+  async getCurrentUser() {
+    if (!auth) {
+      return null;
+    }
+    return auth.currentUser;
+  },
+
   // حفظ البيانات في Firestore
   async saveData(collection: string, docId: string, data: any) {
     if (!db) {
