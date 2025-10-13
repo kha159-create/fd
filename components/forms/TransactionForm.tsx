@@ -144,11 +144,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         <>
                {clipboardModal.isOpen && (
                    <div 
-                       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-hidden" 
-                       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+                       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
                        onClick={() => setClipboardModal({ isOpen: false, text: '' })}
                    >
-                <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                     <div className="p-6">
                         <h3 className="text-xl font-bold text-slate-800 mb-4">اكتشاف نص في الحافظة</h3>
                         <p className="text-sm text-slate-600 mb-4">وجدنا نصاً في حافظة النصوص. هل تود لصقه وتحليله لتعبئة الحقول تلقائياً؟</p>
@@ -170,11 +169,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
             </div>
         )}
                <div 
-                   className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-hidden" 
-                   style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+                   className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
                    onClick={onClose}
                >
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold text-slate-800">{initialData ? 'تعديل الحركة' : 'إضافة حركة جديدة'}</h2>
