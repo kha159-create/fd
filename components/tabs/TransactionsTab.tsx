@@ -67,7 +67,12 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
                 const categoryMatch = !filterCategory || t.categoryId === filterCategory;
                 return searchMatch && methodMatch && categoryMatch;
             })
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            .sort((a, b) => {
+                // Sort by entry time (ID contains timestamp) - newest first
+                const aTime = parseInt(a.id.replace('trans-', '').split('-')[0]);
+                const bTime = parseInt(b.id.replace('trans-', '').split('-')[0]);
+                return bTime - aTime;
+            });
     }, [transactions, allTransactions, searchTerm, filterMethod, filterCategory, dateFrom, dateTo, categories]);
 
     const totals = useMemo(() => {
