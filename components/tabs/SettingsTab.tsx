@@ -96,6 +96,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         setModal({ title: 'نجح', body: '<p>تم إضافة الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
     };
 
+    const [isSuggestingCategoryIcon, setIsSuggestingCategoryIcon] = useState(false);
     const handleSuggestIcon = async () => {
         const categoryName = newCategory.name.trim();
         if (!categoryName) {
@@ -103,7 +104,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             return;
         }
 
-        setLoading(true, "جاري البحث عن أيقونة...");
+        setIsSuggestingCategoryIcon(true);
         
         try {
             // استيراد الدوال بشكل مباشر
@@ -116,12 +117,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewCategory(prev => ({ ...prev, icon: iconSuggestion.trim() }));
-                setModal({ 
-                    title: 'تم اقتراح أيقونة', 
-                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion.trim()}" للفئة "${categoryName}".</p>`, 
-                    hideCancel: true, 
-                    confirmText: 'موافق' 
-                });
             } else {
                 setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
             }
@@ -134,7 +129,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 confirmText: 'موافق' 
             });
         } finally {
-            setLoading(false);
+            setIsSuggestingCategoryIcon(false);
         }
     };
 
@@ -148,6 +143,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
     };
 
     // اقتراح أيقونة لنوع الحركة
+    const [isSuggestingTransactionTypeIcon, setIsSuggestingTransactionTypeIcon] = useState(false);
     const handleSuggestTransactionTypeIcon = async () => {
         const transactionTypeName = newTransactionType.name.trim();
         if (!transactionTypeName) {
@@ -156,14 +152,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         }
 
         try {
-            // إضافة مؤشر التحميل
-            setLoading({ isLoading: true, text: 'جار اقتراح أيقونة...' });
-            
+            setIsSuggestingTransactionTypeIcon(true);
             const iconSuggestion = await suggestCategoryIcon(transactionTypeName);
             
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewTransactionType(prev => ({ ...prev, icon: iconSuggestion.trim() }));
-                // لا نعرض نافذة منبثقة، الأيقونة تظهر مباشرة في الحقل
             } else {
                 setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
             }
@@ -176,11 +169,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 confirmText: 'موافق' 
             });
         } finally {
-            setLoading({ isLoading: false, text: '' });
+            setIsSuggestingTransactionTypeIcon(false);
         }
     };
 
     // اقتراح أيقونة لوسيلة الدفع
+    const [isSuggestingPaymentMethodIcon, setIsSuggestingPaymentMethodIcon] = useState(false);
     const handleSuggestPaymentMethodIcon = async () => {
         const paymentMethodName = newPaymentMethod.name.trim();
         if (!paymentMethodName) {
@@ -189,14 +183,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         }
 
         try {
-            // إضافة مؤشر التحميل
-            setLoading({ isLoading: true, text: 'جار اقتراح أيقونة...' });
-            
+            setIsSuggestingPaymentMethodIcon(true);
             const iconSuggestion = await suggestCategoryIcon(paymentMethodName);
             
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewPaymentMethod(prev => ({ ...prev, icon: iconSuggestion.trim() }));
-                // لا نعرض نافذة منبثقة، الأيقونة تظهر مباشرة في الحقل
             } else {
                 setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
             }
@@ -209,7 +200,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 confirmText: 'موافق' 
             });
         } finally {
-            setLoading({ isLoading: false, text: '' });
+            setIsSuggestingPaymentMethodIcon(false);
         }
     };
 
@@ -563,11 +554,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                             <button
                                 type="button"
                                 onClick={handleSuggestIcon}
-                                disabled={!newCategory.name.trim()}
-                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                disabled={!newCategory.name.trim() || isSuggestingCategoryIcon}
+                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[44px]"
                                 title="اقتراح أيقونة بالذكاء الاصطناعي"
                             >
-                                🤖
+                                {isSuggestingCategoryIcon ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                    '🤖'
+                                )}
                             </button>
                         </div>
                     </div>
@@ -625,11 +620,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                             <button
                                 type="button"
                                 onClick={handleSuggestTransactionTypeIcon}
-                                disabled={!newTransactionType.name.trim()}
-                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                disabled={!newTransactionType.name.trim() || isSuggestingTransactionTypeIcon}
+                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[44px]"
                                 title="اقتراح أيقونة بالذكاء الاصطناعي"
                             >
-                                🤖
+                                {isSuggestingTransactionTypeIcon ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                    '🤖'
+                                )}
                             </button>
                             <button
                                 onClick={handleAddTransactionType}
@@ -682,11 +681,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                             <button
                                 type="button"
                                 onClick={handleSuggestPaymentMethodIcon}
-                                disabled={!newPaymentMethod.name.trim()}
-                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                disabled={!newPaymentMethod.name.trim() || isSuggestingPaymentMethodIcon}
+                                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[44px]"
                                 title="اقتراح أيقونة بالذكاء الاصطناعي"
                             >
-                                🤖
+                                {isSuggestingPaymentMethodIcon ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                    '🤖'
+                                )}
                             </button>
                             <button
                                 onClick={handleAddPaymentMethod}

@@ -47,9 +47,16 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                         // Basic validation to check for meaningful text
                         if (text && text.trim().length > 10 && sessionStorage.getItem('ignoredClipboardText') !== text) {
                             console.log('✅ تم العثور على نص مناسب في الحافظة');
+                            console.log('🔍 فتح نافذة الحافظة...');
                             setClipboardModal({ isOpen: true, text });
+                            console.log('✅ تم فتح نافذة الحافظة');
                         } else {
                             console.log('❌ نص الحافظة غير مناسب أو تم تجاهله');
+                            console.log('📊 تفاصيل:', {
+                                textLength: text?.trim().length,
+                                ignored: sessionStorage.getItem('ignoredClipboardText') === text,
+                                text: text?.substring(0, 50) + '...'
+                            });
                         }
                     } catch (err) {
                         console.error('❌ خطأ في قراءة الحافظة:', err);
