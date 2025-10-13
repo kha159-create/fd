@@ -162,6 +162,10 @@ const App: React.FC = () => {
                         withdrawals += t.amount;
                     }
                 }
+                // Card payments also affect bank balance (they are withdrawals from bank)
+                if (t.type.endsWith('-payment') && t.paymentMethod === accountId) {
+                    withdrawals += t.amount;
+                }
             });
             bankAccountDetails[accountId].balance = currentBalance; // Use the configured balance
             bankAccountDetails[accountId].deposits = deposits;

@@ -319,6 +319,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                             </span>
                         </div>
                     </div>
+                    
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                        <p className="text-sm text-slate-600">تطوير</p>
+                        <p className="font-semibold text-slate-800">Khaleel Alsani</p>
+                    </div>
                 </div>
             </div>
 

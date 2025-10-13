@@ -57,8 +57,15 @@ const CreditCardDetails: React.FC<{
                         <span className="font-semibold text-slate-600">{statementDetails.dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                     </div>
                 </div>
-                <div className="flex justify-between text-sm"><span>الرصيد الإجمالي المستحق:</span><span className="font-bold number-display">{formatCurrency(card.balance)} ريال</span></div>
+                <div className="flex justify-between text-sm"><span>الرصيد الإجمالي المستحق:</span><span className="font-bold text-red-600 number-display">{formatCurrency(card.balance)} ريال</span></div>
                 <div className="flex justify-between text-sm"><span>الحد الائتماني:</span><span className="font-bold number-display">{formatCurrency(card.limit)} ريال</span></div>
+                <div className="flex justify-between text-sm"><span>الرصيد المتاح:</span><span className="font-bold text-green-600 number-display">{formatCurrency(card.available)} ريال</span></div>
+                <div className="flex justify-between text-sm">
+                    <span>نسبة الاستخدام:</span>
+                    <span className={`font-bold ${card.usagePercentage > 80 ? 'text-red-600' : card.usagePercentage > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                        {card.usagePercentage.toFixed(1)}%
+                    </span>
+                </div>
             </div>
             <div className="mt-4 flex-grow flex flex-col">
                 <h4 className="font-semibold text-slate-600 mb-2 border-b border-slate-200 pb-1">المعاملات القادمة ({statementDetails.upcomingTransactions.length})</h4>
