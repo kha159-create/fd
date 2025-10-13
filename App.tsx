@@ -214,12 +214,25 @@ const App: React.FC = () => {
         
         // Calculate card balances based on ALL transactions, not just filtered ones
         Object.keys(state.cards).forEach(cardId => {
-             const cardExpenses = state.transactions.filter(t => t.paymentMethod === cardId && t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-             const cardPaymentsTotal = state.transactions.filter(t => t.type === `${cardId}-payment`).reduce((sum, t) => sum + t.amount, 0);
-             const balance = cardExpenses - cardPaymentsTotal;
-             cardDetails[cardId].balance = balance;
-             cardDetails[cardId].available = cardDetails[cardId].limit - balance;
-             cardDetails[cardId].usagePercentage = cardDetails[cardId].limit > 0 ? (balance / cardDetails[cardId].limit) * 100 : 0;
+             const card = state.cards[cardId];
+             
+             // Calculate cumulative balance: start with configured balance + all transactions
+             let currentBalance = 0; // Start from zero (cards don't have initial balance like banks)
+             
+             // Add all expenses made with this card
+             state.transactions.forEach(t => {
+                 if (t.paymentMethod === cardId && t.type === 'expense') {
+                     currentBalance += t.amount;
+                 }
+                 // Subtract all payments made TO this card
+                 if (t.type === `${cardId}-payment`) {
+                     currentBalance -= t.amount;
+                 }
+             });
+             
+             cardDetails[cardId].balance = currentBalance;
+             cardDetails[cardId].available = card.limit - currentBalance;
+             cardDetails[cardId].usagePercentage = card.limit > 0 ? (currentBalance / card.limit) * 100 : 0;
         });
 
         // Calculate bank balances and period deposits/withdrawals
