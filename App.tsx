@@ -37,28 +37,54 @@ const App: React.FC = () => {
     const [cardForm, setCardForm] = useState<{ isOpen: boolean; initialData?: CardConfig | null }>({ isOpen: false });
     const [bankAccountForm, setBankAccountForm] = useState<{ isOpen: boolean; initialData?: BankAccountConfig | null }>({ isOpen: false });
 
-    // Load and save state from/to localStorage
+    // Load and save state from/to localStorage and Firebase
     useEffect(() => {
-        try {
-            const savedState = localStorage.getItem('financial_dashboard_state');
-            if (savedState) {
-                const parsedState = JSON.parse(savedState);
-                // Simple migration: if old data exists, merge with new initial defaults for keys that might be missing
-                const initialState = getInitialState();
-                const mergedState = {
-                    ...initialState,
-                    ...parsedState,
-                    cards: { ...initialState.cards, ...(parsedState.cards || {}) },
-                    bankAccounts: { ...initialState.bankAccounts, ...(parsedState.bankAccounts || {}) },
-                    investments: { ...initialState.investments, ...(parsedState.investments || {}) },
-                };
-                setState(mergedState);
+        const loadData = async () => {
+            try {
+                let loadedState = null;
+                
+                // محاولة تحميل البيانات من Firebase أولاً
+                try {
+                    const { firebaseService } = await import('./services/firebaseService');
+                    const firebaseResult = await firebaseService.getData('users', 'main_user');
+                    if (firebaseResult.success && firebaseResult.data) {
+                        loadedState = firebaseResult.data;
+                        console.log('✅ تم تحميل البيانات من Firebase');
+                    }
+                } catch (error) {
+                    console.log('ℹ️ لم يتم العثور على بيانات في Firebase، سيتم استخدام localStorage');
+                }
+                
+                // إذا لم توجد بيانات في Firebase، استخدم localStorage
+                if (!loadedState) {
+                    const savedState = localStorage.getItem('financial_dashboard_state');
+                    if (savedState) {
+                        loadedState = JSON.parse(savedState);
+                        console.log('✅ تم تحميل البيانات من localStorage');
+                    }
+                }
+                
+                if (loadedState) {
+                    // Simple migration: if old data exists, merge with new initial defaults for keys that might be missing
+                    const initialState = getInitialState();
+                    const mergedState = {
+                        ...initialState,
+                        ...loadedState,
+                        cards: { ...initialState.cards, ...(loadedState.cards || {}) },
+                        bankAccounts: { ...initialState.bankAccounts, ...(loadedState.bankAccounts || {}) },
+                        investments: { ...initialState.investments, ...(loadedState.investments || {}) },
+                    };
+                    setState(mergedState);
+                }
+            } catch (error) {
+                console.error("Failed to load state", error);
+            } finally {
+                setIsInitialized(true);
             }
-        } catch (error) {
-            console.error("Failed to load state from localStorage", error);
-        } finally {
-            setIsInitialized(true);
-        }
+        };
+        
+        loadData();
+        
         // تهيئة الخدمات
         initializeAi();
         initializeFirebase();
@@ -66,7 +92,27 @@ const App: React.FC = () => {
 
     useEffect(() => {
         if (isInitialized) {
+            // حفظ في localStorage
             localStorage.setItem('financial_dashboard_state', JSON.stringify(state));
+            
+            // حفظ في Firebase (كل 30 ثانية لتجنب الحفظ المتكرر)
+            const saveToFirebase = async () => {
+                try {
+                    const { firebaseService } = await import('./services/firebaseService');
+                    const result = await firebaseService.saveData('users', 'main_user', state);
+                    if (result.success) {
+                        console.log('✅ تم حفظ البيانات في Firebase');
+                    } else {
+                        console.warn('⚠️ فشل في حفظ البيانات في Firebase:', result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ خطأ في حفظ البيانات في Firebase:', error);
+                }
+            };
+            
+            // تأخير 2 ثانية قبل الحفظ لتجنب الحفظ المتكرر
+            const timeoutId = setTimeout(saveToFirebase, 2000);
+            return () => clearTimeout(timeoutId);
         }
     }, [state, isInitialized]);
     
@@ -374,9 +420,27 @@ const App: React.FC = () => {
                     };
                     
                     setState(validatedState);
+                    
+                    // حفظ البيانات في Firebase بعد الاستعادة
+                    const saveToFirebase = async () => {
+                        try {
+                            const { firebaseService } = await import('./services/firebaseService');
+                            const result = await firebaseService.saveData('users', 'main_user', validatedState);
+                            if (result.success) {
+                                console.log('✅ تم حفظ البيانات المستعادة في Firebase');
+                            } else {
+                                console.warn('⚠️ فشل في حفظ البيانات في Firebase:', result.error);
+                            }
+                        } catch (error) {
+                            console.error('❌ خطأ في حفظ البيانات في Firebase:', error);
+                        }
+                    };
+                    
+                    saveToFirebase();
+                    
                     setModalConfig({ 
                         title: "تم الاستعادة بنجاح", 
-                        body: "<p>تم استعادة بياناتك بنجاح.</p>",
+                        body: "<p>تم استعادة بياناتك بنجاح وحفظها في السحابة.</p>",
                         confirmText: 'موافق',
                         hideCancel: true
                     });

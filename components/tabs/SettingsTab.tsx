@@ -155,9 +155,40 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            setModal({ title: 'نجح', body: '<p>تم إنشاء النسخة الاحتياطية بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: 'نجح', body: '<p>تم إنشاء النسخة الاحتياطية المحلية بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
         } catch (error) {
             setModal({ title: 'خطأ', body: '<p>فشل إنشاء النسخة الاحتياطية.</p>', hideCancel: true, confirmText: 'موافق' });
+        }
+    };
+
+    const handleFirebaseBackup = async () => {
+        setLoading(true, "جاري حفظ النسخة الاحتياطية في السحابة...");
+        try {
+            const result = await firebaseService.saveData('backups', `backup_${new Date().toISOString().split('T')[0]}`, {
+                ...state,
+                backupDate: new Date().toISOString(),
+                version: '1.0.0'
+            });
+            
+            if (result.success) {
+                setModal({ 
+                    title: 'نجح', 
+                    body: '<p>تم حفظ النسخة الاحتياطية في السحابة بنجاح.</p>', 
+                    hideCancel: true, 
+                    confirmText: 'موافق' 
+                });
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            setModal({ 
+                title: 'خطأ', 
+                body: '<p>فشل في حفظ النسخة الاحتياطية في السحابة.</p>', 
+                hideCancel: true, 
+                confirmText: 'موافق' 
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -428,15 +459,25 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             {/* النسخ الاحتياطي */}
             <div className="glass-card p-6">
                 <h3 className="text-lg font-bold mb-4 text-slate-900">💾 النسخ الاحتياطي والاستعادة</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <h4 className="font-semibold text-slate-800 mb-2">📤 إنشاء نسخة احتياطية</h4>
+                        <h4 className="font-semibold text-slate-800 mb-2">📤 نسخة احتياطية محلية</h4>
                         <p className="text-slate-600 mb-3 text-sm">احفظ جميع بياناتك في ملف آمن.</p>
                         <button
                             onClick={handleBackup}
                             className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                         >
-                            💾 إنشاء نسخة احتياطية
+                            💾 تحميل ملف
+                        </button>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-slate-800 mb-2">☁️ نسخة احتياطية سحابية</h4>
+                        <p className="text-slate-600 mb-3 text-sm">احفظ بياناتك في السحابة للوصول من أي مكان.</p>
+                        <button
+                            onClick={handleFirebaseBackup}
+                            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        >
+                            ☁️ حفظ في السحابة
                         </button>
                     </div>
                     <div>
