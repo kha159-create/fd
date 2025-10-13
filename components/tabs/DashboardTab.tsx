@@ -122,7 +122,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                             <div className="p-3 rounded-lg">
                                 <p className="font-bold text-2xl text-blue-900 number-display text-center">{formatCurrency(account.balance)}</p>
                             </div>
-                            <div className="flex justify-between text-xs px-1 mt-2">
+                            <div className="flex justify-center gap-6 mt-3">
                                 <div className="text-center">
                                     <p className="text-emerald-600 font-semibold text-xs mb-1">الإيداعات</p>
                                     <p className="text-emerald-700 font-bold text-sm">+{formatCurrency(account.deposits)}</p>
