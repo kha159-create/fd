@@ -24,11 +24,11 @@
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
     
     :root { 
-      --bg-light: #f1f5f9;
+      --bg-light: #f8fafc;
       --card-light: #ffffff;
-      --border-light: #e2e8f0;
-      --text-dark: #334155;
-      --text-headings: #0f172a;
+      --border-light: #e5e7eb;
+      --text-dark: #374151;
+      --text-headings: #111827;
       --accent-blue: #3b82f6;
       --accent-green: #10b981; 
       --accent-red: #ef4444;
@@ -38,8 +38,8 @@
     
     * { font-family: 'Cairo', sans-serif; }
     body { background-color: var(--bg-light); color: var(--text-dark); }
-    .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-light); border-radius: 1.5rem; transition: all 0.3s ease; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05); }
-    .glass-card:hover { border-color: rgba(59, 130, 246, 0.6); transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1); }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-light); border-radius: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.06); }
+    .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
     .number-display { font-family: 'SF Mono', 'Courier New', monospace; direction: ltr; text-align: left; }
     .tab-bar { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid var(--border-light); }
     .tab-btn { color: var(--text-dark); background-color: transparent; transition: all 0.3s ease; }

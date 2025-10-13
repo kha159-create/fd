@@ -38,7 +38,7 @@ const CreditCardDetails: React.FC<{
     };
 
     return (
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -52,38 +52,38 @@ const CreditCardDetails: React.FC<{
                 </div>
             </div>
             <div className="space-y-3">
-                <div className="bg-gradient-to-r from-amber-50 to-amber-100 p-4 rounded-lg border border-amber-200 shadow-sm">
+                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 shadow-sm">
                     <div className="flex justify-between items-center mb-2">
                         <span className="text-amber-700 text-sm font-medium">المبلغ المستحق للكشف الحالي</span>
                         <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
                             <span className="text-amber-600 text-lg">📅</span>
                         </div>
                     </div>
-                    <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner mb-2">
-                        <p className="font-bold text-2xl text-amber-600 number-display text-center">{formatCurrency(statementDetails.statementDueAmount)} ريال</p>
+                    <div className="bg-white p-3 rounded-lg border border-amber-200 mb-2">
+                        <p className="font-bold text-2xl text-amber-800 number-display text-center">{formatCurrency(statementDetails.statementDueAmount)} ريال</p>
                     </div>
                     <div className="flex justify-between items-center text-xs">
                         <span className="text-amber-600 font-medium">تاريخ الاستحقاق:</span>
-                        <span className="font-semibold text-amber-700 bg-white/60 px-2 py-1 rounded">{statementDetails.dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                        <span className="font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded">{statementDetails.dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                     </div>
                 </div>
-                <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-white/50 shadow-inner">
+                <div className="bg-slate-50 p-4 rounded-lg border border-gray-200">
                     <div className="grid grid-cols-1 gap-3">
                         <div className="p-3 bg-red-50 rounded-lg border border-red-200 text-center">
                             <p className="text-red-700 text-sm font-medium mb-1">الرصيد الإجمالي المستحق</p>
-                            <p className="font-bold text-red-600 number-display">{formatCurrency(card.balance)} ريال</p>
+                            <p className="font-bold text-red-800 number-display">{formatCurrency(card.balance)} ريال</p>
                         </div>
                         <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-center">
                             <p className="text-blue-700 text-sm font-medium mb-1">الحد الائتماني</p>
-                            <p className="font-bold text-blue-600 number-display">{formatCurrency(card.limit)} ريال</p>
+                            <p className="font-bold text-blue-800 number-display">{formatCurrency(card.limit)} ريال</p>
                         </div>
                         <div className="p-3 bg-green-50 rounded-lg border border-green-200 text-center">
                             <p className="text-green-700 text-sm font-medium mb-1">الرصيد المتاح</p>
-                            <p className="font-bold text-green-600 number-display">{formatCurrency(card.available)} ريال</p>
+                            <p className="font-bold text-green-800 number-display">{formatCurrency(card.available)} ريال</p>
                         </div>
                         <div className="p-3 bg-orange-50 rounded-lg border border-orange-200 text-center">
                             <p className="text-orange-700 text-sm font-medium mb-1">نسبة الاستخدام</p>
-                            <p className={`font-bold ${card.usagePercentage > 80 ? 'text-red-600' : card.usagePercentage > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                            <p className={`font-bold ${card.usagePercentage > 80 ? 'text-red-800' : card.usagePercentage > 60 ? 'text-yellow-800' : 'text-green-800'}`}>
                                 {card.usagePercentage.toFixed(1)}%
                             </p>
                         </div>

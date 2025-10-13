@@ -79,7 +79,7 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                 {activeInstallments.length > 0 ? activeInstallments.map(i => {
                     const progress = (i.paid / i.total) * 100;
                     return (
-                        <div key={i.id} className="bg-gradient-to-br from-blue-50 to-slate-100 p-4 rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div key={i.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -90,11 +90,11 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                                         <p className="text-sm text-slate-500">{getPaymentMethodName(i.provider, state)}</p>
                                     </div>
                                 </div>
-                                <div className="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg border border-white/50">
-                                    <span className="font-bold text-blue-600 number-display text-sm">{formatCurrency(i.installmentAmount)}/شهر</span>
+                                <div className="bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
+                                    <span className="font-bold text-blue-800 number-display text-sm">{formatCurrency(i.installmentAmount)}/شهر</span>
                                 </div>
                             </div>
-                            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner mb-3">
+                            <div className="bg-slate-50 p-3 rounded-lg border border-gray-200 mb-3">
                                 <div className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden">
                                     <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
                                 </div>

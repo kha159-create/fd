@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChan
     ]), []);
 
     return (
-        <header className="bg-slate-50/95 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-200 py-3 shadow-sm">
+        <header className="bg-slate-50/95 backdrop-blur-lg border-b border-slate-200 py-3 shadow-sm">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-right gap-4">
                     <div className="flex items-center gap-3">

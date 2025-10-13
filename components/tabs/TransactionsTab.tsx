@@ -131,37 +131,37 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-6">
-                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl border border-emerald-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-3">
                             <p className="text-emerald-700 text-sm font-medium">إجمالي الإيجابي</p>
                             <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                                 <span className="text-emerald-600 text-lg">💰</span>
                             </div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner">
-                            <p className="font-bold text-xl text-emerald-600 number-display">{formatCurrency(totals.positive)}</p>
+                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                            <p className="font-bold text-xl text-emerald-800 number-display">{formatCurrency(totals.positive)}</p>
                         </div>
                     </div>
-                    <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl border border-red-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-white p-4 rounded-xl border border-red-200 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-3">
                             <p className="text-red-700 text-sm font-medium">إجمالي السلبي</p>
                             <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                                 <span className="text-red-600 text-lg">💸</span>
                             </div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner">
-                            <p className="font-bold text-xl text-red-600 number-display">{formatCurrency(totals.negative)}</p>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-200">
+                            <p className="font-bold text-xl text-red-800 number-display">{formatCurrency(totals.negative)}</p>
                         </div>
                     </div>
-                    <div className="bg-gradient-to-br from-sky-50 to-sky-100 p-4 rounded-xl border border-sky-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-white p-4 rounded-xl border border-sky-200 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-3">
                             <p className="text-sky-700 text-sm font-medium">الصافي</p>
                             <div className="w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center">
                                 <span className="text-sky-600 text-lg">📊</span>
                             </div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner">
-                            <p className="font-bold text-xl text-sky-600 number-display">{formatCurrency(totals.positive - totals.negative)}</p>
+                        <div className="bg-sky-50 p-3 rounded-lg border border-sky-200">
+                            <p className="font-bold text-xl text-sky-800 number-display">{formatCurrency(totals.positive - totals.negative)}</p>
                         </div>
                     </div>
                 </div>

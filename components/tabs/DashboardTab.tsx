@@ -9,21 +9,21 @@ interface DashboardTabProps {
 const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const CardDebtWidget: React.FC<{ title: string, details: CardDetails, barColor: string }> = ({ title, details, barColor }) => (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-3">
             <h4 className="font-bold text-md text-slate-800">{title}</h4>
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-blue-600 text-lg">💳</span>
             </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner mb-3">
+        <div className="bg-slate-50 p-3 rounded-lg border border-gray-200 mb-3">
             <div className="flex justify-between text-sm mb-1">
                 <span className="text-slate-600">المستحق:</span>
-                <span className="font-bold number-display text-slate-800">{formatCurrency(details.balance)} ريال</span>
+                <span className="font-bold number-display text-slate-900">{formatCurrency(details.balance)} ريال</span>
             </div>
             <div className="flex justify-between text-sm">
                 <span className="text-slate-600">المتبقي:</span>
-                <span className="font-bold number-display text-emerald-500">{formatCurrency(details.available)} ريال</span>
+                <span className="font-bold number-display text-emerald-700">{formatCurrency(details.available)} ريال</span>
             </div>
         </div>
         <div className="bg-slate-200 rounded-full h-2 overflow-hidden">
@@ -55,13 +55,13 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
                 // Explicitly cast `total` to `Number` as Object.entries() may return `unknown`.
                 const percentage = (Number(total) / totalExpenses) * 100;
                 return (
-                    <div key={categoryId} className="bg-gradient-to-r from-slate-50 to-slate-100 p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div key={categoryId} className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">{category?.icon || '📊'}</span>
                                 <span className="font-medium text-slate-700 truncate" title={category?.name}>{category?.name || 'غير مصنف'}</span>
                             </div>
-                            <span className="font-bold text-slate-800 number-display bg-white/80 px-2 py-1 rounded-lg border border-white/50">
+                            <span className="font-bold text-slate-900 number-display bg-slate-50 px-2 py-1 rounded-lg border border-gray-200">
                                 {formatCurrency(total as number)} ريال
                             </span>
                         </div>
@@ -112,22 +112,22 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                 <h3 className="text-lg font-bold mb-4 text-slate-900">🏦 ملخص الحسابات البنكية</h3>
                 <div className="space-y-3">
                     {Object.values(bankAccountDetails).map((account: BankAccountDetails) => (
-                        <div key={account.id} className="bg-gradient-to-br from-blue-50 to-slate-100 p-4 rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div key={account.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-3">
                                 <p className="font-bold text-slate-800">{account.name}</p>
                                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                     <span className="text-blue-600 text-lg">🏛️</span>
                                 </div>
                             </div>
-                            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner">
-                                <p className="font-bold text-2xl text-blue-700 number-display text-center">{formatCurrency(account.balance)}</p>
+                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                <p className="font-bold text-2xl text-blue-900 number-display text-center">{formatCurrency(account.balance)}</p>
                             </div>
                             <div className="flex justify-between text-xs mt-3 px-1">
                                 <div className="bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
-                                    <span className="text-emerald-600 font-semibold">+{formatCurrency(account.deposits)}</span>
+                                    <span className="text-emerald-700 font-semibold">+{formatCurrency(account.deposits)}</span>
                                 </div>
                                 <div className="bg-red-50 px-2 py-1 rounded-lg border border-red-200">
-                                    <span className="text-red-600 font-semibold">-{formatCurrency(account.withdrawals)}</span>
+                                    <span className="text-red-700 font-semibold">-{formatCurrency(account.withdrawals)}</span>
                                 </div>
                             </div>
                         </div>
