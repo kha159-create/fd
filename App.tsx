@@ -245,10 +245,11 @@ const App: React.FC = () => {
             let currentBalance = account.balance; // Start with configured balance
             
             state.transactions.forEach(t => {
+                // Only count transactions that actually involve this bank account
                 if (t.paymentMethod === accountId) {
                     if (['income', 'investment-withdrawal'].includes(t.type)) {
                         currentBalance += t.amount; // Add to balance
-                    } else {
+                    } else if (['expense', 'investment-deposit'].includes(t.type)) {
                         currentBalance -= t.amount; // Subtract from balance
                     }
                 }
@@ -264,10 +265,11 @@ const App: React.FC = () => {
             
             // Calculate period deposits/withdrawals for display
             filteredTransactions.forEach(t => {
+                // Only count transactions that actually involve this bank account
                 if (t.paymentMethod === accountId) {
                     if (['income', 'investment-withdrawal'].includes(t.type)) {
                         deposits += t.amount;
-                    } else {
+                    } else if (['expense', 'investment-deposit'].includes(t.type)) {
                         withdrawals += t.amount;
                     }
                 }
