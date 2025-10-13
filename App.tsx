@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig } from './types';
+import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan } from './types';
 import { getInitialState } from './constants';
 import { initializeAi } from './services/geminiService';
 import { initializeFirebase, firebaseService } from './services/firebaseService';
@@ -183,9 +183,18 @@ const App: React.FC = () => {
         let totalInvestmentWithdrawals = 0;
 
         filteredTransactions.forEach(t => {
-            if (t.type === 'income') totalIncome += t.amount;
-            else if (t.type === 'expense' || t.type === 'bnpl-payment') {
+            if (t.type === 'income') {
+                totalIncome += t.amount;
+            } else if (t.type === 'expense') {
                 totalExpenses += t.amount;
+                if (t.categoryId) {
+                    expensesByCategory[t.categoryId] = (expensesByCategory[t.categoryId] || 0) + t.amount;
+                }
+            } else if (t.type === 'bnpl-payment') {
+                // BNPL payments are expenses but don't count toward main expense total if they're installment payments
+                if (!t.isInstallmentPayment) {
+                    totalExpenses += t.amount;
+                }
                 if (t.categoryId) {
                     expensesByCategory[t.categoryId] = (expensesByCategory[t.categoryId] || 0) + t.amount;
                 }
@@ -207,7 +216,7 @@ const App: React.FC = () => {
         
         // Calculate card balances based on ALL transactions, not just filtered ones
         Object.keys(state.cards).forEach(cardId => {
-             const cardExpenses = state.transactions.filter(t => t.paymentMethod === cardId && (t.type === 'expense' || t.type === 'bnpl-payment')).reduce((sum, t) => sum + t.amount, 0);
+             const cardExpenses = state.transactions.filter(t => t.paymentMethod === cardId && (t.type === 'expense' || (t.type === 'bnpl-payment' && !t.isInstallmentPayment))).reduce((sum, t) => sum + t.amount, 0);
              const cardPaymentsTotal = state.transactions.filter(t => t.type === `${cardId}-payment`).reduce((sum, t) => sum + t.amount, 0);
              const balance = cardExpenses - cardPaymentsTotal;
              cardDetails[cardId].balance = balance;
@@ -237,6 +246,10 @@ const App: React.FC = () => {
                 if (t.type.endsWith('-payment') && t.paymentMethod === accountId) {
                     withdrawals += t.amount;
                 }
+                // BNPL first payments also affect bank balance if paid from bank
+                if (t.type === 'bnpl-payment' && t.isInstallmentPayment && t.paymentMethod === accountId) {
+                    withdrawals += t.amount;
+                }
             });
             bankAccountDetails[accountId].balance = currentBalance; // Use the configured balance
             bankAccountDetails[accountId].deposits = deposits;
@@ -253,10 +266,61 @@ const App: React.FC = () => {
 
     const handleSaveTransaction = (transaction: Omit<Transaction, 'id'>, id?: string) => {
         setState(prev => {
-            const newTransactions = id
-                ? prev.transactions.map(t => t.id === id ? { ...t, ...transaction } : t)
-                : [...prev.transactions, { ...transaction, id: `trans-${Date.now()}` }];
-            return { ...prev, transactions: newTransactions };
+            if (id) {
+                // Update existing transaction
+                const newTransactions = prev.transactions.map(t => 
+                    t.id === id ? { ...t, ...transaction } : t
+                );
+                return { ...prev, transactions: newTransactions };
+            } else {
+                // Handle BNPL transactions
+                if (transaction.bnplData && transaction.paymentMethod.includes('bnpl')) {
+                    // Create installment plan
+                    const installmentPlan: InstallmentPlan = {
+                        id: `installment-${Date.now()}`,
+                        provider: transaction.paymentMethod as 'tabby-bnpl' | 'tamara-bnpl',
+                        description: transaction.description,
+                        totalAmount: transaction.amount,
+                        installmentAmount: transaction.bnplData.installmentAmount,
+                        total: transaction.bnplData.installmentsCount,
+                        paid: 1, // First payment is paid immediately
+                        createdAt: transaction.date
+                    };
+
+                    // Create first payment transaction
+                    const firstPaymentTransaction: Transaction = {
+                        id: `trans-${Date.now()}-1`,
+                        amount: transaction.bnplData.installmentAmount,
+                        date: transaction.date,
+                        description: `الدفعة الأولى لـ: ${transaction.description}`,
+                        paymentMethod: transaction.bnplData.initialPaymentSource as PaymentMethod,
+                        type: 'bnpl-payment',
+                        categoryId: transaction.categoryId,
+                        isInstallmentPayment: true,
+                        installmentId: installmentPlan.id
+                    };
+
+                    // Create main BNPL transaction
+                    const bnplTransaction: Transaction = {
+                        id: `trans-${Date.now()}`,
+                        ...transaction,
+                        type: 'expense' // Main transaction is always expense
+                    };
+
+                    return {
+                        ...prev,
+                        transactions: [...prev.transactions, firstPaymentTransaction, bnplTransaction],
+                        installments: [...prev.installments, installmentPlan]
+                    };
+                } else {
+                    // Add regular transaction
+                    const newTransaction: Transaction = {
+                        id: `trans-${Date.now()}`,
+                        ...transaction
+                    };
+                    return { ...prev, transactions: [...prev.transactions, newTransaction] };
+                }
+            }
         });
         setTransactionForm({ isOpen: false });
     };

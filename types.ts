@@ -12,6 +12,11 @@ export interface Transaction {
     categoryId: string | null;
     isInstallmentPayment?: boolean;
     installmentId?: string;
+    bnplData?: {
+        installmentsCount: number;
+        initialPaymentSource: string;
+        installmentAmount: number;
+    };
 }
 
 export interface InstallmentPlan {

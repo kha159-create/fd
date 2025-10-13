@@ -26,6 +26,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
     const [isPasting, setIsPasting] = useState(false);
     const [pasteError, setPasteError] = useState('');
     const [clipboardModal, setClipboardModal] = useState<{ isOpen: boolean; text: string }>({ isOpen: false, text: '' });
+    
+    // BNPL fields
+    const [showBnplFields, setShowBnplFields] = useState(false);
+    const [installmentsCount, setInstallmentsCount] = useState(4);
+    const [initialPaymentSource, setInitialPaymentSource] = useState(Object.keys(bankAccounts)[0] || 'cash');
 
     useEffect(() => {
         if (initialData) {
@@ -50,12 +55,38 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        
+        // Handle BNPL logic
+        if (name === 'paymentMethod') {
+            const isBnpl = value.includes('bnpl');
+            setShowBnplFields(isBnpl);
+            
+            // Auto-set transaction type for BNPL
+            if (isBnpl) {
+                setTransaction(prev => ({ ...prev, type: 'expense' }));
+            }
+        }
+        
         setTransaction(prev => ({ ...prev, [name]: name === 'amount' ? parseFloat(value) : value }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(transaction, initialData?.id);
+        
+        // For BNPL transactions, we need to create both the installment plan and first payment
+        if (showBnplFields && transaction.paymentMethod.includes('bnpl')) {
+            // This will be handled by the parent component with additional BNPL data
+            onSave({
+                ...transaction,
+                bnplData: {
+                    installmentsCount,
+                    initialPaymentSource,
+                    installmentAmount: transaction.amount / installmentsCount
+                }
+            } as any, initialData?.id);
+        } else {
+            onSave(transaction, initialData?.id);
+        }
     };
 
     const handlePasteAnalyze = async (textToAnalyze: string) => {
@@ -186,6 +217,49 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                                 {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                             </select>
                         </div>
+                        
+                        {/* BNPL Fields */}
+                        {showBnplFields && (
+                            <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+                                <h3 className="font-semibold text-blue-800">📱 إعدادات التقسيط</h3>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="installmentsCount" className="form-label">عدد الأقساط</label>
+                                        <select 
+                                            value={installmentsCount} 
+                                            onChange={(e) => setInstallmentsCount(parseInt(e.target.value))}
+                                            className="w-full"
+                                        >
+                                            <option value={2}>قسطين (2)</option>
+                                            <option value={3}>3 أقساط</option>
+                                            <option value={4}>4 أقساط</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label htmlFor="initialPaymentSource" className="form-label">مصدر الدفعة الأولى</label>
+                                        <select 
+                                            value={initialPaymentSource} 
+                                            onChange={(e) => setInitialPaymentSource(e.target.value)}
+                                            className="w-full"
+                                        >
+                                            {paymentMethods.filter(m => !m.value.includes('bnpl')).map(m => (
+                                                <option key={m.value} value={m.value}>{m.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-blue-100 p-3 rounded-lg">
+                                    <p className="text-sm text-blue-700">
+                                        <strong>الدفعة الأولى:</strong> {(transaction.amount / installmentsCount).toFixed(2)} ريال
+                                        <br />
+                                        <strong>المبلغ المتبقي:</strong> {(transaction.amount * (installmentsCount - 1) / installmentsCount).toFixed(2)} ريال
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         <button type="submit" className="w-full py-3 magical-button text-white font-semibold rounded-lg mt-6">{initialData ? 'حفظ التعديلات' : 'إضافة الحركة'}</button>
                     </form>
                 </div>
