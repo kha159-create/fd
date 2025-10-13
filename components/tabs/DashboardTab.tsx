@@ -9,11 +9,26 @@ interface DashboardTabProps {
 const formatCurrency = (value: number) => (value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const CardDebtWidget: React.FC<{ title: string, details: CardDetails, barColor: string }> = ({ title, details, barColor }) => (
-    <div className="bg-slate-100 p-4 rounded-lg">
-        <h4 className="font-bold text-md text-slate-800">{title}</h4>
-        <div className="flex justify-between text-sm mt-2"><span className="text-slate-500">المستحق:</span><span className="font-bold number-display text-slate-800">{formatCurrency(details.balance)} ريال</span></div>
-        <div className="flex justify-between text-sm"><span className="text-slate-500">المتبقي:</span><span className="font-bold number-display text-emerald-500">{formatCurrency(details.available)} ريال</span></div>
-        <div className="mt-3 bg-slate-200 rounded-full h-2"><div className={`${barColor} rounded-full h-2`} style={{ width: `${Math.min(100, details.usagePercentage)}%` }}></div></div>
+    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-start mb-3">
+            <h4 className="font-bold text-md text-slate-800">{title}</h4>
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 text-lg">💳</span>
+            </div>
+        </div>
+        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-white/50 shadow-inner mb-3">
+            <div className="flex justify-between text-sm mb-1">
+                <span className="text-slate-600">المستحق:</span>
+                <span className="font-bold number-display text-slate-800">{formatCurrency(details.balance)} ريال</span>
+            </div>
+            <div className="flex justify-between text-sm">
+                <span className="text-slate-600">المتبقي:</span>
+                <span className="font-bold number-display text-emerald-500">{formatCurrency(details.available)} ريال</span>
+            </div>
+        </div>
+        <div className="bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div className={`${barColor} rounded-full h-2 transition-all duration-300`} style={{ width: `${Math.min(100, details.usagePercentage)}%` }}></div>
+        </div>
     </div>
 );
 
@@ -40,12 +55,20 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
                 // Explicitly cast `total` to `Number` as Object.entries() may return `unknown`.
                 const percentage = (Number(total) / totalExpenses) * 100;
                 return (
-                    <div key={categoryId} className="flex items-center justify-between text-sm py-1">
-                        <span className="w-28 truncate text-slate-600" title={category?.name}>{name}</span>
-                        <div className="flex-1 bg-slate-200 rounded-full h-2.5 mx-2">
-                            <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${percentage.toFixed(1)}%` }}></div>
+                    <div key={categoryId} className="bg-gradient-to-r from-slate-50 to-slate-100 p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-lg">{category?.icon || '📊'}</span>
+                                <span className="font-medium text-slate-700 truncate" title={category?.name}>{category?.name || 'غير مصنف'}</span>
+                            </div>
+                            <span className="font-bold text-slate-800 number-display bg-white/80 px-2 py-1 rounded-lg border border-white/50">
+                                {formatCurrency(total as number)} ريال
+                            </span>
                         </div>
-                        <span className="font-bold text-slate-800 number-display w-24 text-left">{formatCurrency(total as number)} ريال</span>
+                        <div className="mt-2 bg-slate-200 rounded-full h-2 overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500" style={{ width: `${percentage.toFixed(1)}%` }}></div>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1 text-center">{percentage.toFixed(1)}%</div>
                     </div>
                 );
             })}
@@ -69,10 +92,19 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                     ))}
                 </div>
                 <div className="mt-4 p-3 bg-slate-100 rounded-lg">
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                        <div><p className="text-slate-500 text-xs">إجمالي الديون</p><p className="text-lg font-bold text-red-500 number-display">{formatCurrency(totalDebt)}</p></div>
-                        <div><p className="text-slate-500 text-xs">إجمالي المتاح</p><p className="text-lg font-bold text-emerald-500 number-display">{formatCurrency(totalAvailable)}</p></div>
-                        <div><p className="text-slate-500 text-xs whitespace-nowrap">إجمالي الحدود</p><p className="text-lg font-bold text-sky-500 number-display">{formatCurrency(totalLimits)}</p></div>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="bg-red-50 p-2 rounded-lg border border-red-200">
+                            <p className="text-red-600 text-xs font-medium">إجمالي الديون</p>
+                            <p className="text-lg font-bold text-red-600 number-display">{formatCurrency(totalDebt)}</p>
+                        </div>
+                        <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                            <p className="text-emerald-600 text-xs font-medium">إجمالي المتاح</p>
+                            <p className="text-lg font-bold text-emerald-600 number-display">{formatCurrency(totalAvailable)}</p>
+                        </div>
+                        <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+                            <p className="text-blue-600 text-xs font-medium whitespace-nowrap">إجمالي الحدود</p>
+                            <p className="text-lg font-bold text-blue-600 number-display">{formatCurrency(totalLimits)}</p>
+                        </div>
                     </div>
                 </div>
             </div>
