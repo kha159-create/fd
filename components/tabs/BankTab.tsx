@@ -186,17 +186,24 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
 
             {/* نافذة التحويل بين الحسابات */}
             {transferModal.isOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold text-slate-800 mb-4">💸 تحويل بين الحسابات</h3>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setTransferModal({ isOpen: false })}>
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg animate-fade-in" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-slate-800">💸 تحويل بين الحسابات</h2>
+                                <button onClick={() => setTransferModal({ isOpen: false })} className="text-slate-400 hover:text-slate-600">✕</button>
+                            </div>
                         
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">من الحساب</label>
+                                <label htmlFor="fromAccount" className="block text-sm font-medium text-slate-600 mb-1">من الحساب</label>
                                 <select 
+                                    id="fromAccount"
+                                    name="fromAccount"
                                     value={transferData.fromAccount} 
                                     onChange={(e) => setTransferData(prev => ({ ...prev, fromAccount: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
                                 >
                                     <option value="">اختر الحساب المصدر</option>
                                     {Object.entries(state.bankAccounts).map(([id, account]) => (
@@ -206,11 +213,14 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
                             </div>
                             
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">إلى الحساب</label>
+                                <label htmlFor="toAccount" className="block text-sm font-medium text-slate-600 mb-1">إلى الحساب</label>
                                 <select 
+                                    id="toAccount"
+                                    name="toAccount"
                                     value={transferData.toAccount} 
                                     onChange={(e) => setTransferData(prev => ({ ...prev, toAccount: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
                                 >
                                     <option value="">اختر الحساب الهدف</option>
                                     {Object.entries(state.bankAccounts)
@@ -222,14 +232,17 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
                             </div>
                             
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">المبلغ</label>
+                                <label htmlFor="amount" className="block text-sm font-medium text-slate-600 mb-1">المبلغ</label>
                                 <input 
                                     type="number" 
+                                    id="amount"
+                                    name="amount"
                                     step="0.01"
                                     value={transferData.amount} 
                                     onChange={(e) => setTransferData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="0.00"
+                                    required
                                 />
                             </div>
                             
@@ -254,30 +267,35 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
                             )}
                             
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">الوصف (اختياري)</label>
+                                <label htmlFor="description" className="block text-sm font-medium text-slate-600 mb-1">الوصف (اختياري)</label>
                                 <input 
                                     type="text" 
+                                    id="description"
+                                    name="description"
                                     value={transferData.description} 
                                     onChange={(e) => setTransferData(prev => ({ ...prev, description: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="مثل: تحويل للطوارئ"
                                 />
                             </div>
                         </div>
                         
-                        <div className="flex justify-end gap-3 mt-6">
-                            <button 
-                                onClick={() => setTransferModal({ isOpen: false })} 
-                                className="px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition-colors"
-                            >
-                                إلغاء
-                            </button>
-                            <button 
-                                onClick={handleTransfer}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                                💸 تحويل
-                            </button>
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button 
+                                    type="button"
+                                    onClick={() => setTransferModal({ isOpen: false })} 
+                                    className="px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition-colors"
+                                >
+                                    إلغاء
+                                </button>
+                                <button 
+                                    type="button"
+                                    onClick={handleTransfer}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    تحويل
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
