@@ -91,6 +91,22 @@ const App: React.FC = () => {
         initializeApp();
     }, []);
 
+    // إدارة scroll الخلفية عند فتح النوافذ
+    useEffect(() => {
+        const isAnyModalOpen = transactionForm.isOpen || cardForm.isOpen || bankAccountForm.isOpen || transferModal.isOpen || modalConfig || loadingState.isLoading;
+        
+        if (isAnyModalOpen) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+
+        // تنظيف عند إلغاء المكون
+        return () => {
+            document.body.classList.remove('modal-open');
+        };
+    }, [transactionForm.isOpen, cardForm.isOpen, bankAccountForm.isOpen, transferModal.isOpen, modalConfig, loadingState.isLoading]);
+
     const loadUserData = async (userId: string) => {
         try {
             const result = await firebaseService.getData('users', userId);

@@ -40,15 +40,23 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
             if (navigator.clipboard?.readText) {
                 (async () => {
                     try {
+                        console.log('🔍 محاولة قراءة الحافظة...');
                         const text = await navigator.clipboard.readText();
+                        console.log('📋 نص الحافظة:', text);
+                        
                         // Basic validation to check for meaningful text
                         if (text && text.trim().length > 10 && sessionStorage.getItem('ignoredClipboardText') !== text) {
+                            console.log('✅ تم العثور على نص مناسب في الحافظة');
                             setClipboardModal({ isOpen: true, text });
+                        } else {
+                            console.log('❌ نص الحافظة غير مناسب أو تم تجاهله');
                         }
                     } catch (err) {
-                        console.info('Clipboard read access denied or not supported.');
+                        console.error('❌ خطأ في قراءة الحافظة:', err);
                     }
                 })();
+            } else {
+                console.log('❌ navigator.clipboard غير مدعوم');
             }
         }
     }, [initialData]);

@@ -156,16 +156,14 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         }
 
         try {
+            // إضافة مؤشر التحميل
+            setLoading({ isLoading: true, text: 'جار اقتراح أيقونة...' });
+            
             const iconSuggestion = await suggestCategoryIcon(transactionTypeName);
             
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewTransactionType(prev => ({ ...prev, icon: iconSuggestion.trim() }));
-                setModal({ 
-                    title: 'تم اقتراح أيقونة', 
-                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion.trim()}" لنوع الحركة "${transactionTypeName}".</p>`, 
-                    hideCancel: true, 
-                    confirmText: 'موافق' 
-                });
+                // لا نعرض نافذة منبثقة، الأيقونة تظهر مباشرة في الحقل
             } else {
                 setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
             }
@@ -177,6 +175,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 hideCancel: true, 
                 confirmText: 'موافق' 
             });
+        } finally {
+            setLoading({ isLoading: false, text: '' });
         }
     };
 
@@ -189,16 +189,14 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         }
 
         try {
+            // إضافة مؤشر التحميل
+            setLoading({ isLoading: true, text: 'جار اقتراح أيقونة...' });
+            
             const iconSuggestion = await suggestCategoryIcon(paymentMethodName);
             
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewPaymentMethod(prev => ({ ...prev, icon: iconSuggestion.trim() }));
-                setModal({ 
-                    title: 'تم اقتراح أيقونة', 
-                    body: `<p>تم اقتراح الأيقونة "${iconSuggestion.trim()}" لوسيلة الدفع "${paymentMethodName}".</p>`, 
-                    hideCancel: true, 
-                    confirmText: 'موافق' 
-                });
+                // لا نعرض نافذة منبثقة، الأيقونة تظهر مباشرة في الحقل
             } else {
                 setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
             }
@@ -210,6 +208,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 hideCancel: true, 
                 confirmText: 'موافق' 
             });
+        } finally {
+            setLoading({ isLoading: false, text: '' });
         }
     };
 

@@ -41,6 +41,14 @@ input::placeholder, textarea::placeholder { color: #9ca3af; }
   } 
 }
 
+/* Prevent background scroll when modal is open */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Consistent Modal Styling */
 .modal-consistent {
   position: fixed;
