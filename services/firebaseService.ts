@@ -167,7 +167,25 @@ export const firebaseService = {
       }
     } catch (error) {
       console.error('خطأ في جلب البيانات:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'خطأ غير معروف' };
+      
+      // معالجة خاصة لأخطاء الأذونات
+      if (error instanceof Error) {
+        if (error.message.includes('permission')) {
+          return { 
+            success: false, 
+            error: 'خطأ في الأذونات: تأكد من تسجيل الدخول وإعداد قواعد Firestore' 
+          };
+        }
+        if (error.message.includes('network')) {
+          return { 
+            success: false, 
+            error: 'خطأ في الشبكة: تحقق من الاتصال بالإنترنت' 
+          };
+        }
+        return { success: false, error: error.message };
+      }
+      
+      return { success: false, error: 'خطأ غير معروف' };
     }
   },
 

@@ -97,6 +97,24 @@ const App: React.FC = () => {
                 };
                 setState(mergedState);
                 console.log('✅ تم تحميل بيانات المستخدم من Firebase');
+            } else if (!result.success) {
+                console.warn('⚠️ فشل في تحميل بيانات المستخدم من Firebase:', result.error);
+                
+                // إذا كان الخطأ متعلق بالأذونات، اعرض رسالة تحذير
+                if (result.error?.includes('الأذونات')) {
+                    setModalConfig({
+                        title: "تحذير - إعداد Firebase",
+                        body: `<p>فشل في تحميل البيانات من السحابة. يرجى:</p>
+                               <ul>
+                                 <li>تأكد من تسجيل الدخول</li>
+                                 <li>تحقق من إعداد قواعد Firestore</li>
+                                 <li>راجع ملف FIREBASE_SETUP.md للإرشادات</li>
+                               </ul>
+                               <p>سيتم استخدام البيانات المحلية مؤقتاً.</p>`,
+                        confirmText: 'موافق',
+                        hideCancel: true
+                    });
+                }
             }
         } catch (error) {
             console.error('خطأ في تحميل بيانات المستخدم:', error);
