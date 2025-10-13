@@ -69,6 +69,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
     const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
     const [editingCategory, setEditingCategory] = useState<string | null>(null);
 
+    // إدارة أنواع الحركات ووسائل الدفع
+    const [newTransactionType, setNewTransactionType] = useState({ name: '', icon: '' });
+    const [newPaymentMethod, setNewPaymentMethod] = useState({ name: '', icon: '' });
+
     const handleAddCategory = () => {
         if (!newCategory.name.trim() || !newCategory.icon.trim()) {
             setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وأيقونة للفئة.</p>', hideCancel: true, confirmText: 'موافق' });
@@ -139,6 +143,78 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         } else {
             setState(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }));
             setModal({ title: 'نجح', body: '<p>تم حذف الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        }
+    };
+
+    // إدارة أنواع الحركات المخصصة
+    const handleAddTransactionType = () => {
+        if (!newTransactionType.name.trim() || !newTransactionType.icon.trim()) {
+            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وأيقونة لنوع الحركة.</p>', hideCancel: true, confirmText: 'موافق' });
+            return;
+        }
+
+        const newId = `custom-type-${Date.now()}`;
+        const transactionType = {
+            id: newId,
+            name: newTransactionType.name.trim(),
+            icon: newTransactionType.icon.trim(),
+            isCustom: true
+        };
+
+        setState(prev => ({
+            ...prev,
+            customTransactionTypes: [...(prev.customTransactionTypes || []), transactionType]
+        }));
+
+        setNewTransactionType({ name: '', icon: '' });
+        setModal({ title: 'نجح', body: '<p>تم إضافة نوع الحركة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+    };
+
+    const handleDeleteTransactionType = (id: string) => {
+        if (state.transactions.some(t => t.type === id)) {
+            setModal({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف نوع الحركة هذا لأنه مستخدم في بعض الحركات. يرجى تغيير نوع الحركات أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+        } else {
+            setState(prev => ({
+                ...prev,
+                customTransactionTypes: (prev.customTransactionTypes || []).filter(t => t.id !== id)
+            }));
+            setModal({ title: 'نجح', body: '<p>تم حذف نوع الحركة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        }
+    };
+
+    // إدارة وسائل الدفع المخصصة
+    const handleAddPaymentMethod = () => {
+        if (!newPaymentMethod.name.trim() || !newPaymentMethod.icon.trim()) {
+            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وأيقونة لوسيلة الدفع.</p>', hideCancel: true, confirmText: 'موافق' });
+            return;
+        }
+
+        const newId = `custom-payment-${Date.now()}`;
+        const paymentMethod = {
+            id: newId,
+            name: newPaymentMethod.name.trim(),
+            icon: newPaymentMethod.icon.trim(),
+            isCustom: true
+        };
+
+        setState(prev => ({
+            ...prev,
+            customPaymentMethods: [...(prev.customPaymentMethods || []), paymentMethod]
+        }));
+
+        setNewPaymentMethod({ name: '', icon: '' });
+        setModal({ title: 'نجح', body: '<p>تم إضافة وسيلة الدفع بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+    };
+
+    const handleDeletePaymentMethod = (id: string) => {
+        if (state.transactions.some(t => t.paymentMethod === id)) {
+            setModal({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف وسيلة الدفع هذه لأنها مستخدمة في بعض الحركات. يرجى تغيير وسيلة الدفع أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+        } else {
+            setState(prev => ({
+                ...prev,
+                customPaymentMethods: (prev.customPaymentMethods || []).filter(p => p.id !== id)
+            }));
+            setModal({ title: 'نجح', body: '<p>تم حذف وسيلة الدفع بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
         }
     };
 
@@ -453,6 +529,158 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                             </button>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* إدارة أنواع الحركات ووسائل الدفع */}
+            <div className="glass-card p-6">
+                <h3 className="text-lg font-bold mb-4 text-slate-900">⚙️ إدارة أنواع الحركات ووسائل الدفع</h3>
+                
+                {/* أنواع الحركات المخصصة */}
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg">
+                    <h4 className="font-semibold text-slate-800 mb-3">📝 أنواع الحركات المخصصة</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                            type="text"
+                            placeholder="اسم نوع الحركة (مثل: سحب نقدي)"
+                            value={newTransactionType.name}
+                            onChange={(e) => setNewTransactionType(prev => ({ ...prev, name: e.target.value }))}
+                            className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="الأيقونة (مثل: 💸)"
+                                value={newTransactionType.icon}
+                                onChange={(e) => setNewTransactionType(prev => ({ ...prev, icon: e.target.value }))}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button
+                                onClick={handleAddTransactionType}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                ➕ إضافة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* قائمة أنواع الحركات المخصصة */}
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {(state.customTransactionTypes || []).map((type) => (
+                            <div key={type.id} className="p-2 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm">{type.icon}</span>
+                                    <span className="text-xs font-medium text-slate-800">{type.name}</span>
+                                </div>
+                                <button
+                                    onClick={() => handleDeleteTransactionType(type.id)}
+                                    className="text-red-500 hover:text-red-700 text-xs"
+                                    title="حذف نوع الحركة"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* وسائل الدفع المخصصة */}
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg">
+                    <h4 className="font-semibold text-slate-800 mb-3">💳 وسائل الدفع المخصصة</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                            type="text"
+                            placeholder="اسم وسيلة الدفع (مثل: PayPal)"
+                            value={newPaymentMethod.name}
+                            onChange={(e) => setNewPaymentMethod(prev => ({ ...prev, name: e.target.value }))}
+                            className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="الأيقونة (مثل: 💳)"
+                                value={newPaymentMethod.icon}
+                                onChange={(e) => setNewPaymentMethod(prev => ({ ...prev, icon: e.target.value }))}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button
+                                onClick={handleAddPaymentMethod}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                ➕ إضافة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* قائمة وسائل الدفع المخصصة */}
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {(state.customPaymentMethods || []).map((method) => (
+                            <div key={method.id} className="p-2 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm">{method.icon}</span>
+                                    <span className="text-xs font-medium text-slate-800">{method.name}</span>
+                                </div>
+                                <button
+                                    onClick={() => handleDeletePaymentMethod(method.id)}
+                                    className="text-red-500 hover:text-red-700 text-xs"
+                                    title="حذف وسيلة الدفع"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* أنواع الحركات والوسائل المدمجة */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <h4 className="font-semibold text-blue-800 mb-3">📋 أنواع الحركات المدمجة</h4>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-center">
+                                <span>💰 دخل</span>
+                                <span className="text-blue-600">مدمج</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>💸 مصاريف</span>
+                                <span className="text-blue-600">مدمج</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>📱 سداد قسط</span>
+                                <span className="text-blue-600">مدمج</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>💹 إيداع استثماري</span>
+                                <span className="text-blue-600">مدمج</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>💹 سحب استثماري</span>
+                                <span className="text-blue-600">مدمج</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h4 className="font-semibold text-green-800 mb-3">💳 وسائل الدفع المدمجة</h4>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-center">
+                                <span>💵 نقدي</span>
+                                <span className="text-green-600">مدمج</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>📱 تابي</span>
+                                <span className="text-green-600">مدمج</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>📱 تمارا</span>
+                                <span className="text-green-600">مدمج</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span>💳 سداد البطاقات</span>
+                                <span className="text-green-600">مدمج</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

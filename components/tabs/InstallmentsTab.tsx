@@ -106,8 +106,8 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                                     <span className="text-xs text-slate-500">{progress.toFixed(1)}% مكتمل</span>
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <button onClick={() => handlePayInstallment(i.id)} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 text-sm w-full shadow-sm">دفع القسط التالي</button>
+                            <div className="text-center mt-3">
+                                <button onClick={() => handlePayInstallment(i.id)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 text-sm w-full shadow-md font-semibold">💳 دفع القسط التالي</button>
                             </div>
                         </div>
                     );

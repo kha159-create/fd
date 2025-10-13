@@ -133,10 +133,10 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                         </div>
                     ))}
                 </div>
-                 <div className="mt-4 bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-xl shadow-lg text-center">
-                    <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20">
-                        <p className="text-white/90 text-sm font-medium mb-2">إجمالي الأرصدة البنكية</p>
-                        <p className="text-3xl font-bold text-white number-display">{formatCurrency(totalBankBalance)}</p>
+                 <div className="mt-4 bg-white p-4 rounded-xl border border-blue-200 shadow-lg text-center">
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <p className="text-blue-700 text-sm font-medium mb-2">🏦 إجمالي الأرصدة البنكية</p>
+                        <p className="text-3xl font-bold text-blue-900 number-display">{formatCurrency(totalBankBalance)} ريال</p>
                     </div>
                 </div>
             </div>

@@ -77,6 +77,18 @@ export interface AppState {
     bankAccounts: {
         [key: string]: BankAccountConfig;
     };
+    customTransactionTypes?: Array<{
+        id: string;
+        name: string;
+        icon: string;
+        isCustom: boolean;
+    }>;
+    customPaymentMethods?: Array<{
+        id: string;
+        name: string;
+        icon: string;
+        isCustom: boolean;
+    }>;
 }
 
 export interface FinancialCalculations {
