@@ -186,7 +186,7 @@ const BankTab: React.FC<BankTabProps> = ({ state, setState, calculations, filter
 
             {/* نافذة التحويل بين الحسابات */}
             {transferModal.isOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-hidden" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold text-slate-800 mb-4">💸 تحويل بين الحسابات</h3>
                         

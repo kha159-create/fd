@@ -119,15 +119,18 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories })
                                     <span className="text-blue-600 text-sm">🏛️</span>
                                 </div>
                             </div>
-                            <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
-                                <p className="font-bold text-lg text-blue-900 number-display text-center">{formatCurrency(account.balance)}</p>
-                            </div>
-                            <div className="flex justify-between text-xs px-1">
-                                <div className="bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                                    <span className="text-emerald-700 font-semibold text-xs">+{formatCurrency(account.deposits)}</span>
-                                </div>
-                                <div className="bg-red-50 px-2 py-1 rounded border border-red-200">
-                                    <span className="text-red-700 font-semibold text-xs">-{formatCurrency(account.withdrawals)}</span>
+                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 shadow-sm">
+                                <p className="font-bold text-xl text-blue-900 number-display text-center mb-2">الرصيد الحالي</p>
+                                <p className="font-bold text-2xl text-blue-900 number-display text-center">{formatCurrency(account.balance)}</p>
+                                <div className="flex justify-between mt-3 pt-2 border-t border-blue-300">
+                                    <div className="text-center flex-1">
+                                        <p className="text-emerald-700 font-semibold text-xs mb-1">الإيداعات</p>
+                                        <p className="text-emerald-800 font-bold text-sm">+{formatCurrency(account.deposits)}</p>
+                                    </div>
+                                    <div className="text-center flex-1">
+                                        <p className="text-red-700 font-semibold text-xs mb-1">السحوبات</p>
+                                        <p className="text-red-800 font-bold text-sm">-{formatCurrency(account.withdrawals)}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
