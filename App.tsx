@@ -343,11 +343,21 @@ const App: React.FC = () => {
                         restoredState.bankAccounts = {
                             'bank-default': {
                                 id: 'bank-default',
-                                name: 'الحساب الجاري',
+                                name: 'حساب البنك',
                                 balance: restoredState.bank.balance || 0,
                                 smsSamples: ['مدى', 'mada', 'Alrajhi', 'الراجحي', 'Inma', 'الإنماء', 'بنك']
                             }
                         };
+                    }
+
+                    // Convert old mada-bank references to bank-default in transactions
+                    if (restoredState.transactions && Array.isArray(restoredState.transactions)) {
+                        restoredState.transactions = restoredState.transactions.map((transaction: any) => {
+                            if (transaction.paymentMethod === 'mada-bank') {
+                                return { ...transaction, paymentMethod: 'bank-default' };
+                            }
+                            return transaction;
+                        });
                     }
 
                     // Use exact same merge logic as old system: state = { ...getInitialState(), ...restoredState }
