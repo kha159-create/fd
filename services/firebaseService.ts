@@ -110,17 +110,23 @@ export const firebaseService = {
   },
 
   // دالة للاستماع لتغييرات حالة المصادقة
-  onAuthStateChanged(callback: (user: any) => void) {
+  async onAuthStateChanged(callback: (user: any) => void) {
     if (!auth) {
       callback(null);
       return () => {};
     }
     
-    const { onAuthStateChanged } = require('firebase/auth');
-    return onAuthStateChanged(auth, (user) => {
-      console.log('🔐 تغيير في حالة المصادقة:', user ? `مسجل دخول: ${user.email}` : 'غير مسجل دخول');
-      callback(user);
-    });
+    try {
+      const { onAuthStateChanged } = await import('firebase/auth');
+      return onAuthStateChanged(auth, (user) => {
+        console.log('🔐 تغيير في حالة المصادقة:', user ? `مسجل دخول: ${user.email}` : 'غير مسجل دخول');
+        callback(user);
+      });
+    } catch (error) {
+      console.error('❌ خطأ في تحميل onAuthStateChanged:', error);
+      callback(null);
+      return () => {};
+    }
   },
 
   // حفظ البيانات في Firestore

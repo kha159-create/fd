@@ -52,7 +52,7 @@ const App: React.FC = () => {
             initializeFirebase();
             
             // الاستماع لتغييرات حالة المصادقة
-            const unsubscribe = firebaseService.onAuthStateChanged(async (user) => {
+            const unsubscribe = await firebaseService.onAuthStateChanged(async (user) => {
                 try {
                     if (user) {
                         console.log('✅ تم تسجيل دخول المستخدم:', user.email);
