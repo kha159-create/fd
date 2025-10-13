@@ -122,6 +122,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                 setPasteError(result.error);
             } else {
                 console.log('✅ تطبيق النتيجة على النموذج...');
+                // تحديث النموذج مباشرة مثل الملف القديم
                 setTransaction(prev => {
                     const newTransaction = {
                         ...prev,
@@ -135,6 +136,16 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                     return newTransaction;
                 });
                 console.log('✅ تم تحديث النموذج بنجاح');
+                
+                // إظهار رسالة نجاح مثل الملف القديم
+                setTimeout(() => {
+                    setModalConfig({ 
+                        title: 'نجاح', 
+                        body: '<p>تم تحليل النص وملء الحقول تلقائياً. يرجى مراجعة البيانات قبل الحفظ.</p>', 
+                        hideCancel: true, 
+                        confirmText: 'حسنًا' 
+                    });
+                }, 100);
             }
         } catch (error) {
             console.error('❌ خطأ في تحليل النص:', error);

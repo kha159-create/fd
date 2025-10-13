@@ -58,7 +58,14 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                 };
 
                 setState(prev => {
-                    const updatedInstallments = prev.installments.map(i => i.id === installmentId ? { ...i, paid: i.paid + 1 } : i);
+                    const updatedInstallments = prev.installments.map(i => {
+                        if (i.id === installmentId) {
+                            const updatedInstallment = { ...i, paid: i.paid + 1 };
+                            console.log('🔄 تحديث قسط:', { id: i.id, paid: i.paid, newPaid: updatedInstallment.paid, total: i.total });
+                            return updatedInstallment;
+                        }
+                        return i;
+                    });
                     return {
                         ...prev,
                         transactions: [...prev.transactions, transaction],
