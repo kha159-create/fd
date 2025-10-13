@@ -23,23 +23,25 @@
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
     
     :root { 
-      --bg-light: #f8fafc;
+      --bg-light: #f1f5f9;
       --card-light: #ffffff;
-      --border-light: #e5e7eb;
-      --text-dark: #374151;
-      --text-headings: #111827;
+      --border-light: #e2e8f0;
+      --text-dark: #334155;
+      --text-headings: #0f172a;
       --accent-blue: #3b82f6;
       --accent-green: #10b981; 
-      --accent-red: #ef4444; 
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f59e0b;
     }
     
     * { font-family: 'Cairo', sans-serif; }
     
     body { background-color: var(--bg-light); color: var(--text-dark); }
     
-    .glass-card { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-light); border-radius: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07); }
+    .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-light); border-radius: 1.5rem; transition: all 0.3s ease; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05); }
     
-    .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); }
+    .glass-card:hover { border-color: rgba(59, 130, 246, 0.6); transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1); }
     
     .number-display { font-family: 'SF Mono', 'Courier New', monospace; direction: ltr; text-align: left; }
     
@@ -97,9 +99,25 @@
     
     .prose thead { background-color: #f3f4f6; }
     
-    .magical-button { background-color: var(--accent-blue); }
+    .magical-button { 
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      transition: all 0.3s ease;
+    }
     
-    .magical-button:hover { background-color: #2563eb; }
+    .magical-button:hover { 
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-primary { background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+    
+    .btn-primary:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+    
+    .btn-secondary { background: linear-gradient(135deg, var(--accent-green), #059669); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+    
+    .btn-secondary:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -123,7 +141,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/fd/assets/index-ClDxhonf.js"></script>
+  <script type="module" crossorigin src="/fd/assets/index-D608KV1E.js"></script>
   <link rel="stylesheet" crossorigin href="/fd/assets/index-BNPyd3P0.css">
 </head>
 <body class="bg-slate-50 min-h-screen">
