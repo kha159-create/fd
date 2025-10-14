@@ -221,14 +221,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                     </div>
 
                      {isPasting && (
-                        <div className="text-center p-6 mb-4 bg-blue-50 border-2 border-blue-200 rounded-xl shadow-sm">
+                        <div className="text-center p-6 mb-4 bg-blue-50 border-2 border-blue-200 rounded-xl shadow-sm relative z-[10000]">
                              <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mx-auto"></div>
                              <p className="text-blue-700 mt-3 text-base font-medium">🤖 جاري تحليل النص بالذكاء الاصطناعي...</p>
                              <p className="text-blue-600 mt-1 text-sm">يرجى الانتظار لحظات</p>
                         </div>
                     )}
                     {pasteError && (
-                        <div className="text-center p-4 mb-4 bg-red-50 border-2 border-red-200 rounded-xl shadow-sm">
+                        <div className="text-center p-4 mb-4 bg-red-50 border-2 border-red-200 rounded-xl shadow-sm relative z-[10000]">
                             <div className="text-red-500 text-lg mb-2">❌</div>
                             <p className="text-red-700 font-medium">فشل في تحليل النص</p>
                             <p className="text-red-600 text-sm mt-1">{pasteError}</p>
