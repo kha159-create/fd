@@ -12,9 +12,10 @@ interface TransactionFormProps {
     categories: Category[];
     cards: { [key: string]: CardConfig };
     bankAccounts: { [key: string]: BankAccountConfig };
+    setModalConfig: (config: any) => void;
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, initialData, categories, cards, bankAccounts }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, initialData, categories, cards, bankAccounts, setModalConfig }) => {
     const [transaction, setTransaction] = useState<Omit<Transaction, 'id'>>({
         amount: 0,
         date: new Date().toISOString().split('T')[0],

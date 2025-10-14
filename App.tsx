@@ -217,16 +217,16 @@ const App: React.FC = () => {
         if (state.cards && typeof state.cards === 'object') {
             Object.values(state.cards).forEach((card: any) => {
                 if (card && card.id) {
-                    cardDetails[card.id] = { ...card, balance: 0, available: card.limit, usagePercentage: 0 };
+            cardDetails[card.id] = { ...card, balance: 0, available: card.limit, usagePercentage: 0 };
                 }
-            });
+        });
         }
         if (state.bankAccounts && typeof state.bankAccounts === 'object') {
             Object.values(state.bankAccounts).forEach((account: any) => {
                 if (account && account.id) {
-                    bankAccountDetails[account.id] = { ...account, deposits: 0, withdrawals: 0 };
+            bankAccountDetails[account.id] = { ...account, deposits: 0, withdrawals: 0 };
                 }
-            });
+        });
         }
 
         let totalIncome = 0;
@@ -355,7 +355,7 @@ const App: React.FC = () => {
                 const newTransactions = prev.transactions.map(t => 
                     t.id === id ? { ...t, ...transaction } : t
                 );
-                return { ...prev, transactions: newTransactions };
+            return { ...prev, transactions: newTransactions };
             } else {
                 // Handle BNPL transactions
                 if (transaction.bnplData && transaction.paymentMethod.includes('bnpl')) {
@@ -416,7 +416,7 @@ const App: React.FC = () => {
             }
         });
     };
-
+    
     const handleEditTransaction = (id: string) => {
         const transaction = state.transactions.find(t => t.id === id);
         if (transaction) {
@@ -439,7 +439,7 @@ const App: React.FC = () => {
                 setCurrentUser(null);
                 // تحميل البيانات المحلية بعد تسجيل الخروج
                 await loadLocalData();
-            } else {
+        } else {
                 console.error('❌ خطأ في تسجيل الخروج:', result.error);
             }
         } catch (error) {
@@ -781,6 +781,7 @@ const App: React.FC = () => {
                     categories={state.categories}
                     cards={state.cards}
                     bankAccounts={state.bankAccounts}
+                    setModalConfig={setModalConfig}
                 />
             )}
 
