@@ -104,7 +104,7 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                             </div>
                             <div className="bg-slate-50 p-3 rounded-lg border border-gray-200 mb-3">
                                 <div className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden">
-                                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                                     <div className="bg-blue-700 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
                                 </div>
                                 <div className="flex justify-between text-xs text-slate-600">
                                     <span className="font-medium">{i.paid} / {i.total} مدفوع</span>
