@@ -1,29 +1,16 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Transaction, Category, FinancialCalculations, CardConfig, BankAccountConfig } from '../types';
-import { config, validateConfig } from '../config';
 
 let ai: GoogleGenAI;
-const GEMINI_MODEL = config.gemini.model;
+const GEMINI_MODEL = "gemini-2.5-flash";
 
-// تهيئة خدمة Gemini باستخدام المفتاح من ملف الإعدادات
+// FIX: Per @google/genai guidelines, the API key must be obtained exclusively from process.env.API_KEY.
+// The function now assumes this environment variable is pre-configured.
 export const initializeAi = () => {
     if (ai) {
         return;
     }
-    
-    // التحقق من صحة المفتاح
-    const validation = validateConfig();
-    if (!validation.isValid) {
-        console.warn("⚠️ تحذير: مفتاح Gemini API غير صحيح:", validation.errors);
-        return;
-    }
-    
-    try {
-        ai = new GoogleGenAI({ apiKey: config.gemini.apiKey });
-        console.log('🤖 تم تهيئة خدمة Gemini بنجاح');
-    } catch (error) {
-        console.error('❌ خطأ في تهيئة خدمة Gemini:', error);
-    }
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
 
@@ -88,25 +75,21 @@ const callGemini = async (systemInstruction: string, userPrompt: string, isJsonO
     throw new Error("لم تتم تهيئة خدمة الذكاء الاصطناعي. يرجى التأكد من صحة إعدادات الاتصال.");
   }
   try {
-    // استخدام الطريقة الصحيحة لاستدعاء Gemini API
-    const model = ai.getGenerativeModel({ 
+    const response: GenerateContentResponse = await ai.models.generateContent({
       model: GEMINI_MODEL,
-      systemInstruction: systemInstruction,
-      generationConfig: {
-        ...(isJsonOutput && { responseMimeType: "application/json" })
+      contents: userPrompt,
+      config: {
+          systemInstruction: systemInstruction,
+          ...(isJsonOutput && { responseMimeType: "application/json" })
       }
     });
-    
-    const result = await model.generateContent(userPrompt);
-    const responseText = result.response.text();
-    return responseText;
-
+    return response.text;
   } catch (error) {
     console.error("Gemini API Error:", error);
     let userMessage = "عفواً، حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى.";
     if (error instanceof Error && 'message' in error) {
-        if (error.message.includes('API key not valid')) {
-            userMessage = "تم رفض الوصول. يرجى التحقق من صحة مفتاح API الخاص بك.";
+        if (error.message.includes('403')) {
+            userMessage = "تم رفض الوصول (403). يرجى التحقق من قيود مفتاح API الخاص بك في Google Cloud Console.";
         }
     }
     throw new Error(userMessage);
