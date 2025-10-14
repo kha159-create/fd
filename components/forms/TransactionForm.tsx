@@ -123,8 +123,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         }
     };
 
-    const paymentMethods = useMemo(() => { /* Omitted for brevity */ return []; }, [bankAccounts, cards]);
-    const transactionTypes = useMemo(() => { /* Omitted for brevity */ return []; }, [cards]);
+    const paymentMethods = useMemo(() => {
+        const methods = [{ value: 'cash', label: '💵 نقدي' }];
+        Object.values(bankAccounts).forEach((acc: BankAccountConfig) => methods.push({ value: acc.id, label: `🏦 ${acc.name}` }));
+        Object.values(cards).forEach((card: CardConfig) => methods.push({ value: card.id, label: `💳 ${card.name}` }));
+        methods.push({ value: 'tabby-bnpl', label: '📱 تابي' });
+        methods.push({ value: 'tamara-bnpl', label: '📱 تمارا' });
+        return methods;
+    }, [bankAccounts, cards]);
+    
+    const transactionTypes = useMemo(() => {
+        const types = [
+            { value: 'expense', label: '💸 مصاريف' },
+            { value: 'income', label: '💰 دخل' },
+            { value: 'bnpl-payment', label: '📱 سداد قسط' },
+            { value: 'investment-deposit', label: '💹 إيداع استثماري' },
+            { value: 'investment-withdrawal', label: '💹 سحب استثماري' },
+        ];
+        Object.values(cards).forEach((card: CardConfig) => types.push({ value: `${card.id}-payment`, label: `💳 سداد ${card.name}` }));
+        return types;
+    }, [cards]);
 
     return (
         <>
@@ -159,7 +177,85 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                             {status === 'error' && <p className="text-red-600 text-sm font-semibold">{message}</p>}
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Form fields are unchanged and omitted here for brevity */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="amount" className="form-label">المبلغ</label>
+                                    <input type="number" name="amount" value={transaction.amount} onChange={handleChange} className="w-full" required step="0.01" />
+                                </div>
+                                <div>
+                                    <label htmlFor="date" className="form-label">التاريخ</label>
+                                    <input type="date" name="date" value={transaction.date} onChange={handleChange} className="w-full" required />
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="description" className="form-label">الوصف <span className="text-red-500">*</span></label>
+                                <input type="text" name="description" value={transaction.description} onChange={handleChange} className="w-full" required />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="type" className="form-label">نوع الحركة</label>
+                                    <select name="type" value={transaction.type} onChange={handleChange} className="w-full">
+                                        {transactionTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="paymentMethod" className="form-label">وسيلة الدفع</label>
+                                    <select name="paymentMethod" value={transaction.paymentMethod} onChange={handleChange} className="w-full">
+                                        {paymentMethods.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="categoryId" className="form-label">الفئة <span className="text-red-500">*</span></label>
+                                <select name="categoryId" value={transaction.categoryId || ''} onChange={handleChange} className="w-full" required>
+                                    <option value="">-- اختر فئة --</option>
+                                    {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                                </select>
+                            </div>
+                            
+                            {/* BNPL Fields */}
+                            {showBnplFields && (
+                                <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+                                    <h3 className="font-semibold text-blue-800">📱 إعدادات التقسيط</h3>
+                                    
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="installmentsCount" className="form-label">عدد الأقساط</label>
+                                            <select 
+                                                value={installmentsCount} 
+                                                onChange={(e) => setInstallmentsCount(parseInt(e.target.value))}
+                                                className="w-full"
+                                            >
+                                                <option value={2}>قسطين (2)</option>
+                                                <option value={3}>3 أقساط</option>
+                                                <option value={4}>4 أقساط</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label htmlFor="initialPaymentSource" className="form-label">مصدر الدفعة الأولى</label>
+                                            <select 
+                                                value={initialPaymentSource} 
+                                                onChange={(e) => setInitialPaymentSource(e.target.value)}
+                                                className="w-full"
+                                            >
+                                                {paymentMethods.filter(m => !m.value.includes('bnpl')).map(m => (
+                                                    <option key={m.value} value={m.value}>{m.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-blue-100 p-3 rounded-lg">
+                                        <p className="text-sm text-blue-700">
+                                            <strong>الدفعة الأولى:</strong> {(transaction.amount / installmentsCount).toFixed(2)} ريال
+                                            <br />
+                                            <strong>المبلغ المتبقي:</strong> {(transaction.amount * (installmentsCount - 1) / installmentsCount).toFixed(2)} ريال
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            <button type="submit" className="w-full py-3 magical-button text-white font-semibold rounded-lg mt-6">{initialData ? 'حفظ التعديلات' : 'إضافة الحركة'}</button>
                         </form>
                     </div>
                 </div>
