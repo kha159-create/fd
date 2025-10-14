@@ -24,8 +24,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         type: 'expense',
         categoryId: categories.find(c => c.name === 'أخرى')?.id || null,
     });
-    const [isPasting, setIsPasting] = useState(false);
-    const [pasteError, setPasteError] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
     const [clipboardModal, setClipboardModal] = useState<{ isOpen: boolean; text: string }>({ isOpen: false, text: '' });
     
     // BNPL fields
@@ -139,8 +139,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
     const handlePasteAnalyze = async (textToAnalyze: string) => {
         if (!textToAnalyze.trim()) return;
         console.log('🔍 بدء تحليل النص...', textToAnalyze.substring(0, 100));
-        setIsPasting(true);
-        setPasteError('');
+        
+        // Set loading state
+        setStatus('loading');
+        setMessage('جاري تحليل البيانات...');
+        
         try {
             console.log('📤 إرسال طلب تحليل إلى Gemini...');
             const jsonString = await analyzePastedText(textToAnalyze, categories, cards, bankAccounts);
@@ -151,7 +154,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
             
             if (result.error) {
                 console.log('❌ خطأ في التحليل:', result.error);
-                setPasteError(result.error);
+                setStatus('error');
+                setMessage('❌ حدث خطأ أثناء التحليل. حاول مرة أخرى.');
             } else {
                 console.log('✅ تطبيق النتيجة على النموذج...');
                 // تحديث النموذج مباشرة مثل الملف القديم
@@ -169,22 +173,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                 });
                 console.log('✅ تم تحديث النموذج بنجاح');
                 
-                // إظهار رسالة نجاح
-                setTimeout(() => {
-                    setModalConfig({ 
-                        title: '✅ تم بنجاح', 
-                        body: '<div class="text-center"><p class="text-green-600 font-medium mb-2">🎉 تم تحليل النص وملء الحقول تلقائياً!</p><p class="text-gray-600 text-sm">يرجى مراجعة البيانات قبل الحفظ</p></div>', 
-                        hideCancel: true, 
-                        confirmText: 'حسنًا' 
-                    });
-                }, 500);
+                // Set success state
+                setStatus('success');
+                setMessage('✅ تم التحليل بنجاح، وتم تعبئة الحقول تلقائيًا');
             }
         } catch (error) {
             console.error('❌ خطأ في تحليل النص:', error);
-            setPasteError(error instanceof Error ? error.message : 'فشل تحليل النص.');
-        } finally {
-            setIsPasting(false);
-            console.log('🏁 انتهى تحليل النص');
+            setStatus('error');
+            setMessage('❌ حدث خطأ أثناء التحليل. حاول مرة أخرى.');
         }
     };
     
@@ -260,20 +256,21 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                         </div>
                     </div>
 
-                     {isPasting && (
-                        <div className="text-center p-6 mb-4 bg-blue-50 border-2 border-blue-200 rounded-xl shadow-sm relative z-[10000]">
-                             <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mx-auto"></div>
-                             <p className="text-blue-700 mt-3 text-base font-medium">🤖 جاري تحليل النص بالذكاء الاصطناعي...</p>
-                             <p className="text-blue-600 mt-1 text-sm">يرجى الانتظار لحظات</p>
-                        </div>
-                    )}
-                    {pasteError && (
-                        <div className="text-center p-4 mb-4 bg-red-50 border-2 border-red-200 rounded-xl shadow-sm relative z-[10000]">
-                            <div className="text-red-500 text-lg mb-2">❌</div>
-                            <p className="text-red-700 font-medium">فشل في تحليل النص</p>
-                            <p className="text-red-600 text-sm mt-1">{pasteError}</p>
-                        </div>
-                    )}
+                    <div className="mt-2 text-center">
+                        {status === 'loading' && (
+                            <div className="flex justify-center items-center gap-2 text-slate-600 text-sm">
+                                <div className="w-4 h-4 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+                                <span>{message}</span>
+                            </div>
+                        )}
+                        {status === 'success' && (
+                            <p className="text-emerald-600 text-sm font-semibold mt-1">{message}</p>
+                        )}
+                        {status === 'error' && (
+                            <p className="text-red-600 text-sm font-semibold mt-1">{message}</p>
+                        )}
+                    </div>
+
                     
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
