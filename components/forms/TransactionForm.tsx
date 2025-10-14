@@ -105,6 +105,37 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         }
     };
 
+    const handlePasteFromClipboard = async () => {
+        try {
+            console.log('🔍 محاولة قراءة الحافظة...');
+            const clipboardText = await navigator.clipboard.readText();
+            console.log('📋 نص الحافظة:', clipboardText);
+            
+            if (clipboardText && clipboardText.trim()) {
+                console.log('✅ تم العثور على نص مناسب في الحافظة');
+                console.log('🔍 فتح نافذة الحافظة...');
+                setClipboardModal({ isOpen: true, text: clipboardText });
+                console.log('✅ تم فتح نافذة الحافظة');
+            } else {
+                console.log('❌ لا يوجد نص في الحافظة أو النص فارغ');
+                setModalConfig({ 
+                    title: 'تحذير', 
+                    body: '<p>لا يوجد نص في الحافظة أو النص فارغ.</p>', 
+                    hideCancel: true, 
+                    confirmText: 'حسنًا' 
+                });
+            }
+        } catch (error) {
+            console.error('❌ خطأ في قراءة الحافظة:', error);
+            setModalConfig({ 
+                title: 'خطأ', 
+                body: '<p>فشل في قراءة الحافظة. تأكد من السماح للتطبيق بالوصول إلى الحافظة.</p>', 
+                hideCancel: true, 
+                confirmText: 'حسنًا' 
+            });
+        }
+    };
+
     const handlePasteAnalyze = async (textToAnalyze: string) => {
         if (!textToAnalyze.trim()) return;
         console.log('🔍 بدء تحليل النص...', textToAnalyze.substring(0, 100));
