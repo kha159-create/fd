@@ -1,16 +1,29 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Transaction, Category, FinancialCalculations, CardConfig, BankAccountConfig } from '../types';
+import { config, validateConfig } from '../config';
 
 let ai: GoogleGenAI;
 const GEMINI_MODEL = "gemini-2.5-flash";
 
-// FIX: Per @google/genai guidelines, the API key must be obtained exclusively from process.env.API_KEY.
-// The function now assumes this environment variable is pre-configured.
+// تهيئة خدمة Gemini باستخدام المفتاح من ملف الإعدادات
 export const initializeAi = () => {
     if (ai) {
         return;
     }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    // التحقق من صحة المفتاح
+    const validation = validateConfig();
+    if (!validation.isValid) {
+        console.warn("⚠️ تحذير: مفتاح Gemini API غير صحيح:", validation.errors);
+        return;
+    }
+    
+    try {
+        ai = new GoogleGenAI({ apiKey: config.gemini.apiKey });
+        console.log('🤖 تم تهيئة خدمة Gemini بنجاح');
+    } catch (error) {
+        console.error('❌ خطأ في تهيئة خدمة Gemini:', error);
+    }
 };
 
 
