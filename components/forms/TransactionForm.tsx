@@ -138,49 +138,33 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
 
     const handlePasteAnalyze = async (textToAnalyze: string) => {
         if (!textToAnalyze.trim()) return;
-        console.log('🔍 بدء تحليل النص...', textToAnalyze.substring(0, 100));
-        
-        // Set loading state
         setStatus('loading');
         setMessage('جاري تحليل البيانات...');
         
         try {
-            console.log('📤 إرسال طلب تحليل إلى Gemini...');
             const jsonString = await analyzePastedText(textToAnalyze, categories, cards, bankAccounts);
-            console.log('📥 استجابة Gemini:', jsonString);
-            
             const result = JSON.parse(jsonString);
-            console.log('📊 نتيجة التحليل:', result);
             
             if (result.error) {
-                console.log('❌ خطأ في التحليل:', result.error);
                 setStatus('error');
-                setMessage('❌ حدث خطأ أثناء التحليل. حاول مرة أخرى.');
+                setMessage(result.error); // عرض رسالة الخطأ من Gemini مباشرة
             } else {
-                console.log('✅ تطبيق النتيجة على النموذج...');
-                // تحديث النموذج مباشرة مثل الملف القديم
-                setTransaction(prev => {
-                    const newTransaction = {
-                        ...prev,
-                        amount: result.amount || prev.amount,
-                        date: result.date || prev.date,
-                        description: result.merchant || prev.description,
-                        paymentMethod: result.paymentMethod || prev.paymentMethod,
-                        categoryId: result.categoryId || prev.categoryId,
-                    };
-                    console.log('🔄 النموذج الجديد:', newTransaction);
-                    return newTransaction;
-                });
-                console.log('✅ تم تحديث النموذج بنجاح');
-                
-                // Set success state
+                setTransaction(prev => ({
+                    ...prev,
+                    amount: result.amount || prev.amount,
+                    date: result.date || prev.date,
+                    description: result.merchant || prev.description,
+                    paymentMethod: result.paymentMethod || prev.paymentMethod,
+                    categoryId: result.categoryId || prev.categoryId,
+                }));
                 setStatus('success');
                 setMessage('✅ تم التحليل بنجاح، وتم تعبئة الحقول تلقائيًا');
             }
         } catch (error) {
             console.error('❌ خطأ في تحليل النص:', error);
             setStatus('error');
-            setMessage('❌ حدث خطأ أثناء التحليل. حاول مرة أخرى.');
+            const errorMessage = error instanceof Error ? error.message : 'حدث خطأ غير متوقع.';
+            setMessage(`❌ فشل التحليل: ${errorMessage}`);
         }
     };
     

@@ -88,21 +88,25 @@ const callGemini = async (systemInstruction: string, userPrompt: string, isJsonO
     throw new Error("لم تتم تهيئة خدمة الذكاء الاصطناعي. يرجى التأكد من صحة إعدادات الاتصال.");
   }
   try {
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: userPrompt,
-      config: {
-          systemInstruction: systemInstruction,
-          ...(isJsonOutput && { responseMimeType: "application/json" })
-      }
+    // **التعديل هنا: طريقة استدعاء الموديل وتوليد المحتوى**
+    const model = ai.getGenerativeModel({ model: GEMINI_MODEL, systemInstruction });
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+            ...(isJsonOutput && { responseMimeType: "application/json" })
+        }
     });
-    return response.text;
+    
+    // **التعديل هنا: الطريقة الصحيحة للوصول إلى النص**
+    const responseText = result.response.text();
+    return responseText;
+
   } catch (error) {
     console.error("Gemini API Error:", error);
     let userMessage = "عفواً، حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى.";
     if (error instanceof Error && 'message' in error) {
-        if (error.message.includes('403')) {
-            userMessage = "تم رفض الوصول (403). يرجى التحقق من قيود مفتاح API الخاص بك في Google Cloud Console.";
+        if (error.message.includes('API key not valid')) {
+            userMessage = "تم رفض الوصول. يرجى التحقق من صحة مفتاح API الخاص بك.";
         }
     }
     throw new Error(userMessage);

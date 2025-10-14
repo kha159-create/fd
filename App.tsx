@@ -411,7 +411,32 @@ const App: React.FC = () => {
             body: '<p>هل أنت متأكد من رغبتك في حذف هذه الحركة؟ لا يمكن التراجع عن هذا الإجراء.</p>',
             confirmText: 'نعم, حذف',
             onConfirm: () => {
-                setState(prev => ({ ...prev, transactions: prev.transactions.filter(t => t.id !== id) }));
+                setState(prev => {
+                    const transactionToDelete = prev.transactions.find(t => t.id === id);
+                    if (!transactionToDelete) return prev;
+
+                    // 1. فلترة الحركة المحذوفة
+                    const updatedTransactions = prev.transactions.filter(t => t.id !== id);
+                    let updatedInstallments = prev.installments;
+
+                    // 2. **منطق تحديث الأقساط (هذا هو الجزء الأهم)**
+                    // إذا كانت الحركة المحذوفة دفعة قسط، قم بتحديث خطة القسط
+                    if (transactionToDelete.isInstallmentPayment && transactionToDelete.installmentId) {
+                        updatedInstallments = prev.installments.map(inst => {
+                            if (inst.id === transactionToDelete.installmentId) {
+                                // إنقاص عداد الدفعات، مع التأكد من أنه لا يقل عن صفر
+                                return { ...inst, paid: Math.max(0, inst.paid - 1) };
+                            }
+                            return inst;
+                        });
+                    }
+
+                    return {
+                        ...prev,
+                        transactions: updatedTransactions,
+                        installments: updatedInstallments, // تطبيق تحديث الأقساط على الحالة
+                    };
+                });
                 setModalConfig(null);
             }
         });
