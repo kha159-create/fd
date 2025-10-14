@@ -138,15 +138,15 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                 });
                 console.log('✅ تم تحديث النموذج بنجاح');
                 
-                // إظهار رسالة نجاح مثل الملف القديم
+                // إظهار رسالة نجاح
                 setTimeout(() => {
                     setModalConfig({ 
-                        title: 'نجاح', 
-                        body: '<p>تم تحليل النص وملء الحقول تلقائياً. يرجى مراجعة البيانات قبل الحفظ.</p>', 
+                        title: '✅ تم بنجاح', 
+                        body: '<div class="text-center"><p class="text-green-600 font-medium mb-2">🎉 تم تحليل النص وملء الحقول تلقائياً!</p><p class="text-gray-600 text-sm">يرجى مراجعة البيانات قبل الحفظ</p></div>', 
                         hideCancel: true, 
                         confirmText: 'حسنًا' 
                     });
-                }, 100);
+                }, 500);
             }
         } catch (error) {
             console.error('❌ خطأ في تحليل النص:', error);
@@ -221,12 +221,19 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                     </div>
 
                      {isPasting && (
-                        <div className="text-center p-4 mb-4 bg-blue-50 rounded-lg">
-                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                             <p className="text-blue-600 mt-2 text-sm">جاري التحليل...</p>
+                        <div className="text-center p-6 mb-4 bg-blue-50 border-2 border-blue-200 rounded-xl shadow-sm">
+                             <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mx-auto"></div>
+                             <p className="text-blue-700 mt-3 text-base font-medium">🤖 جاري تحليل النص بالذكاء الاصطناعي...</p>
+                             <p className="text-blue-600 mt-1 text-sm">يرجى الانتظار لحظات</p>
                         </div>
                     )}
-                    {pasteError && <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg">{pasteError}</p>}
+                    {pasteError && (
+                        <div className="text-center p-4 mb-4 bg-red-50 border-2 border-red-200 rounded-xl shadow-sm">
+                            <div className="text-red-500 text-lg mb-2">❌</div>
+                            <p className="text-red-700 font-medium">فشل في تحليل النص</p>
+                            <p className="text-red-600 text-sm mt-1">{pasteError}</p>
+                        </div>
+                    )}
                     
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
