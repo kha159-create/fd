@@ -217,7 +217,16 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold text-slate-800">{initialData ? 'تعديل الحركة' : 'إضافة حركة جديدة'}</h2>
-                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><XMarkIcon /></button>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handlePasteFromClipboard}
+                                className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
+                                title="قراءة الحافظة وتحليل النص"
+                            >
+                                📋 لصق
+                            </button>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><XMarkIcon /></button>
+                        </div>
                     </div>
 
                      {isPasting && (

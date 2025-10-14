@@ -924,7 +924,7 @@ const App: React.FC = () => {
             {/* Generic Modal */}
             {modalConfig && (
                 <div 
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10001] flex items-center justify-center p-4"
                     onClick={() => setModalConfig(null)}
                 >
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -940,7 +940,7 @@ const App: React.FC = () => {
 
             {/* Loading Overlay */}
             {loadingState.isLoading && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10001] flex flex-col items-center justify-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
                     <p className="text-white mt-4">{loadingState.text || 'جاري التحميل...'}</p>
                 </div>
