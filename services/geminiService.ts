@@ -88,16 +88,16 @@ const callGemini = async (systemInstruction: string, userPrompt: string, isJsonO
     throw new Error("لم تتم تهيئة خدمة الذكاء الاصطناعي. يرجى التأكد من صحة إعدادات الاتصال.");
   }
   try {
-    // **التعديل هنا: طريقة استدعاء الموديل وتوليد المحتوى**
-    const model = ai.getGenerativeModel({ model: GEMINI_MODEL, systemInstruction });
-    const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: {
-            ...(isJsonOutput && { responseMimeType: "application/json" })
-        }
+    // استخدام الطريقة الصحيحة لاستدعاء Gemini API
+    const model = ai.getGenerativeModel({ 
+      model: GEMINI_MODEL,
+      systemInstruction: systemInstruction,
+      generationConfig: {
+        ...(isJsonOutput && { responseMimeType: "application/json" })
+      }
     });
     
-    // **التعديل هنا: الطريقة الصحيحة للوصول إلى النص**
+    const result = await model.generateContent(userPrompt);
     const responseText = result.response.text();
     return responseText;
 
