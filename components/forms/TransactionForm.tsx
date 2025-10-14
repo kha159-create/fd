@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Transaction, Category, CardConfig, BankAccountConfig } from '../../types';
+import { Transaction, Category, CardConfig, BankAccountConfig, TransactionType, PaymentMethod } from '../../types';
 import { analyzePastedText } from '../../services/geminiService';
-import { XMarkIcon } from '../common/Icons';
+import { MagicIcon, XMarkIcon } from '../common/Icons';
 
 interface TransactionFormProps {
     onClose: () => void;
@@ -22,52 +22,59 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         type: 'expense',
         categoryId: categories.find(c => c.name === 'أخرى')?.id || null,
     });
-    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [message, setMessage] = useState('');
+    const [isPasting, setIsPasting] = useState(false);
+    const [pasteError, setPasteError] = useState('');
     const [clipboardModal, setClipboardModal] = useState<{ isOpen: boolean; text: string }>({ isOpen: false, text: '' });
     
+    // BNPL fields
     const [showBnplFields, setShowBnplFields] = useState(false);
     const [installmentsCount, setInstallmentsCount] = useState(4);
     const [initialPaymentSource, setInitialPaymentSource] = useState(Object.keys(bankAccounts)[0] || 'cash');
-
-    const tryReadingClipboard = useCallback(async () => {
-        if (clipboardModal.isOpen) return;
-
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text && text.trim().length > 10 && sessionStorage.getItem('ignoredClipboardText') !== text) {
-                setClipboardModal({ isOpen: true, text });
-            }
-        } catch (err) {
-            console.info('لم يتم منح إذن الوصول إلى الحافظة بعد، أو أنها غير مدعومة.');
-        }
-    }, [clipboardModal.isOpen]);
 
     useEffect(() => {
         if (initialData) {
             setTransaction(initialData);
         } else {
-            tryReadingClipboard();
-            window.addEventListener('focus', tryReadingClipboard);
-            return () => {
-                window.removeEventListener('focus', tryReadingClipboard);
-            };
+             // Auto-detect clipboard content for new transactions
+            if (navigator.clipboard?.readText) {
+                (async () => {
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        // Basic validation to check for meaningful text
+                        if (text && text.trim().length > 10 && sessionStorage.getItem('ignoredClipboardText') !== text) {
+                            setClipboardModal({ isOpen: true, text });
+                        }
+                    } catch (err) {
+                        console.info('Clipboard read access denied or not supported.');
+                    }
+                })();
+            }
         }
-    }, [initialData, tryReadingClipboard]);
+    }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        
+        // Handle BNPL logic
         if (name === 'paymentMethod') {
             const isBnpl = value.includes('bnpl');
             setShowBnplFields(isBnpl);
-            if (isBnpl) setTransaction(prev => ({ ...prev, type: 'expense' }));
+            
+            // Auto-set transaction type for BNPL
+            if (isBnpl) {
+                setTransaction(prev => ({ ...prev, type: 'expense' }));
+            }
         }
+        
         setTransaction(prev => ({ ...prev, [name]: name === 'amount' ? parseFloat(value) : value }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // For BNPL transactions, we need to create both the installment plan and first payment
         if (showBnplFields && transaction.paymentMethod.includes('bnpl')) {
+            // This will be handled by the parent component with additional BNPL data
             onSave({
                 ...transaction,
                 bnplData: {
@@ -81,29 +88,15 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         }
     };
 
-    const handlePasteFromClipboard = async () => {
-        try {
-            const clipboardText = await navigator.clipboard.readText();
-            if (clipboardText && clipboardText.trim()) {
-                setClipboardModal({ isOpen: true, text: clipboardText });
-            } else {
-                setModalConfig({ title: 'الحافظة فارغة', body: '<p>لا يوجد نص في الحافظة لنسخه.</p>', hideCancel: true });
-            }
-        } catch (error) {
-            setModalConfig({ title: 'خطأ في الوصول للحافظة', body: '<p>فشل في قراءة الحافظة. يرجى التأكد من منح الإذن للموقع.</p>', hideCancel: true });
-        }
-    };
-
     const handlePasteAnalyze = async (textToAnalyze: string) => {
         if (!textToAnalyze.trim()) return;
-        setStatus('loading');
-        setMessage('جاري تحليل البيانات...');
+        setIsPasting(true);
+        setPasteError('');
         try {
             const jsonString = await analyzePastedText(textToAnalyze, categories, cards, bankAccounts);
             const result = JSON.parse(jsonString);
             if (result.error) {
-                setStatus('error');
-                setMessage(result.error);
+                setPasteError(result.error);
             } else {
                 setTransaction(prev => ({
                     ...prev,
@@ -113,13 +106,42 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                     paymentMethod: result.paymentMethod || prev.paymentMethod,
                     categoryId: result.categoryId || prev.categoryId,
                 }));
-                setStatus('success');
-                setMessage('✅ تم التحليل بنجاح');
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'فشل تحليل النص.';
-            setStatus('error');
-            setMessage(`❌ ${errorMessage}`);
+            setPasteError(error instanceof Error ? error.message : 'فشل تحليل النص.');
+            console.error(error);
+        } finally {
+            setIsPasting(false);
+        }
+    };
+
+    const handleManualPaste = async () => {
+        setPasteError(''); // Clear previous errors
+    
+        try {
+            // Check permissions first using the Permissions API
+            if (navigator.permissions && navigator.permissions.query) {
+                // Cast to PermissionName is needed as 'clipboard-read' might not be in default TS libs
+                const permissionStatus = await navigator.permissions.query({ name: 'clipboard-read' as PermissionName });
+    
+                if (permissionStatus.state === 'denied') {
+                    setPasteError('تم رفض الوصول إلى الحافظة. لتفعيل هذه الميزة، يرجى الذهاب إلى إعدادات الموقع في متصفحك والسماح بالوصول إلى الحافظة.');
+                    return; // Stop execution if permission is denied
+                }
+                // If 'granted' or 'prompt', we can proceed. The browser will handle the prompt.
+            }
+    
+            // Proceed to read from clipboard. This will trigger a prompt if state was 'prompt'.
+            const text = await navigator.clipboard.readText();
+            if (text && text.trim().length > 0) {
+                handlePasteAnalyze(text); // This function will handle the loading state
+            } else {
+                setPasteError('الحافظة فارغة. الرجاء نسخ نص المعاملة أولاً.');
+            }
+        } catch (err) {
+            console.error('Clipboard operation failed: ', err);
+            // This catch block handles errors, including the user denying the permission prompt.
+            setPasteError('فشل الوصول إلى الحافظة. يرجى منح الإذن عند طلبه، أو التحقق من إعدادات المتصفح.');
         }
     };
 
@@ -146,120 +168,139 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
 
     return (
         <>
-            {clipboardModal.isOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setClipboardModal({ isOpen: false, text: '' })}>
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
-                        <div className="p-6">
-                            <h3 className="text-xl font-bold text-slate-800 mb-4">اكتشاف نص في الحافظة</h3>
-                            <p className="text-sm text-slate-600 mb-4">وجدنا نصاً في حافظة النصوص. هل تود لصقه وتحليله؟</p>
-                            <pre className="bg-slate-100 p-3 rounded-md text-xs text-slate-500 max-h-24 overflow-y-auto">{clipboardModal.text}</pre>
-                            <div className="flex justify-end gap-3 mt-6">
-                                <button onClick={() => { sessionStorage.setItem('ignoredClipboardText', clipboardModal.text); setClipboardModal({ isOpen: false, text: '' }); }} className="px-4 py-2 bg-slate-200 rounded-lg">تجاهل</button>
-                                <button onClick={() => { setClipboardModal({ isOpen: false, text: '' }); handlePasteAnalyze(clipboardModal.text); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg">لصق وتحليل</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-                <div className="bg-white rounded-lg shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        {clipboardModal.isOpen && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setClipboardModal({ isOpen: false, text: '' })}>
+                <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
                     <div className="p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold text-slate-800">{initialData ? 'تعديل الحركة' : 'إضافة حركة جديدة'}</h2>
-                            <div className="flex items-center gap-2">
-                                <button onClick={handlePasteFromClipboard} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm" title="لصق من الحافظة">📋 لصق</button>
-                                <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><XMarkIcon /></button>
-                            </div>
+                        <h3 className="text-xl font-bold text-slate-800 mb-4">اكتشاف نص في الحافظة</h3>
+                        <p className="text-sm text-slate-600 mb-4">وجدنا نصاً في حافظة النصوص. هل تود لصقه وتحليله لتعبئة الحقول تلقائياً؟</p>
+                        <pre className="bg-slate-100 p-3 rounded-md text-xs text-slate-500 max-h-24 overflow-y-auto whitespace-pre-wrap font-sans">
+                            {clipboardModal.text}
+                        </pre>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button onClick={() => {
+                                sessionStorage.setItem('ignoredClipboardText', clipboardModal.text);
+                                setClipboardModal({ isOpen: false, text: '' });
+                            }} className="px-4 py-2 bg-slate-200 rounded-lg">تجاهل</button>
+                            <button onClick={() => {
+                                setClipboardModal({ isOpen: false, text: '' });
+                                handlePasteAnalyze(clipboardModal.text);
+                            }} className="px-4 py-2 bg-blue-600 text-white rounded-lg">لصق وتحليل</button>
                         </div>
-                        <div className="min-h-[24px] text-center mb-4">
-                            {status === 'loading' && <p className="text-blue-600 text-sm flex items-center justify-center gap-2"><div className="w-4 h-4 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></div>{message}</p>}
-                            {status === 'success' && <p className="text-emerald-600 text-sm font-semibold">{message}</p>}
-                            {status === 'error' && <p className="text-red-600 text-sm font-semibold">{message}</p>}
-                        </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="amount" className="form-label">المبلغ</label>
-                                    <input type="number" name="amount" value={transaction.amount} onChange={handleChange} className="w-full" required step="0.01" />
-                                </div>
-                                <div>
-                                    <label htmlFor="date" className="form-label">التاريخ</label>
-                                    <input type="date" name="date" value={transaction.date} onChange={handleChange} className="w-full" required />
-                                </div>
-                            </div>
-                            <div>
-                                <label htmlFor="description" className="form-label">الوصف <span className="text-red-500">*</span></label>
-                                <input type="text" name="description" value={transaction.description} onChange={handleChange} className="w-full" required />
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="type" className="form-label">نوع الحركة</label>
-                                    <select name="type" value={transaction.type} onChange={handleChange} className="w-full">
-                                        {transactionTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label htmlFor="paymentMethod" className="form-label">وسيلة الدفع</label>
-                                    <select name="paymentMethod" value={transaction.paymentMethod} onChange={handleChange} className="w-full">
-                                        {paymentMethods.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label htmlFor="categoryId" className="form-label">الفئة <span className="text-red-500">*</span></label>
-                                <select name="categoryId" value={transaction.categoryId || ''} onChange={handleChange} className="w-full" required>
-                                    <option value="">-- اختر فئة --</option>
-                                    {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                                </select>
-                            </div>
-                            
-                            {/* BNPL Fields */}
-                            {showBnplFields && (
-                                <div className="bg-blue-50 p-4 rounded-lg space-y-4">
-                                    <h3 className="font-semibold text-blue-800">📱 إعدادات التقسيط</h3>
-                                    
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label htmlFor="installmentsCount" className="form-label">عدد الأقساط</label>
-                                            <select 
-                                                value={installmentsCount} 
-                                                onChange={(e) => setInstallmentsCount(parseInt(e.target.value))}
-                                                className="w-full"
-                                            >
-                                                <option value={2}>قسطين (2)</option>
-                                                <option value={3}>3 أقساط</option>
-                                                <option value={4}>4 أقساط</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div>
-                                            <label htmlFor="initialPaymentSource" className="form-label">مصدر الدفعة الأولى</label>
-                                            <select 
-                                                value={initialPaymentSource} 
-                                                onChange={(e) => setInitialPaymentSource(e.target.value)}
-                                                className="w-full"
-                                            >
-                                                {paymentMethods.filter(m => !m.value.includes('bnpl')).map(m => (
-                                                    <option key={m.value} value={m.value}>{m.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="bg-blue-100 p-3 rounded-lg">
-                                        <p className="text-sm text-blue-700">
-                                            <strong>الدفعة الأولى:</strong> {(transaction.amount / installmentsCount).toFixed(2)} ريال
-                                            <br />
-                                            <strong>المبلغ المتبقي:</strong> {(transaction.amount * (installmentsCount - 1) / installmentsCount).toFixed(2)} ريال
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                            <button type="submit" className="w-full py-3 magical-button text-white font-semibold rounded-lg mt-6">{initialData ? 'حفظ التعديلات' : 'إضافة الحركة'}</button>
-                        </form>
                     </div>
                 </div>
             </div>
+        )}
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-slate-800">{initialData ? 'تعديل الحركة' : 'إضافة حركة جديدة'}</h2>
+                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><XMarkIcon /></button>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleManualPaste}
+                        disabled={isPasting}
+                        className="w-full flex items-center justify-center gap-2 mb-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                    >
+                        <MagicIcon />
+                        <span>لصق وتحليل من الحافظة</span>
+                    </button>
+
+                     {isPasting && (
+                        <div className="text-center p-4 mb-4 bg-blue-50 rounded-lg">
+                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+                             <p className="text-blue-600 mt-2 text-sm">جاري التحليل...</p>
+                        </div>
+                    )}
+                    {pasteError && <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg">{pasteError}</p>}
+                    
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="amount" className="form-label">المبلغ</label>
+                                <input type="number" name="amount" value={transaction.amount} onChange={handleChange} className="w-full" required step="0.01" />
+                            </div>
+                            <div>
+                                <label htmlFor="date" className="form-label">التاريخ</label>
+                                <input type="date" name="date" value={transaction.date} onChange={handleChange} className="w-full" required />
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="form-label">الوصف</label>
+                            <input type="text" name="description" value={transaction.description} onChange={handleChange} className="w-full" required />
+                        </div>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="type" className="form-label">نوع الحركة</label>
+                                <select name="type" value={transaction.type} onChange={handleChange} className="w-full">
+                                    {transactionTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                </select>
+                            </div>
+                             <div>
+                                <label htmlFor="paymentMethod" className="form-label">وسيلة الدفع</label>
+                                <select name="paymentMethod" value={transaction.paymentMethod} onChange={handleChange} className="w-full">
+                                    {paymentMethods.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="categoryId" className="form-label">الفئة</label>
+                            <select name="categoryId" value={transaction.categoryId || ''} onChange={handleChange} className="w-full">
+                                <option value="">-- اختر فئة --</option>
+                                {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                            </select>
+                        </div>
+                        
+                        {/* BNPL Fields */}
+                        {showBnplFields && (
+                            <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+                                <h3 className="font-semibold text-blue-800">📱 إعدادات التقسيط</h3>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="installmentsCount" className="form-label">عدد الأقساط</label>
+                                        <select 
+                                            value={installmentsCount} 
+                                            onChange={(e) => setInstallmentsCount(parseInt(e.target.value))}
+                                            className="w-full"
+                                        >
+                                            <option value={2}>قسطين (2)</option>
+                                            <option value={3}>3 أقساط</option>
+                                            <option value={4}>4 أقساط</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label htmlFor="initialPaymentSource" className="form-label">مصدر الدفعة الأولى</label>
+                                        <select 
+                                            value={initialPaymentSource} 
+                                            onChange={(e) => setInitialPaymentSource(e.target.value)}
+                                            className="w-full"
+                                        >
+                                            {paymentMethods.filter(m => !m.value.includes('bnpl')).map(m => (
+                                                <option key={m.value} value={m.value}>{m.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-blue-100 p-3 rounded-lg">
+                                    <p className="text-sm text-blue-700">
+                                        <strong>الدفعة الأولى:</strong> {(transaction.amount / installmentsCount).toFixed(2)} ريال
+                                        <br />
+                                        <strong>المبلغ المتبقي:</strong> {(transaction.amount * (installmentsCount - 1) / installmentsCount).toFixed(2)} ريال
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        <button type="submit" className="w-full py-3 magical-button text-white font-semibold rounded-lg mt-6">{initialData ? 'حفظ التعديلات' : 'إضافة الحركة'}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
         </>
     );
 };

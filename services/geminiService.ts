@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI, GenerateContentResponse } from "@google/generative-ai";
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Transaction, Category, FinancialCalculations, CardConfig, BankAccountConfig } from '../types';
 import { config, validateConfig } from '../config';
 
-let ai: GoogleGenerativeAI;
+let ai: GoogleGenAI;
 const GEMINI_MODEL = config.gemini.model;
 
 // تهيئة خدمة Gemini باستخدام المفتاح من ملف الإعدادات
@@ -19,7 +19,7 @@ export const initializeAi = () => {
     }
     
     try {
-        ai = new GoogleGenerativeAI(config.gemini.apiKey);
+        ai = new GoogleGenAI({ apiKey: config.gemini.apiKey });
         console.log('🤖 تم تهيئة خدمة Gemini بنجاح');
     } catch (error) {
         console.error('❌ خطأ في تهيئة خدمة Gemini:', error);
