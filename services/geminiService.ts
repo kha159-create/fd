@@ -80,7 +80,18 @@ const GEMINI_PROMPTS = {
 `,
     ICON_SUGGESTER: "You are an emoji expert. Your task is to suggest a single, relevant emoji for a given category name. You must respond with ONLY the emoji character and nothing else.",
     SMART_SUMMARY_GENERATOR: `You are a professional financial analyst. Your task is to write a concise, one-paragraph summary of a user's financial situation based on the provided data for a specific period. The summary should be in Arabic, professional in tone, and suitable for the beginning of a financial report. Highlight the key figures like total income, total expenses, and the net result for that period.`,
-    BUDGET_PLANNER: `You are a helpful and encouraging financial planning assistant in Arabic. Your goal is to help the user create a realistic monthly budget based on their spending history and a total budget amount they provide. Use the 50/30/20 rule (50% for Needs, 30% for Wants, 20% for Savings/Debt) as a general framework, but you MUST adapt it to the user's actual spending patterns revealed in their transaction data. Your response MUST be in Arabic and formatted using Markdown. It should contain: 1. A brief, encouraging introductory sentence. 2. A breakdown of the total budget into Needs, Wants, and Savings, with the suggested amount for each. 3. A detailed table with three columns: "الفئة", "المبلغ المقترح", and "ملاحظات". 4. In the table, allocate the "Needs" and "Wants" amounts across the user's actual spending categories. 5. The "Notes" column should provide a brief justification. 6. Conclude with a short, motivational tip.`
+    BUDGET_PLANNER: `You are a helpful and encouraging financial planning assistant in Arabic. Your goal is to help the user create a realistic monthly budget based on their spending history and a total budget amount they provide. Use the 50/30/20 rule (50% for Needs, 30% for Wants, 20% for Savings/Debt) as a general framework, but you MUST adapt it to the user's actual spending patterns revealed in their transaction data. Your response MUST be in Arabic and formatted using Markdown. It should contain: 1. A brief, encouraging introductory sentence. 2. A breakdown of the total budget into Needs, Wants, and Savings, with the suggested amount for each. 3. A detailed table with three columns: "الفئة", "المبلغ المقترح", and "ملاحظات". 4. In the table, allocate the "Needs" and "Wants" amounts across the user's actual spending categories. 5. The "Notes" column should provide a brief justification. 6. Conclude with a short, motivational tip.`,
+    EXCHANGE_RATE: `You are an expert currency exchange rate assistant. Your task is to provide the current exchange rate between two currencies. You MUST respond with ONLY a valid JSON object containing the keys: "rate", "fromCurrency", "toCurrency", and "lastUpdated".
+
+- The 'rate' should be a decimal number representing how many units of 'toCurrency' equal 1 unit of 'fromCurrency'.
+- The 'fromCurrency' and 'toCurrency' should be the exact currency codes provided by the user.
+- The 'lastUpdated' should be the current date in "YYYY-MM-DD" format.
+
+**IMPORTANT**: If you cannot determine the exact current exchange rate, provide a reasonable estimate based on recent market trends and clearly state this in your response.
+
+**EXAMPLE**:
+Input: "USD to SAR"
+Output: {"rate": 3.75, "fromCurrency": "USD", "toCurrency": "SAR", "lastUpdated": "2024-01-15"}`
 };
 
 const callGemini = async (systemInstruction: string, userPrompt: string, isJsonOutput: boolean = false): Promise<string> => {
@@ -153,3 +164,21 @@ export const generateSmartSummary = (calculations: FinancialCalculations) =>
 
 export const generateBudgetPlan = (totalBudget: number, categories: Category[], recentTransactions: Transaction[]) =>
     callGemini(GEMINI_PROMPTS.BUDGET_PLANNER, `Total monthly budget is: ${totalBudget} SAR. My spending categories are: ${JSON.stringify(categories)}. My transactions from the last 60 days are: ${JSON.stringify(recentTransactions)}`);
+
+export const getExchangeRate = async (fromCurrency: string, toCurrency: string): Promise<{rate: number, fromCurrency: string, toCurrency: string, lastUpdated: string}> => {
+    const userPrompt = `Get current exchange rate from ${fromCurrency} to ${toCurrency}`;
+    const result = await callGemini(GEMINI_PROMPTS.EXCHANGE_RATE, userPrompt, true);
+    
+    try {
+        const exchangeData = JSON.parse(result);
+        return {
+            rate: parseFloat(exchangeData.rate),
+            fromCurrency: exchangeData.fromCurrency,
+            toCurrency: exchangeData.toCurrency,
+            lastUpdated: exchangeData.lastUpdated
+        };
+    } catch (error) {
+        console.error('Error parsing exchange rate:', error);
+        throw new Error('خطأ في تحليل معدل التحويل. يرجى المحاولة مرة أخرى.');
+    }
+};

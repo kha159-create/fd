@@ -1,5 +1,5 @@
 export type PaymentMethod = 'cash' | 'tabby-bnpl' | 'tamara-bnpl' | 'reconciliation' | string; // Dynamic for cards and banks
-export type TransactionType = 'income' | 'expense' | 'bnpl-payment' | 'investment-deposit' | 'investment-withdrawal' | string; // Dynamic for card payments
+export type TransactionType = 'income' | 'expense' | 'bnpl-payment' | 'investment-deposit' | 'investment-withdrawal' | 'transfer' | string; // Dynamic for card payments
 
 export interface Transaction {
     id: string;
@@ -16,6 +16,13 @@ export interface Transaction {
         installmentsCount: number;
         initialPaymentSource: string;
         installmentAmount: number;
+    };
+    transferData?: {
+        fromAccount: string;
+        toAccount: string;
+        exchangeRate: number;
+        fromCurrency: string;
+        toCurrency: string;
     };
 }
 
@@ -43,6 +50,7 @@ export interface CardConfig {
     dueDay: number;
     statementDay: number; // Day of the month the statement is generated
     smsSamples?: string[];
+    currency?: string; // Default: 'SAR'
 }
 
 export interface BankAccountConfig {
