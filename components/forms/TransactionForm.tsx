@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Transaction, Category, CardConfig, BankAccountConfig, TransactionType, PaymentMethod } from '../../types';
-import { analyzePastedText, getExchangeRate } from '../../services/geminiService';
+import { analyzePastedText } from '../../services/geminiService';
 import { MagicIcon, XMarkIcon } from '../common/Icons';
 
 interface TransactionFormProps {
@@ -31,13 +31,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
     const [installmentsCount, setInstallmentsCount] = useState(4);
     const [initialPaymentSource, setInitialPaymentSource] = useState(Object.keys(bankAccounts)[0] || 'cash');
     
-    // Transfer fields
-    const [showTransferFields, setShowTransferFields] = useState(false);
-    const [transferFromAccount, setTransferFromAccount] = useState(Object.keys(bankAccounts)[0] || 'cash');
-    const [transferToAccount, setTransferToAccount] = useState(Object.keys(bankAccounts)[1] || 'cash');
-    const [exchangeRate, setExchangeRate] = useState(1);
-    const [isLoadingRate, setIsLoadingRate] = useState(false);
-    const [rateError, setRateError] = useState('');
 
     useEffect(() => {
         if (initialData) {
@@ -60,26 +53,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         }
     }, [initialData]);
 
-    // Auto-update exchange rate when accounts change
-    useEffect(() => {
-        if (showTransferFields && transferFromAccount !== transferToAccount) {
-            updateExchangeRate();
-        }
-    }, [transferFromAccount, transferToAccount, showTransferFields]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         
-        // Handle transfer type change
-        if (name === 'type' && value === 'transfer') {
-            setShowTransferFields(true);
-            setShowBnplFields(false);
-        } else if (name === 'type' && value !== 'transfer') {
-            setShowTransferFields(false);
-            if (value === 'bnpl-payment' || value.includes('tabby') || value.includes('tamara')) {
-                setShowBnplFields(true);
-            }
-        }
         
         // Handle BNPL logic
         if (name === 'paymentMethod') {
@@ -95,36 +72,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         setTransaction(prev => ({ ...prev, [name]: name === 'amount' ? parseFloat(value) : value }));
     };
 
-    const updateExchangeRate = async () => {
-        if (!showTransferFields) return;
-        
-        const fromAccount = bankAccounts[transferFromAccount] || cards[transferFromAccount];
-        const toAccount = bankAccounts[transferToAccount] || cards[transferToAccount];
-        
-        if (!fromAccount || !toAccount) return;
-        
-        const fromCurrency = fromAccount.currency || 'SAR';
-        const toCurrency = toAccount.currency || 'SAR';
-        
-        if (fromCurrency === toCurrency) {
-            setExchangeRate(1);
-            setRateError('');
-            return;
-        }
-        
-        setIsLoadingRate(true);
-        setRateError('');
-        
-        try {
-            const rateData = await getExchangeRate(fromCurrency, toCurrency);
-            setExchangeRate(rateData.rate);
-        } catch (error) {
-            setRateError(error instanceof Error ? error.message : 'فشل في الحصول على معدل التحويل');
-            console.error('Exchange rate error:', error);
-        } finally {
-            setIsLoadingRate(false);
-        }
-    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -138,21 +85,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                     installmentsCount,
                     initialPaymentSource,
                     installmentAmount: transaction.amount / installmentsCount
-                }
-            } as any, initialData?.id);
-        } else if (showTransferFields && transaction.type === 'transfer') {
-            // For transfer transactions, include transfer data
-            const fromAccount = bankAccounts[transferFromAccount] || cards[transferFromAccount];
-            const toAccount = bankAccounts[transferToAccount] || cards[transferToAccount];
-            
-            onSave({
-                ...transaction,
-                transferData: {
-                    fromAccount: transferFromAccount,
-                    toAccount: transferToAccount,
-                    exchangeRate,
-                    fromCurrency: fromAccount?.currency || 'SAR',
-                    toCurrency: toAccount?.currency || 'SAR'
                 }
             } as any, initialData?.id);
         } else {
@@ -230,7 +162,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
         const types = [
             { value: 'expense', label: '💸 مصاريف' },
             { value: 'income', label: '💰 دخل' },
-            { value: 'transfer', label: '🔄 تحويل' },
             { value: 'bnpl-payment', label: '📱 سداد قسط' },
             { value: 'investment-deposit', label: '💹 إيداع استثماري' },
             { value: 'investment-withdrawal', label: '💹 سحب استثماري' },
@@ -366,84 +297,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                                         <br />
                                         <strong>المبلغ المتبقي:</strong> {(transaction.amount * (installmentsCount - 1) / installmentsCount).toFixed(2)} ريال
                                     </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Transfer Fields */}
-                        {showTransferFields && (
-                            <div className="bg-green-50 p-4 rounded-lg space-y-4">
-                                <h3 className="font-semibold text-green-800">🔄 إعدادات التحويل</h3>
-                                
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label htmlFor="transferFromAccount" className="form-label">من الحساب</label>
-                                        <select 
-                                            value={transferFromAccount} 
-                                            onChange={(e) => setTransferFromAccount(e.target.value)}
-                                            className="w-full"
-                                        >
-                                            {paymentMethods.map(m => (
-                                                <option key={m.value} value={m.value}>{m.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    
-                                    <div>
-                                        <label htmlFor="transferToAccount" className="form-label">إلى الحساب</label>
-                                        <select 
-                                            value={transferToAccount} 
-                                            onChange={(e) => setTransferToAccount(e.target.value)}
-                                            className="w-full"
-                                        >
-                                            {paymentMethods.map(m => (
-                                                <option key={m.value} value={m.value}>{m.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label htmlFor="exchangeRate" className="form-label">معدل التحويل</label>
-                                        <div className="flex gap-2">
-                                            <input 
-                                                type="number" 
-                                                value={exchangeRate} 
-                                                onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 1)}
-                                                className="flex-1"
-                                                step="0.0001"
-                                                min="0"
-                                            />
-                                            <button 
-                                                type="button"
-                                                onClick={updateExchangeRate}
-                                                disabled={isLoadingRate}
-                                                className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
-                                                title="تحديث معدل التحويل تلقائياً"
-                                            >
-                                                {isLoadingRate ? (
-                                                    <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
-                                                ) : (
-                                                    '🔄'
-                                                )}
-                                            </button>
-                                        </div>
-                                        {rateError && (
-                                            <p className="text-red-500 text-xs mt-1">{rateError}</p>
-                                        )}
-                                    </div>
-                                    
-                                    <div>
-                                        <label className="form-label">المبلغ المحول</label>
-                                        <div className="bg-green-100 p-3 rounded-lg">
-                                            <p className="text-sm text-green-700">
-                                                <strong>المبلغ الأصلي:</strong> {transaction.amount.toFixed(2)} ريال
-                                                <br />
-                                                <strong>المبلغ المحول:</strong> {(transaction.amount * exchangeRate).toFixed(2)} ريال
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         )}

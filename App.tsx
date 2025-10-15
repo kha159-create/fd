@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan } from './types';
 import { getInitialState } from './constants';
-import { initializeAi } from './services/geminiService';
+import { initializeAi, getExchangeRate } from './services/geminiService';
 import { initializeFirebase, firebaseService } from './services/firebaseService';
 import AuthForm from './components/auth/AuthForm';
 import UserProfile from './components/auth/UserProfile';
@@ -46,6 +46,8 @@ const App: React.FC = () => {
         description: '',
         exchangeRate: 1
     });
+    const [isLoadingExchangeRate, setIsLoadingExchangeRate] = useState(false);
+    const [exchangeRateError, setExchangeRateError] = useState('');
     
     // نظام المصادقة
     const [currentUser, setCurrentUser] = useState<any>(null);
@@ -106,6 +108,14 @@ const App: React.FC = () => {
             document.body.classList.remove('modal-open');
         };
     }, [transactionForm.isOpen, cardForm.isOpen, bankAccountForm.isOpen, transferModal.isOpen, modalConfig, loadingState.isLoading]);
+
+    // Auto-update exchange rate when accounts change
+    useEffect(() => {
+        if (transferModal.isOpen && transferData.fromAccount && transferData.toAccount && 
+            state.bankAccounts[transferData.fromAccount]?.currency !== state.bankAccounts[transferData.toAccount]?.currency) {
+            updateExchangeRate();
+        }
+    }, [transferData.fromAccount, transferData.toAccount, transferModal.isOpen]);
 
     const loadUserData = async (userId: string) => {
         try {
@@ -730,8 +740,40 @@ const App: React.FC = () => {
             description: '',
             exchangeRate: 1
         });
+        setExchangeRateError('');
 
         setModalConfig({ title: 'نجح التحويل', body: '<p>تم التحويل بنجاح!</p>', hideCancel: true, confirmText: 'موافق' });
+    };
+
+    const updateExchangeRate = async () => {
+        if (!transferData.fromAccount || !transferData.toAccount) return;
+        
+        const fromAccount = state.bankAccounts[transferData.fromAccount];
+        const toAccount = state.bankAccounts[transferData.toAccount];
+        
+        if (!fromAccount || !toAccount) return;
+        
+        const fromCurrency = fromAccount.currency || 'SAR';
+        const toCurrency = toAccount.currency || 'SAR';
+        
+        if (fromCurrency === toCurrency) {
+            setTransferData(prev => ({ ...prev, exchangeRate: 1 }));
+            setExchangeRateError('');
+            return;
+        }
+        
+        setIsLoadingExchangeRate(true);
+        setExchangeRateError('');
+        
+        try {
+            const rateData = await getExchangeRate(fromCurrency, toCurrency);
+            setTransferData(prev => ({ ...prev, exchangeRate: rateData.rate }));
+        } catch (error) {
+            setExchangeRateError(error instanceof Error ? error.message : 'فشل في الحصول على معدل التحويل');
+            console.error('Exchange rate error:', error);
+        } finally {
+            setIsLoadingExchangeRate(false);
+        }
     };
 
 
@@ -830,12 +872,20 @@ const App: React.FC = () => {
 
             {/* Transfer Modal */}
             {transferModal.isOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setTransferModal({ isOpen: false })}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => {
+                    setTransferModal({ isOpen: false });
+                    setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '', exchangeRate: 1 });
+                    setExchangeRateError('');
+                }}>
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-2xl font-bold text-slate-800">💸 تحويل بين الحسابات</h2>
-                                <button onClick={() => setTransferModal({ isOpen: false })} className="text-slate-400 hover:text-slate-600">✕</button>
+                                <button onClick={() => {
+                                    setTransferModal({ isOpen: false });
+                                    setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '', exchangeRate: 1 });
+                                    setExchangeRateError('');
+                                }} className="text-slate-400 hover:text-slate-600">✕</button>
                             </div>
                         
                             <div className="space-y-4">
@@ -896,14 +946,33 @@ const App: React.FC = () => {
                                         <label className="block text-sm font-medium text-slate-700 mb-1">
                                             💱 معدل التحويل ({state.bankAccounts[transferData.fromAccount]?.currency} → {state.bankAccounts[transferData.toAccount]?.currency})
                                         </label>
-                                        <input 
-                                            type="number" 
-                                            step="0.0001"
-                                            value={transferData.exchangeRate} 
-                                            onChange={(e) => setTransferData(prev => ({ ...prev, exchangeRate: parseFloat(e.target.value) || 1 }))}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="1.0000"
-                                        />
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="number" 
+                                                step="0.0001"
+                                                value={transferData.exchangeRate} 
+                                                onChange={(e) => setTransferData(prev => ({ ...prev, exchangeRate: parseFloat(e.target.value) || 1 }))}
+                                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="1.0000"
+                                            />
+                                            <button 
+                                                type="button"
+                                                onClick={updateExchangeRate}
+                                                disabled={isLoadingExchangeRate}
+                                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors flex items-center gap-2"
+                                                title="تحديث معدل التحويل تلقائياً"
+                                            >
+                                                {isLoadingExchangeRate ? (
+                                                    <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                                                ) : (
+                                                    '🔄'
+                                                )}
+                                                <span className="hidden sm:inline">تحديث</span>
+                                            </button>
+                                        </div>
+                                        {exchangeRateError && (
+                                            <p className="text-red-500 text-xs mt-1">{exchangeRateError}</p>
+                                        )}
                                         <p className="text-xs text-slate-500 mt-1">
                                             المبلغ المحول: {(transferData.amount * transferData.exchangeRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {state.bankAccounts[transferData.toAccount]?.currency}
                                         </p>
@@ -927,7 +996,11 @@ const App: React.FC = () => {
                             <div className="flex justify-end gap-3 mt-6">
                                 <button 
                                     type="button"
-                                    onClick={() => setTransferModal({ isOpen: false })} 
+                                    onClick={() => {
+                                        setTransferModal({ isOpen: false });
+                                        setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '', exchangeRate: 1 });
+                                        setExchangeRateError('');
+                                    }} 
                                     className="px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition-colors"
                                 >
                                     إلغاء
