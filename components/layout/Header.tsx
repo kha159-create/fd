@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { PlusIcon } from '../common/Icons';
+import { t } from '../../translations';
 
 interface HeaderProps {
     selectedYear: number;
@@ -11,9 +12,10 @@ interface HeaderProps {
     onAddTransaction: () => void;
     currentUser: any;
     onSignOut: () => void;
+    language?: 'ar' | 'en';
 }
 
-const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChange, onMonthChange, onAddTransaction, currentUser, onSignOut }) => {
+const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChange, onMonthChange, onAddTransaction, currentUser, onSignOut, language = 'ar' }) => {
     const years = useMemo(() => {
         const currentYear = new Date().getFullYear();
         const years = [];
@@ -73,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChan
                         
                         <button onClick={onAddTransaction} className="hidden md:flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg transition-all duration-300">
                             <PlusIcon className="w-5 h-5" />
-                            <span>إضافة حركة</span>
+                            <span>{t('add.transaction', language)}</span>
                         </button>
                     </div>
                 </div>

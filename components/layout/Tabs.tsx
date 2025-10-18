@@ -1,30 +1,33 @@
 import React, { useState } from 'react';
 import { Tab } from '../../types';
 import { HomeIcon, ChartBarIcon, ListBulletIcon, EllipsisIcon } from '../common/Icons';
+import { t } from '../../translations';
 
 interface TabsProps {
     activeTab: Tab;
     setActiveTab: (tab: Tab) => void;
+    language?: 'ar' | 'en';
 }
 
-const ALL_TABS: { id: Tab; label: string; icon?: React.FC<{className?: string}> }[] = [
-    { id: 'summary', label: '📊 الملخص', icon: HomeIcon },
-    { id: 'analysis', label: '📈 التحليل', icon: ChartBarIcon },
-    { id: 'transactions', label: '💳 الحركات', icon: ListBulletIcon },
-    { id: 'budget', label: '✨ الميزانية' },
-    { id: 'investment', label: '💹 الاستثمار' },
-    { id: 'ai-assistant', label: '🤖 المحلل الذكي' },
-    { id: 'cards', label: '💳 إدارة البطاقات' },
-    { id: 'bank', label: '🏦 البنك' },
-    { id: 'installments', label: '📱 الأقساط' },
-    { id: 'debts-loans', label: '📊 الديون والقروض' },
-    { id: 'settings', label: '⚙️ الإعدادات' },
+const getTabs = (language: 'ar' | 'en' = 'ar'): { id: Tab; label: string; icon?: React.FC<{className?: string}> }[] => [
+    { id: 'summary', label: `📊 ${t('tab.summary', language)}`, icon: HomeIcon },
+    { id: 'analysis', label: `📈 ${t('tab.analysis', language)}`, icon: ChartBarIcon },
+    { id: 'transactions', label: `💳 ${t('tab.transactions', language)}`, icon: ListBulletIcon },
+    { id: 'budget', label: `✨ ${t('tab.budget', language)}` },
+    { id: 'investment', label: `💹 ${t('tab.investment', language)}` },
+    { id: 'ai-assistant', label: `🤖 ${t('tab.ai.assistant', language)}` },
+    { id: 'cards', label: `💳 ${t('tab.cards', language)}` },
+    { id: 'bank', label: `🏦 ${t('tab.bank', language)}` },
+    { id: 'installments', label: `📱 ${t('tab.installments', language)}` },
+    { id: 'debts-loans', label: `📊 ${t('tab.debts.loans', language)}` },
+    { id: 'settings', label: `⚙️ ${t('tab.settings', language)}` },
 ];
 
 const mainMobileTabs: Tab[] = ['summary', 'analysis', 'transactions'];
 
-const TabsComponent: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => {
+const TabsComponent: React.FC<TabsProps> = ({ activeTab, setActiveTab, language = 'ar' }) => {
     const [isMoreMenuOpen, setMoreMenuOpen] = useState(false);
+    const ALL_TABS = getTabs(language);
 
     const handleTabClick = (tabId: Tab) => {
         setActiveTab(tabId);

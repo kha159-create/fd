@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan, Loan } from './types';
 import DarkModeToggle from './components/common/DarkModeToggle';
 import NotificationManager from './components/common/NotificationManager';
+import { t } from './translations';
 import { getInitialState } from './constants';
 import { initializeAi, getExchangeRate } from './services/geminiService';
 import { initializeFirebase, firebaseService } from './services/firebaseService';
@@ -966,6 +967,7 @@ const App: React.FC = () => {
                 onAddTransaction={() => setTransactionForm({ isOpen: true })}
                 currentUser={currentUser}
                 onSignOut={handleSignOut}
+                language={state.settings.language}
             />
             
             {/* شريط الإعدادات */}
@@ -974,7 +976,7 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-3">
                             <span className={`text-sm font-medium ${state.settings.darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                                {state.settings.language === 'ar' ? 'الوضع المظلم' : 'Dark Mode'}
+                                {t('dark.mode', state.settings.language)}
                             </span>
                             <DarkModeToggle 
                                 darkMode={state.settings.darkMode} 
@@ -997,7 +999,7 @@ const App: React.FC = () => {
                             }`}
                         >
                             <span className="text-sm font-medium">
-                                {state.settings.language === 'ar' ? 'العربية' : 'English'}
+                                {t('language', state.settings.language)}
                             </span>
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
                                 state.settings.darkMode ? 'bg-blue-500' : 'bg-blue-600'
@@ -1012,7 +1014,7 @@ const App: React.FC = () => {
             </div>
             
             <main className="container mx-auto px-2 sm:px-4 max-w-7xl mt-8 mb-20">
-                <TabsComponent activeTab={activeTab} setActiveTab={setActiveTab} />
+                <TabsComponent activeTab={activeTab} setActiveTab={setActiveTab} language={state.settings.language} />
                 {renderTabContent()}
             </main>
 
