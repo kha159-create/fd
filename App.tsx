@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan, Loan } from './types';
+import DarkModeToggle from './components/common/DarkModeToggle';
+import NotificationManager from './components/common/NotificationManager';
 import { getInitialState } from './constants';
 import { initializeAi, getExchangeRate } from './services/geminiService';
 import { initializeFirebase, firebaseService } from './services/firebaseService';
@@ -111,6 +113,28 @@ const App: React.FC = () => {
             document.body.classList.remove('modal-open');
         };
     }, [transactionForm.isOpen, cardForm.isOpen, bankAccountForm.isOpen, loanForm.isOpen, transferModal.isOpen, modalConfig, loadingState.isLoading]);
+
+    // إدارة الوضع المظلم
+    useEffect(() => {
+        if (state.settings.darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [state.settings.darkMode]);
+
+    // تسجيل Service Worker للـ PWA
+    useEffect(() => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('Service Worker registered successfully:', registration);
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    }, []);
 
     // Auto-update exchange rate when accounts change
     useEffect(() => {
@@ -692,6 +716,26 @@ const App: React.FC = () => {
     const openBankAccountFormModal = (accountId?: string) => setBankAccountForm({ isOpen: true, initialData: accountId ? state.bankAccounts[accountId] : null });
     const openLoanFormModal = (loanId?: string) => setLoanForm({ isOpen: true, initialData: loanId ? state.loans[loanId] : null });
 
+    const toggleDarkMode = () => {
+        setState(prev => ({
+            ...prev,
+            settings: {
+                ...prev.settings,
+                darkMode: !prev.settings.darkMode
+            }
+        }));
+    };
+
+    const toggleNotifications = () => {
+        setState(prev => ({
+            ...prev,
+            settings: {
+                ...prev.settings,
+                notifications: !prev.settings.notifications
+            }
+        }));
+    };
+
     const handleTransfer = () => {
         if (!transferData.fromAccount || !transferData.toAccount || transferData.amount <= 0) {
             setModalConfig({ title: 'خطأ', body: '<p>يرجى ملء جميع البيانات بشكل صحيح.</p>', hideCancel: true, confirmText: 'موافق' });
@@ -902,6 +946,32 @@ const App: React.FC = () => {
                 currentUser={currentUser}
                 onSignOut={handleSignOut}
             />
+            
+            {/* شريط الإعدادات */}
+            <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 p-4">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium">الوضع المظلم</span>
+                            <DarkModeToggle 
+                                darkMode={state.settings.darkMode} 
+                                onToggle={toggleDarkMode} 
+                            />
+                        </div>
+                        <NotificationManager 
+                            notifications={state.settings.notifications} 
+                            onToggle={toggleNotifications} 
+                        />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium">العربية</span>
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 font-bold">A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <main className="container mx-auto px-2 sm:px-4 max-w-7xl mt-8 mb-20">
                 <TabsComponent activeTab={activeTab} setActiveTab={setActiveTab} />
                 {renderTabContent()}

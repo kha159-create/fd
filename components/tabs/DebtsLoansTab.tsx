@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppState, Loan, DebtToMe, DebtFromMe, BankAccountConfig } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
 import { TrashIcon } from '../common/Icons';
+import DebtForm from '../forms/DebtForm';
 
 interface DebtsLoansTabProps {
     state: AppState;
@@ -71,6 +72,56 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                 Object.entries(prev.loans).filter(([id]) => id !== loanId)
             )
         }));
+    };
+
+    const handleSaveDebtToMe = (debtData: Omit<DebtToMe, 'id' | 'createdAt'>) => {
+        const debt: DebtToMe = {
+            ...debtData,
+            id: `debt-to-me-${Date.now()}`,
+            createdAt: new Date().toISOString()
+        };
+
+        setState(prev => ({
+            ...prev,
+            debtsToMe: {
+                ...prev.debtsToMe,
+                [debt.id]: debt
+            }
+        }));
+
+        setShowDebtToMeForm(false);
+        setModal({
+            show: true,
+            title: 'تم إضافة الدين بنجاح',
+            body: `<p>تم إضافة الدين من "${debt.debtor}" بقيمة ${formatCurrency(debt.amount)} ريال.</p>`,
+            hideCancel: true,
+            confirmText: 'موافق'
+        });
+    };
+
+    const handleSaveDebtFromMe = (debtData: Omit<DebtFromMe, 'id' | 'createdAt'>) => {
+        const debt: DebtFromMe = {
+            ...debtData,
+            id: `debt-from-me-${Date.now()}`,
+            createdAt: new Date().toISOString()
+        };
+
+        setState(prev => ({
+            ...prev,
+            debtsFromMe: {
+                ...prev.debtsFromMe,
+                [debt.id]: debt
+            }
+        }));
+
+        setShowDebtFromMeForm(false);
+        setModal({
+            show: true,
+            title: 'تم إضافة الدين بنجاح',
+            body: `<p>تم إضافة الدين لـ "${debt.creditor}" بقيمة ${formatCurrency(debt.amount)} ريال.</p>`,
+            hideCancel: true,
+            confirmText: 'موافق'
+        });
     };
 
     const handleDeleteDebtToMe = (debtId: string) => {
@@ -377,6 +428,23 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* نماذج الديون */}
+            {showDebtToMeForm && (
+                <DebtForm
+                    onClose={() => setShowDebtToMeForm(false)}
+                    onSave={handleSaveDebtToMe}
+                    type="toMe"
+                />
+            )}
+
+            {showDebtFromMeForm && (
+                <DebtForm
+                    onClose={() => setShowDebtFromMeForm(false)}
+                    onSave={handleSaveDebtFromMe}
+                    type="fromMe"
+                />
             )}
         </div>
     );

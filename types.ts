@@ -107,6 +107,11 @@ export interface AppState {
         icon: string;
         isCustom: boolean;
     }>;
+    settings: {
+        darkMode: boolean;
+        language: 'ar' | 'en';
+        notifications: boolean;
+    };
 }
 
 export interface FinancialCalculations {
