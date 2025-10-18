@@ -1,11 +1,12 @@
-import React from 'react';
-import { FinancialCalculations, Category, CardDetails, BankAccountDetails } from '../../types';
+import React, { useMemo } from 'react';
+import { FinancialCalculations, Category, CardDetails, BankAccountDetails, AppState, CardConfig } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
 import { t } from '../../translations';
 
 interface DashboardTabProps {
     calculations: FinancialCalculations;
     categories: Category[];
+    state: AppState;
     darkMode?: boolean;
     language?: 'ar' | 'en';
 }
@@ -80,10 +81,44 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
 };
 
 
-const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories, darkMode = false, language = 'ar' }) => {
-    const { totalIncome, totalExpenses, cardDetails, cardPayments, bankAccountDetails, totalDebt, totalAvailable, totalLimits, totalBankBalance } = calculations;
+const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories, state, darkMode = false, language = 'ar' }) => {
+    const { totalIncome, totalExpenses, cardPayments, bankAccountDetails, totalBankBalance } = calculations;
     const net = totalIncome - totalExpenses;
     const cardColors = ['bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'];
+
+    // حساب بيانات البطاقات بنفس منطق CardsTab
+    const cardDetails = useMemo(() => {
+        const details: { [key: string]: CardDetails } = {};
+        const allCards: CardConfig[] = Object.values(state.cards);
+        
+        allCards.forEach(cardConfig => {
+            // استخدام نفس منطق الحساب من CardsTab
+            let currentBalance = state.transactions
+                .filter(t => t.paymentMethod === cardConfig.id && (t.type === 'expense' || t.type === 'bnpl-payment'))
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            // طرح المدفوعات
+            state.transactions.forEach(t => {
+                if (t.type === `${cardConfig.id}-payment`) {
+                    currentBalance -= t.amount;
+                }
+            });
+            
+            details[cardConfig.id] = {
+                ...cardConfig,
+                balance: currentBalance,
+                available: cardConfig.limit - currentBalance,
+                usagePercentage: cardConfig.limit > 0 ? (currentBalance / cardConfig.limit) * 100 : 0,
+            };
+        });
+        
+        return details;
+    }, [state.transactions, state.cards]);
+
+    // حساب المجاميع من بيانات البطاقات المحسوبة
+    const totalDebt = Object.values(cardDetails).reduce((sum, card) => sum + card.balance, 0);
+    const totalAvailable = Object.values(cardDetails).reduce((sum, card) => sum + card.available, 0);
+    const totalLimits = Object.values(cardDetails).reduce((sum, card) => sum + card.limit, 0);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
