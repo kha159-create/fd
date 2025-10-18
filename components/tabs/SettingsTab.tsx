@@ -803,31 +803,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 </div>
             </div>
 
-            {/* Firebase Setup */}
-            <div className="glass-card p-6">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">🔥 إعداد Firebase</h3>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                    <h4 className="font-semibold text-yellow-800 mb-2">⚠️ تنبيه مهم</h4>
-                    <p className="text-yellow-700 text-sm mb-3">
-                        إذا كانت بياناتك مفقودة من Firebase، يمكنك إنشاء مشروع جديد أو استخدام النسخ المحلية.
-                    </p>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => window.open('https://console.firebase.google.com/', '_blank')}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
-                        >
-                            🔥 إنشاء مشروع Firebase جديد
-                        </button>
-                        <button
-                            onClick={() => window.open('https://console.firebase.google.com/project', '_blank')}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
-                        >
-                            📊 إدارة المشاريع الموجودة
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             {/* النسخ الاحتياطي */}
             <div className="glass-card p-6">
                 <h3 className="text-lg font-bold mb-4 text-slate-900">💾 النسخ الاحتياطي والاستعادة</h3>
