@@ -20,6 +20,7 @@ const getPaymentMethodName = (key: string, state: AppState): string => {
 };
 
 const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filteredTransactions, setModal }) => {
+    const [showCompletedModal, setShowCompletedModal] = React.useState(false);
 
     // حساب ملخص الأقساط
     const getInstallmentSummary = () => {
@@ -102,6 +103,37 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
     const getNextPaymentAmount = () => {
         const activeInstallments = state.installments.filter(i => i.paid < i.total);
         return activeInstallments.reduce((sum, i) => sum + i.installmentAmount, 0);
+    };
+
+    // حساب جميع مواعيد الأقساط التالية
+    const getAllNextPaymentDates = () => {
+        const activeInstallments = state.installments.filter(i => i.paid < i.total);
+        const installmentTransactions = state.transactions.filter(t => t.isInstallmentPayment);
+        
+        return activeInstallments.map(installment => {
+            const installmentPayments = installmentTransactions
+                .filter(t => t.installmentId === installment.id)
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            
+            let nextPaymentDate;
+            if (installmentPayments.length > 0) {
+                const lastPayment = installmentPayments[0];
+                const lastPaymentDate = new Date(lastPayment.date);
+                const nextDate = new Date(lastPaymentDate);
+                nextDate.setDate(nextDate.getDate() + 30);
+                nextPaymentDate = nextDate.toISOString().split('T')[0];
+            } else {
+                const startDate = new Date(installment.createdAt);
+                const nextDate = new Date(startDate);
+                nextDate.setDate(nextDate.getDate() + 30);
+                nextPaymentDate = nextDate.toISOString().split('T')[0];
+            }
+            
+            return {
+                installment,
+                nextPaymentDate
+            };
+        }).sort((a, b) => new Date(a.nextPaymentDate).getTime() - new Date(b.nextPaymentDate).getTime());
     };
 
     const handleEditInstallmentTransaction = (transactionId: string) => {
@@ -373,21 +405,29 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                     </div>
                 </div>
 
-                {/* موعد القسط التالي */}
-                {nextPaymentDate && (
+                {/* مواعيد الأقساط التالية */}
+                {getAllNextPaymentDates().length > 0 && (
                     <div className="bg-white p-4 rounded-lg border border-blue-200 mb-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <span className="text-2xl">⏰</span>
-                                <div>
-                                    <p className="font-semibold text-blue-800">القسط التالي</p>
-                                    <p className="text-sm text-slate-600">موعد الاستحقاق</p>
+                        <div className="flex items-center gap-3 mb-3">
+                            <span className="text-2xl">⏰</span>
+                            <div>
+                                <p className="font-semibold text-blue-800">مواعيد الأقساط التالية</p>
+                                <p className="text-sm text-slate-600">أقرب المواعيد</p>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            {getAllNextPaymentDates().slice(0, 3).map((item, index) => (
+                                <div key={item.installment.id} className="flex justify-between items-center bg-slate-50 p-2 rounded">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-700">{item.installment.description}</p>
+                                        <p className="text-xs text-slate-500">{getPaymentMethodName(item.installment.provider, state)}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-bold text-blue-900">{new Date(item.nextPaymentDate).toLocaleDateString('en-GB')}</p>
+                                        <p className="text-xs text-slate-600">{formatCurrency(item.installment.installmentAmount)}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-lg font-bold text-blue-900">{new Date(nextPaymentDate).toLocaleDateString('en-GB')}</p>
-                                <p className="text-sm text-slate-600">{formatCurrency(nextPaymentAmount)}</p>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 )}
@@ -400,11 +440,16 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                             <p className="text-sm text-slate-600">أقساط نشطة</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-2xl font-bold text-green-600">{summary.completedCount}</p>
-                            <p className="text-sm text-slate-600">أقساط مكتملة</p>
+                            <button 
+                                onClick={() => setShowCompletedModal(true)}
+                                className="text-center hover:bg-green-50 p-2 rounded-lg transition-colors"
+                            >
+                                <p className="text-2xl font-bold text-green-600">{summary.completedCount}</p>
+                                <p className="text-sm text-slate-600">أقساط مكتملة</p>
+                            </button>
                         </div>
                     </div>
-                    {nextPaymentDate && (
+                    {getAllNextPaymentDates().length > 0 && (
                         <button 
                             onClick={() => {
                                 // دفع جميع الأقساط النشطة
@@ -507,6 +552,70 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                     </table>
                 </div>
             </div>
+
+            {/* نافذة الأقساط المكتملة */}
+            {showCompletedModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold text-slate-800">✅ الأقساط المكتملة</h3>
+                                <button onClick={() => setShowCompletedModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {Object.values(state.installments)
+                                    .filter(i => i.paid >= i.total)
+                                    .map(installment => (
+                                        <div key={installment.id} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <h4 className="font-bold text-green-800">{installment.description}</h4>
+                                                    <p className="text-sm text-green-600">{getPaymentMethodName(installment.provider, state)}</p>
+                                                </div>
+                                                <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                    مكتمل
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-3 gap-4 text-center">
+                                                <div className="bg-white p-3 rounded-lg">
+                                                    <p className="text-green-700 font-bold text-lg">{installment.total}</p>
+                                                    <p className="text-green-600 text-sm">إجمالي الأقساط</p>
+                                                </div>
+                                                <div className="bg-white p-3 rounded-lg">
+                                                    <p className="text-green-700 font-bold text-lg">{formatCurrency(installment.installmentAmount)}</p>
+                                                    <p className="text-green-600 text-sm">قيمة القسط</p>
+                                                </div>
+                                                <div className="bg-white p-3 rounded-lg">
+                                                    <p className="text-green-700 font-bold text-lg">{formatCurrency(installment.total * installment.installmentAmount)}</p>
+                                                    <p className="text-green-600 text-sm">المجموع الكلي</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                
+                                {Object.values(state.installments).filter(i => i.paid >= i.total).length === 0 && (
+                                    <div className="text-center py-12 text-slate-500">
+                                        <div className="text-6xl mb-4">🎉</div>
+                                        <p className="text-lg">لا توجد أقساط مكتملة حالياً</p>
+                                        <p className="text-sm">ستظهر الأقساط المكتملة هنا عند إنهائها</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex justify-end mt-6">
+                                <button 
+                                    onClick={() => setShowCompletedModal(false)}
+                                    className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                                >
+                                    إغلاق
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
