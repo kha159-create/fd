@@ -73,12 +73,21 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
             return searchMatch && methodMatch && categoryMatch;
         });
 
-        // Finally, sort by entry time (ID timestamp) - newest entries first
+        // Sort by date first, then by entry time (ID timestamp)
         return filteredData.sort((a, b) => {
-            // Sort by entry time (ID contains timestamp) - newest first
-            const aTime = parseInt(a.id.replace('trans-', '').split('-')[0]);
-            const bTime = parseInt(b.id.replace('trans-', '').split('-')[0]);
-            return bTime - aTime;
+            // First sort by transaction date (newest date first)
+            const aDate = new Date(a.date);
+            const bDate = new Date(b.date);
+            const dateComparison = bDate.getTime() - aDate.getTime();
+            
+            // If dates are the same, sort by entry time (ID contains timestamp) - newest first
+            if (dateComparison === 0) {
+                const aTime = parseInt(a.id.replace('trans-', '').split('-')[0]);
+                const bTime = parseInt(b.id.replace('trans-', '').split('-')[0]);
+                return bTime - aTime;
+            }
+            
+            return dateComparison;
         });
     }, [transactions, allTransactions, searchTerm, filterMethod, filterCategory, dateFrom, dateTo, categories]);
 

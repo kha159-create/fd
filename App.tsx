@@ -293,11 +293,28 @@ const App: React.FC = () => {
 
     const getFilteredTransactions = useCallback(() => {
         if (!state.transactions) return [];
-        return state.transactions.filter(t => {
+        const filtered = state.transactions.filter(t => {
             const transactionDate = new Date(t.date);
             const yearMatch = transactionDate.getFullYear() === selectedYear;
             const monthMatch = selectedMonth === 'all' || (transactionDate.getMonth() + 1) === selectedMonth;
             return yearMatch && monthMatch;
+        });
+        
+        // Sort by date first, then by entry time (ID timestamp)
+        return filtered.sort((a, b) => {
+            // First sort by transaction date (newest date first)
+            const aDate = new Date(a.date);
+            const bDate = new Date(b.date);
+            const dateComparison = bDate.getTime() - aDate.getTime();
+            
+            // If dates are the same, sort by entry time (ID contains timestamp) - newest first
+            if (dateComparison === 0) {
+                const aTime = parseInt(a.id.replace('trans-', '').split('-')[0]);
+                const bTime = parseInt(b.id.replace('trans-', '').split('-')[0]);
+                return bTime - aTime;
+            }
+            
+            return dateComparison;
         });
     }, [state.transactions, selectedYear, selectedMonth]);
     
