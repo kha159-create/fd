@@ -28,8 +28,17 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
         const tabbyInstallments = activeInstallments.filter(i => i.provider === 'tabby-bnpl');
         const tamaraInstallments = activeInstallments.filter(i => i.provider === 'tamara-bnpl');
         
-        const tabbyTotal = tabbyInstallments.reduce((sum, i) => sum + i.installmentAmount, 0);
-        const tamaraTotal = tamaraInstallments.reduce((sum, i) => sum + i.installmentAmount, 0);
+        // حساب جميع الدفعات القادمة لكل قسط
+        const tabbyTotal = tabbyInstallments.reduce((sum, i) => {
+            const remainingPayments = i.total - i.paid;
+            return sum + (i.installmentAmount * remainingPayments);
+        }, 0);
+        
+        const tamaraTotal = tamaraInstallments.reduce((sum, i) => {
+            const remainingPayments = i.total - i.paid;
+            return sum + (i.installmentAmount * remainingPayments);
+        }, 0);
+        
         const grandTotal = tabbyTotal + tamaraTotal;
         
         return {
@@ -48,22 +57,140 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
 
         // البحث عن آخر عملية دفع قسط
         const installmentTransactions = state.transactions.filter(t => t.isInstallmentPayment);
-        if (installmentTransactions.length === 0) return null;
+        if (installmentTransactions.length === 0) {
+            // إذا لم تكن هناك دفعات سابقة، احسب من تاريخ إنشاء الأقساط
+            const earliestInstallment = activeInstallments.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
+            const startDate = new Date(earliestInstallment.createdAt);
+            const nextDate = new Date(startDate);
+            nextDate.setDate(nextDate.getDate() + 30);
+            return nextDate.toISOString().split('T')[0];
+        }
 
-        const lastPayment = installmentTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-        const lastPaymentDate = new Date(lastPayment.date);
+        // البحث عن آخر عملية دفع لكل قسط نشط
+        let nextPaymentDate = null;
         
-        // إضافة 30 يوم
-        const nextDate = new Date(lastPaymentDate);
-        nextDate.setDate(nextDate.getDate() + 30);
+        for (const installment of activeInstallments) {
+            const installmentPayments = installmentTransactions
+                .filter(t => t.installmentId === installment.id)
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            
+            if (installmentPayments.length > 0) {
+                const lastPayment = installmentPayments[0];
+                const lastPaymentDate = new Date(lastPayment.date);
+                const nextDate = new Date(lastPaymentDate);
+                nextDate.setDate(nextDate.getDate() + 30);
+                
+                if (!nextPaymentDate || nextDate < new Date(nextPaymentDate)) {
+                    nextPaymentDate = nextDate.toISOString().split('T')[0];
+                }
+            } else {
+                // إذا لم تكن هناك دفعات لهذا القسط، احسب من تاريخ إنشائه
+                const startDate = new Date(installment.createdAt);
+                const nextDate = new Date(startDate);
+                nextDate.setDate(nextDate.getDate() + 30);
+                
+                if (!nextPaymentDate || nextDate < new Date(nextPaymentDate)) {
+                    nextPaymentDate = nextDate.toISOString().split('T')[0];
+                }
+            }
+        }
         
-        return nextDate.toISOString().split('T')[0];
+        return nextPaymentDate;
     };
 
     // حساب مبلغ القسط التالي
     const getNextPaymentAmount = () => {
         const activeInstallments = state.installments.filter(i => i.paid < i.total);
         return activeInstallments.reduce((sum, i) => sum + i.installmentAmount, 0);
+    };
+
+    const handleEditInstallmentTransaction = (transactionId: string) => {
+        const transaction = state.transactions.find(t => t.id === transactionId);
+        if (!transaction || !transaction.isInstallmentPayment) return;
+
+        const installment = state.installments.find(i => i.id === transaction.installmentId);
+        if (!installment) return;
+
+        // إنشاء نموذج تعديل الحركة
+        const body = `
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">المبلغ</label>
+                    <input type="number" id="edit-amount" value="${transaction.amount}" step="0.01" class="w-full p-3 border border-slate-300 rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">التاريخ</label>
+                    <input type="date" id="edit-date" value="${transaction.date}" class="w-full p-3 border border-slate-300 rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">الوصف</label>
+                    <input type="text" id="edit-description" value="${transaction.description}" class="w-full p-3 border border-slate-300 rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">مصدر الدفع</label>
+                    <select id="edit-payment-method" class="w-full p-3 border border-slate-300 rounded-lg">
+                        ${Object.values(state.bankAccounts).map(acc => `<option value="${acc.id}" ${transaction.paymentMethod === acc.id ? 'selected' : ''}>🏦 ${acc.name}</option>`).join('')}
+                        <option value="cash" ${transaction.paymentMethod === 'cash' ? 'selected' : ''}>💵 نقدي</option>
+                        ${Object.values(state.cards).map(card => `<option value="${card.id}" ${transaction.paymentMethod === card.id ? 'selected' : ''}>💳 ${card.name}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+        `;
+
+        setModal({
+            show: true,
+            title: 'تعديل حركة القسط',
+            body,
+            confirmText: 'حفظ التعديلات',
+            onConfirm: () => {
+                const newAmount = parseFloat((document.getElementById('edit-amount') as HTMLInputElement).value);
+                const newDate = (document.getElementById('edit-date') as HTMLInputElement).value;
+                const newDescription = (document.getElementById('edit-description') as HTMLInputElement).value;
+                const newPaymentMethod = (document.getElementById('edit-payment-method') as HTMLSelectElement).value;
+
+                // تحديث الحركة
+                setState(prev => ({
+                    ...prev,
+                    transactions: prev.transactions.map(t => 
+                        t.id === transactionId 
+                            ? { ...t, amount: newAmount, date: newDate, description: newDescription, paymentMethod: newPaymentMethod }
+                            : t
+                    )
+                }));
+
+                setModal({ show: false });
+            }
+        });
+    };
+
+    const handleDeleteInstallmentTransaction = (transactionId: string) => {
+        const transaction = state.transactions.find(t => t.id === transactionId);
+        if (!transaction || !transaction.isInstallmentPayment) return;
+
+        const body = `<p>هل أنت متأكد من حذف هذه الحركة؟ سيتم تقليل عدد الأقساط المدفوعة للقسط المرتبط.</p>`;
+
+        setModal({
+            show: true,
+            title: 'حذف حركة القسط',
+            body,
+            confirmText: 'حذف',
+            onConfirm: () => {
+                const installmentId = transaction.installmentId;
+                
+                // حذف الحركة وتقليل عدد الأقساط المدفوعة
+                setState(prev => ({
+                    ...prev,
+                    transactions: prev.transactions.filter(t => t.id !== transactionId),
+                    installments: prev.installments.map(i => 
+                        i.id === installmentId 
+                            ? { ...i, paid: Math.max(0, i.paid - 1) }
+                            : i
+                    )
+                }));
+
+                setModal({ show: false });
+            }
+        });
     };
 
     const handlePayInstallment = (installmentId: string) => {
@@ -185,7 +312,7 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-lg font-bold text-blue-900">{new Date(nextPaymentDate).toLocaleDateString('ar-SA')}</p>
+                                <p className="text-lg font-bold text-blue-900">{new Date(nextPaymentDate).toLocaleDateString('en-GB')}</p>
                                 <p className="text-sm text-slate-600">{formatCurrency(nextPaymentAmount)}</p>
                             </div>
                         </div>
@@ -271,15 +398,34 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                                 <th className="text-right p-3 font-semibold">الوصف</th>
                                 <th className="text-right p-3 font-semibold">المصدر</th>
                                 <th className="text-right p-3 font-semibold">المبلغ</th>
+                                <th className="text-right p-3 font-semibold">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
                             {installmentTransactions.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
                                 <tr key={t.id} className="border-b border-gray-200/50">
-                                    <td className="p-3">{t.date}</td>
+                                    <td className="p-3">{new Date(t.date).toLocaleDateString('en-GB')}</td>
                                     <td className="p-3 text-slate-600">{t.description}</td>
                                     <td className="p-3">{getPaymentMethodName(t.paymentMethod, state)}</td>
                                     <td className="p-3 text-red-500 font-semibold number-display">{formatCurrency(t.amount)}</td>
+                                    <td className="p-3">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleEditInstallmentTransaction(t.id)}
+                                                className="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs transition-colors"
+                                                title="تعديل"
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteInstallmentTransaction(t.id)}
+                                                className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs transition-colors"
+                                                title="حذف"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
