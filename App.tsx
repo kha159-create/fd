@@ -300,7 +300,7 @@ const App: React.FC = () => {
             return yearMatch && monthMatch;
         });
         
-        // Sort by date first, then by entry time (ID timestamp)
+        // Sort ALL transactions by date first, then by entry time (ID timestamp)
         return filtered.sort((a, b) => {
             // First sort by transaction date (newest date first)
             const aDate = new Date(a.date);
@@ -317,6 +317,28 @@ const App: React.FC = () => {
             return dateComparison;
         });
     }, [state.transactions, selectedYear, selectedMonth]);
+
+    // ترتيب جميع الحركات في النظام
+    const allTransactionsSorted = useMemo(() => {
+        if (!state.transactions) return [];
+        
+        // Sort ALL transactions by date first, then by entry time (ID timestamp)
+        return [...state.transactions].sort((a, b) => {
+            // First sort by transaction date (newest date first)
+            const aDate = new Date(a.date);
+            const bDate = new Date(b.date);
+            const dateComparison = bDate.getTime() - aDate.getTime();
+            
+            // If dates are the same, sort by entry time (ID contains timestamp) - newest first
+            if (dateComparison === 0) {
+                const aTime = parseInt(a.id.replace('trans-', '').split('-')[0]);
+                const bTime = parseInt(b.id.replace('trans-', '').split('-')[0]);
+                return bTime - aTime;
+            }
+            
+            return dateComparison;
+        });
+    }, [state.transactions]);
     
     const filteredTransactions = useMemo(() => getFilteredTransactions(), [getFilteredTransactions]);
 
@@ -1007,7 +1029,7 @@ const App: React.FC = () => {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'summary': return <DashboardTab calculations={calculations} categories={state.categories} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
-            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={state.transactions} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={allTransactionsSorted} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;

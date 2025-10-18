@@ -49,8 +49,8 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
     };
 
     const filteredTransactions = useMemo(() => {
-        // First, apply all filters based on transaction date (not entry time)
-        let filteredData = transactions;
+        // Start with all transactions for comprehensive sorting
+        let filteredData = allTransactions;
 
         // Apply date range filter based on transaction date
         if (dateFrom && dateTo) {
@@ -73,7 +73,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
             return searchMatch && methodMatch && categoryMatch;
         });
 
-        // Sort by date first, then by entry time (ID timestamp)
+        // Sort ALL transactions by date first, then by entry time (ID timestamp)
         return filteredData.sort((a, b) => {
             // First sort by transaction date (newest date first)
             const aDate = new Date(a.date);
