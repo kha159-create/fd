@@ -171,18 +171,23 @@ const CardsTab: React.FC<CardsTabProps> = ({ state, openCardFormModal, deleteCar
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  {allCards.map(cardConfig => {
-                     const cardBalanceDetails = state.transactions
+                     // استخدام نفس منطق الحساب من App.tsx
+                     let currentBalance = state.transactions
                         .filter(t => t.paymentMethod === cardConfig.id && (t.type === 'expense' || t.type === 'bnpl-payment'))
-                        .reduce((sum, t) => sum + t.amount, 0)
-                        - state.transactions
-                        .filter(t => t.type === `${cardConfig.id}-payment`)
                         .reduce((sum, t) => sum + t.amount, 0);
+                     
+                     // طرح المدفوعات
+                     state.transactions.forEach(t => {
+                         if (t.type === `${cardConfig.id}-payment`) {
+                             currentBalance -= t.amount;
+                         }
+                     });
                      
                      const card: CardDetails = {
                          ...cardConfig,
-                         balance: cardBalanceDetails,
-                         available: cardConfig.limit - cardBalanceDetails,
-                         usagePercentage: cardConfig.limit > 0 ? (cardBalanceDetails / cardConfig.limit) * 100 : 0,
+                         balance: currentBalance,
+                         available: cardConfig.limit - currentBalance,
+                         usagePercentage: cardConfig.limit > 0 ? (currentBalance / cardConfig.limit) * 100 : 0,
                      };
                      
                      return (
