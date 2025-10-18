@@ -86,6 +86,15 @@ export interface AppState {
     bankAccounts: {
         [key: string]: BankAccountConfig;
     };
+    loans: {
+        [key: string]: Loan;
+    };
+    debtsToMe: {
+        [key: string]: DebtToMe;
+    };
+    debtsFromMe: {
+        [key: string]: DebtFromMe;
+    };
     customTransactionTypes?: Array<{
         id: string;
         name: string;
@@ -115,10 +124,52 @@ export interface FinancialCalculations {
     expensesByCategory: { [key: string]: number };
 }
 
-export type Tab = 'summary' | 'budget' | 'investment' | 'ai-assistant' | 'transactions' | 'cards' | 'bank' | 'installments' | 'analysis' | 'settings';
+export type Tab = 'summary' | 'budget' | 'investment' | 'ai-assistant' | 'transactions' | 'cards' | 'bank' | 'installments' | 'debts-loans' | 'analysis' | 'settings';
 
 export interface Message {
     id: string;
     text: string;
     sender: 'user' | 'ai';
+}
+
+export type LoanType = 'car' | 'house' | 'personal' | 'business' | 'education';
+
+export interface Loan {
+    id: string;
+    type: LoanType;
+    name: string;
+    totalAmount: number;
+    downPayment: number;
+    finalPayment: number;
+    monthlyPayment: number;
+    startDate: string;
+    endDate?: string;
+    remainingMonths?: number;
+    totalMonths?: number;
+    lender: string;
+    status: 'active' | 'completed' | 'defaulted';
+    linkedAccount?: string; // ربط بالحساب البنكي
+    createdAt: string;
+}
+
+export interface DebtToMe {
+    id: string;
+    debtor: string;
+    amount: number;
+    description: string;
+    date: string;
+    status: 'pending' | 'partial' | 'paid';
+    installments?: Installment[];
+    createdAt: string;
+}
+
+export interface DebtFromMe {
+    id: string;
+    creditor: string;
+    amount: number;
+    description: string;
+    date: string;
+    status: 'pending' | 'partial' | 'paid';
+    installments?: Installment[];
+    createdAt: string;
 }

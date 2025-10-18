@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan } from './types';
+import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan, Loan } from './types';
 import { getInitialState } from './constants';
 import { initializeAi, getExchangeRate } from './services/geminiService';
 import { initializeFirebase, firebaseService } from './services/firebaseService';
@@ -20,10 +20,12 @@ import InvestmentTab from './components/tabs/InvestmentTab';
 import CardsTab from './components/tabs/CardsTab';
 import BankTab from './components/tabs/BankTab';
 import InstallmentsTab from './components/tabs/InstallmentsTab';
+import DebtsLoansTab from './components/tabs/DebtsLoansTab';
 import SettingsTab from './components/tabs/SettingsTab';
 import TransactionForm from './components/forms/TransactionForm';
 import CardForm from './components/forms/CardForm';
 import BankAccountForm from './components/forms/BankAccountForm';
+import LoanForm from './components/forms/LoanForm';
 import { XMarkIcon } from './components/common/Icons';
 
 
@@ -38,6 +40,7 @@ const App: React.FC = () => {
     const [transactionForm, setTransactionForm] = useState<{ isOpen: boolean; initialData?: Transaction | null }>({ isOpen: false });
     const [cardForm, setCardForm] = useState<{ isOpen: boolean; initialData?: CardConfig | null }>({ isOpen: false });
     const [bankAccountForm, setBankAccountForm] = useState<{ isOpen: boolean; initialData?: BankAccountConfig | null }>({ isOpen: false });
+    const [loanForm, setLoanForm] = useState<{ isOpen: boolean; initialData?: Loan | null }>({ isOpen: false });
     const [transferModal, setTransferModal] = useState<{ isOpen: boolean }>({ isOpen: false });
     const [transferData, setTransferData] = useState({
         fromAccount: '',
@@ -95,7 +98,7 @@ const App: React.FC = () => {
 
     // إدارة scroll الخلفية عند فتح النوافذ
     useEffect(() => {
-        const isAnyModalOpen = transactionForm.isOpen || cardForm.isOpen || bankAccountForm.isOpen || transferModal.isOpen || modalConfig || loadingState.isLoading;
+        const isAnyModalOpen = transactionForm.isOpen || cardForm.isOpen || bankAccountForm.isOpen || loanForm.isOpen || transferModal.isOpen || modalConfig || loadingState.isLoading;
         
         if (isAnyModalOpen) {
             document.body.classList.add('modal-open');
@@ -107,7 +110,7 @@ const App: React.FC = () => {
         return () => {
             document.body.classList.remove('modal-open');
         };
-    }, [transactionForm.isOpen, cardForm.isOpen, bankAccountForm.isOpen, transferModal.isOpen, modalConfig, loadingState.isLoading]);
+    }, [transactionForm.isOpen, cardForm.isOpen, bankAccountForm.isOpen, loanForm.isOpen, transferModal.isOpen, modalConfig, loadingState.isLoading]);
 
     // Auto-update exchange rate when accounts change
     useEffect(() => {
@@ -687,6 +690,7 @@ const App: React.FC = () => {
     
     const openCardFormModal = (cardId?: string) => setCardForm({ isOpen: true, initialData: cardId ? state.cards[cardId] : null });
     const openBankAccountFormModal = (accountId?: string) => setBankAccountForm({ isOpen: true, initialData: accountId ? state.bankAccounts[accountId] : null });
+    const openLoanFormModal = (loanId?: string) => setLoanForm({ isOpen: true, initialData: loanId ? state.loans[loanId] : null });
 
     const handleTransfer = () => {
         if (!transferData.fromAccount || !transferData.toAccount || transferData.amount <= 0) {
@@ -743,6 +747,72 @@ const App: React.FC = () => {
         setExchangeRateError('');
 
         setModalConfig({ title: 'نجح التحويل', body: '<p>تم التحويل بنجاح!</p>', hideCancel: true, confirmText: 'موافق' });
+    };
+
+    const handleSaveLoan = (loanData: Loan) => {
+        setState(prev => ({
+            ...prev,
+            loans: {
+                ...prev.loans,
+                [loanData.id]: loanData
+            }
+        }));
+
+        // إنشاء الحركات التلقائية للقرض
+        if (!loanData.id.includes('edit')) { // فقط للقروض الجديدة
+            const transactions = [];
+
+            // 1. حركة الدفعة الأولى (مصروف)
+            if (loanData.downPayment > 0) {
+                transactions.push({
+                    id: `trans-${Date.now()}-down-payment`,
+                    amount: loanData.downPayment,
+                    date: loanData.startDate,
+                    description: `دفعة أولى - ${loanData.name}`,
+                    paymentMethod: loanData.linkedAccount || 'cash',
+                    type: 'expense' as const,
+                    categoryId: null
+                });
+            }
+
+            // 2. حركة إيداع القرض (دخل) - المبلغ الإجمالي
+            transactions.push({
+                id: `trans-${Date.now()}-loan-deposit`,
+                amount: loanData.totalAmount,
+                date: loanData.startDate,
+                description: `إيداع قرض - ${loanData.name} من ${loanData.lender}`,
+                paymentMethod: loanData.linkedAccount || 'cash',
+                type: 'income' as const,
+                categoryId: null
+            });
+
+            // 3. حركة الدفعة الأخيرة (مصروف) - بتاريخ انتهاء القرض
+            if (loanData.finalPayment > 0 && loanData.endDate) {
+                transactions.push({
+                    id: `trans-${Date.now()}-final-payment`,
+                    amount: loanData.finalPayment,
+                    date: loanData.endDate,
+                    description: `دفعة أخيرة - ${loanData.name}`,
+                    paymentMethod: loanData.linkedAccount || 'cash',
+                    type: 'expense' as const,
+                    categoryId: null
+                });
+            }
+
+            // إضافة الحركات للدولة
+            setState(prev => ({
+                ...prev,
+                transactions: [...prev.transactions, ...transactions]
+            }));
+        }
+
+        setLoanForm({ isOpen: false });
+        setModalConfig({ 
+            title: 'تم إضافة القرض بنجاح', 
+            body: '<p>تم إضافة القرض والحركات المرتبطة به بنجاح!</p>', 
+            hideCancel: true, 
+            confirmText: 'موافق' 
+        });
     };
 
     const updateExchangeRate = async () => {
@@ -815,6 +885,7 @@ const App: React.FC = () => {
             case 'cards': return <CardsTab state={state} openCardFormModal={openCardFormModal} deleteCard={handleDeleteCard} />;
             case 'bank': return <BankTab state={state} setState={setState} calculations={calculations} filteredTransactions={filteredTransactions} categories={state.categories} setModal={setModalConfig} openBankAccountFormModal={openBankAccountFormModal} deleteBankAccount={handleDeleteBankAccount} openTransferModal={() => setTransferModal({ isOpen: true })} />;
             case 'installments': return <InstallmentsTab state={state} setState={setState} filteredTransactions={filteredTransactions} setModal={setModalConfig} />;
+            case 'debts-loans': return <DebtsLoansTab state={state} setState={setState} setModal={setModalConfig} openLoanFormModal={openLoanFormModal} />;
             case 'settings': return <SettingsTab state={state} setState={setState} setModal={setModalConfig} setLoading={setLoading} onRestore={handleRestore} />;
             default: return <div>Tab not found</div>;
         }
@@ -848,6 +919,7 @@ const App: React.FC = () => {
                     categories={state.categories}
                     cards={state.cards}
                     bankAccounts={state.bankAccounts}
+                    loans={state.loans}
                     setModalConfig={setModalConfig}
                 />
             )}
@@ -867,6 +939,16 @@ const App: React.FC = () => {
                     onClose={() => setBankAccountForm({ isOpen: false })}
                     onSave={handleSaveBankAccount}
                     initialData={bankAccountForm.initialData}
+                />
+            )}
+
+            {/* Loan Form Modal */}
+            {loanForm.isOpen && (
+                <LoanForm
+                    onClose={() => setLoanForm({ isOpen: false })}
+                    onSave={handleSaveLoan}
+                    initialData={loanForm.initialData}
+                    bankAccounts={state.bankAccounts}
                 />
             )}
 

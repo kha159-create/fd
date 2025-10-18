@@ -23,5 +23,8 @@ export const getInitialState = (): AppState => ({
   },
   bankAccounts: {
     'bank-default': { id: 'bank-default', name: 'حساب البنك', balance: 0, currency: 'SAR', smsSamples: ['مدى', 'mada', 'Alrajhi', 'الراجحي', 'Inma', 'الإنماء', 'بنك'] }
-  }
+  },
+  loans: {},
+  debtsToMe: {},
+  debtsFromMe: {}
 });

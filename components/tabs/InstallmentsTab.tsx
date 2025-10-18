@@ -21,6 +21,51 @@ const getPaymentMethodName = (key: string, state: AppState): string => {
 
 const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filteredTransactions, setModal }) => {
 
+    // حساب ملخص الأقساط
+    const getInstallmentSummary = () => {
+        const activeInstallments = state.installments.filter(i => i.paid < i.total);
+        
+        const tabbyInstallments = activeInstallments.filter(i => i.provider === 'tabby-bnpl');
+        const tamaraInstallments = activeInstallments.filter(i => i.provider === 'tamara-bnpl');
+        
+        const tabbyTotal = tabbyInstallments.reduce((sum, i) => sum + i.installmentAmount, 0);
+        const tamaraTotal = tamaraInstallments.reduce((sum, i) => sum + i.installmentAmount, 0);
+        const grandTotal = tabbyTotal + tamaraTotal;
+        
+        return {
+            tabbyTotal,
+            tamaraTotal,
+            grandTotal,
+            activeCount: activeInstallments.length,
+            completedCount: state.installments.filter(i => i.paid >= i.total).length
+        };
+    };
+
+    // حساب موعد القسط التالي
+    const getNextPaymentDate = () => {
+        const activeInstallments = state.installments.filter(i => i.paid < i.total);
+        if (activeInstallments.length === 0) return null;
+
+        // البحث عن آخر عملية دفع قسط
+        const installmentTransactions = state.transactions.filter(t => t.isInstallmentPayment);
+        if (installmentTransactions.length === 0) return null;
+
+        const lastPayment = installmentTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+        const lastPaymentDate = new Date(lastPayment.date);
+        
+        // إضافة 30 يوم
+        const nextDate = new Date(lastPaymentDate);
+        nextDate.setDate(nextDate.getDate() + 30);
+        
+        return nextDate.toISOString().split('T')[0];
+    };
+
+    // حساب مبلغ القسط التالي
+    const getNextPaymentAmount = () => {
+        const activeInstallments = state.installments.filter(i => i.paid < i.total);
+        return activeInstallments.reduce((sum, i) => sum + i.installmentAmount, 0);
+    };
+
     const handlePayInstallment = (installmentId: string) => {
         const installment = state.installments.find(i => i.id === installmentId);
         if (!installment || installment.paid >= installment.total) return;
@@ -79,8 +124,103 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
     const activeInstallments = state.installments.filter(i => i.paid < i.total);
     const installmentTransactions = state.transactions.filter(t => t.isInstallmentPayment);
 
+    const summary = getInstallmentSummary();
+    const nextPaymentDate = getNextPaymentDate();
+    const nextPaymentAmount = getNextPaymentAmount();
+
     return (
         <div className="animate-fade-in">
+            {/* بطاقة ملخص الأقساط */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm mb-6">
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 text-2xl">📊</span>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-slate-900">ملخص الأقساط</h3>
+                            <p className="text-sm text-slate-600">إجمالي الأقساط النشطة والمستحقة</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {/* إجمالي الأقساط */}
+                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-2xl">🎯</span>
+                            <span className="font-semibold text-blue-800">إجمالي الأقساط</span>
+                        </div>
+                        <p className="text-2xl font-bold text-blue-900">{formatCurrency(summary.grandTotal)}</p>
+                    </div>
+
+                    {/* تابي */}
+                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-2xl">📱</span>
+                            <span className="font-semibold text-blue-800">تابي</span>
+                        </div>
+                        <p className="text-xl font-bold text-blue-900">{formatCurrency(summary.tabbyTotal)}</p>
+                    </div>
+
+                    {/* تمارا */}
+                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-2xl">📱</span>
+                            <span className="font-semibold text-blue-800">تمارا</span>
+                        </div>
+                        <p className="text-xl font-bold text-blue-900">{formatCurrency(summary.tamaraTotal)}</p>
+                    </div>
+                </div>
+
+                {/* موعد القسط التالي */}
+                {nextPaymentDate && (
+                    <div className="bg-white p-4 rounded-lg border border-blue-200 mb-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">⏰</span>
+                                <div>
+                                    <p className="font-semibold text-blue-800">القسط التالي</p>
+                                    <p className="text-sm text-slate-600">موعد الاستحقاق</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-lg font-bold text-blue-900">{new Date(nextPaymentDate).toLocaleDateString('ar-SA')}</p>
+                                <p className="text-sm text-slate-600">{formatCurrency(nextPaymentAmount)}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* الإحصائيات */}
+                <div className="flex justify-between items-center">
+                    <div className="flex gap-6">
+                        <div className="text-center">
+                            <p className="text-2xl font-bold text-blue-900">{summary.activeCount}</p>
+                            <p className="text-sm text-slate-600">أقساط نشطة</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-2xl font-bold text-green-600">{summary.completedCount}</p>
+                            <p className="text-sm text-slate-600">أقساط مكتملة</p>
+                        </div>
+                    </div>
+                    {nextPaymentDate && (
+                        <button 
+                            onClick={() => {
+                                // دفع جميع الأقساط النشطة
+                                const activeInstallments = state.installments.filter(i => i.paid < i.total);
+                                activeInstallments.forEach(installment => {
+                                    handlePayInstallment(installment.id);
+                                });
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                        >
+                            💳 دفع جميع الأقساط
+                        </button>
+                    )}
+                </div>
+            </div>
+
             <h3 className="text-2xl font-bold mb-4 text-slate-900">📱 خطط الأقساط النشطة</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {activeInstallments.length > 0 ? activeInstallments.map(i => {

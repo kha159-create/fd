@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Transaction, Category, CardConfig, BankAccountConfig, TransactionType, PaymentMethod } from '../../types';
+import { Transaction, Category, CardConfig, BankAccountConfig, TransactionType, PaymentMethod, Loan } from '../../types';
 import { analyzePastedText } from '../../services/geminiService';
 import { MagicIcon, XMarkIcon } from '../common/Icons';
 
@@ -10,10 +10,11 @@ interface TransactionFormProps {
     categories: Category[];
     cards: { [key: string]: CardConfig };
     bankAccounts: { [key: string]: BankAccountConfig };
+    loans: { [key: string]: Loan };
     setModalConfig: (config: any) => void;
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, initialData, categories, cards, bankAccounts, setModalConfig }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, initialData, categories, cards, bankAccounts, loans, setModalConfig }) => {
     const [transaction, setTransaction] = useState<Omit<Transaction, 'id'>>({
         amount: 0,
         date: new Date().toISOString().split('T')[0],
@@ -25,6 +26,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
     const [isPasting, setIsPasting] = useState(false);
     const [pasteError, setPasteError] = useState('');
     const [clipboardModal, setClipboardModal] = useState<{ isOpen: boolean; text: string }>({ isOpen: false, text: '' });
+    const [showLoanDeductionModal, setShowLoanDeductionModal] = useState(false);
     
     // BNPL fields
     const [showBnplFields, setShowBnplFields] = useState(false);
@@ -75,6 +77,15 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Check if this is a salary/income transaction and there are active loans
+        if (transaction.type === 'income' && Object.keys(loans).length > 0) {
+            const activeLoans = Object.values(loans).filter(loan => loan.status === 'active');
+            if (activeLoans.length > 0) {
+                setShowLoanDeductionModal(true);
+                return;
+            }
+        }
         
         // For BNPL transactions, we need to create both the installment plan and first payment
         if (showBnplFields && transaction.paymentMethod.includes('bnpl')) {
@@ -306,6 +317,82 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                 </div>
             </div>
         </div>
+
+        {/* Loan Deduction Modal */}
+        {showLoanDeductionModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-fade-in" onClick={e => e.stopPropagation()}>
+                    <div className="p-6">
+                        <h3 className="text-xl font-bold text-slate-800 mb-4">خصم أقساط القروض</h3>
+                        <p className="text-sm text-slate-600 mb-4">لديك قروض نشطة. هل تريد خصم أقساطها من هذا الراتب؟</p>
+                        
+                        <div className="space-y-3 mb-6">
+                            {Object.values(loans)
+                                .filter(loan => loan.status === 'active')
+                                .map(loan => (
+                                    <div key={loan.id} className="bg-blue-50 p-3 rounded-lg">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="font-semibold text-blue-800">{loan.name}</p>
+                                                <p className="text-sm text-blue-600">القسط: {loan.monthlyPayment.toLocaleString()} ريال</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <button 
+                                onClick={() => {
+                                    setShowLoanDeductionModal(false);
+                                    // Save without loan deduction
+                                    onSave(transaction, initialData?.id);
+                                }} 
+                                className="px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition-colors"
+                            >
+                                لا، حفظ الراتب فقط
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setShowLoanDeductionModal(false);
+                                    // Save with loan deduction
+                                    const activeLoans = Object.values(loans).filter(loan => loan.status === 'active');
+                                    const totalDeduction = activeLoans.reduce((sum, loan) => sum + loan.monthlyPayment, 0);
+                                    
+                                    // Create salary transaction
+                                    const salaryTransaction = { ...transaction };
+                                    
+                                    // Create loan payment transactions
+                                    const loanTransactions = activeLoans.map(loan => ({
+                                        id: `trans-${Date.now()}-loan-${loan.id}`,
+                                        amount: loan.monthlyPayment,
+                                        date: transaction.date,
+                                        description: `قسط شهري - ${loan.name}`,
+                                        paymentMethod: transaction.paymentMethod,
+                                        type: 'expense' as const,
+                                        categoryId: null
+                                    }));
+
+                                    // Save all transactions
+                                    onSave(salaryTransaction, initialData?.id);
+                                    
+                                    // Note: Loan transactions will be handled by the parent component
+                                    setModalConfig({ 
+                                        title: 'تم حفظ الراتب وخصم الأقساط', 
+                                        body: `<p>تم خصم ${totalDeduction.toLocaleString()} ريال كأقساط قروض من الراتب.</p>`, 
+                                        hideCancel: true, 
+                                        confirmText: 'موافق' 
+                                    });
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                نعم، خصم الأقساط
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
         </>
     );
 };
