@@ -196,21 +196,36 @@ const App: React.FC = () => {
 
     const loadLocalData = async () => {
         try {
-            // محاولة تحميل البيانات الرئيسية
-            let savedState = localStorage.getItem('financial_dashboard_state');
+            // البحث عن جميع النسخ المحفوظة
+            const possibleKeys = [
+                'financial_dashboard_state',
+                'financial_dashboard_backup_1',
+                'financial_dashboard_backup_2'
+            ];
             
-            // إذا لم توجد البيانات الرئيسية، جرب النسخ الاحتياطية
-            if (!savedState) {
-                savedState = localStorage.getItem('financial_dashboard_backup_1');
-                if (savedState) {
-                    console.log('🔄 تم تحميل البيانات من النسخة الاحتياطية الأولى');
-                }
+            // إضافة النسخ اليومية (آخر 7 أيام)
+            for (let i = 0; i < 7; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                possibleKeys.push(`financial_dashboard_${dateStr}`);
             }
             
-            if (!savedState) {
-                savedState = localStorage.getItem('financial_dashboard_backup_2');
-                if (savedState) {
-                    console.log('🔄 تم تحميل البيانات من النسخة الاحتياطية الثانية');
+            let savedState = null;
+            let sourceKey = '';
+            
+            // البحث عن أحدث نسخة صالحة
+            for (const key of possibleKeys) {
+                const data = localStorage.getItem(key);
+                if (data) {
+                    try {
+                        JSON.parse(data); // التحقق من صحة البيانات
+                        savedState = data;
+                        sourceKey = key;
+                        break;
+                    } catch (e) {
+                        console.warn(`⚠️ بيانات تالفة في ${key}`);
+                    }
                 }
             }
             
@@ -225,7 +240,7 @@ const App: React.FC = () => {
                     investments: { ...initialState.investments, ...(parsedState.investments || {}) },
                 };
                 setState(mergedState);
-                console.log('✅ تم تحميل البيانات بنجاح');
+                console.log(`✅ تم تحميل البيانات بنجاح من: ${sourceKey}`);
             } else {
                 console.log('ℹ️ لم توجد بيانات محفوظة، سيتم استخدام البيانات الافتراضية');
             }
@@ -238,15 +253,21 @@ const App: React.FC = () => {
         if (isInitialized && !isCheckingAuth) {
             // حفظ في localStorage دائماً مع نسخ احتياطية متعددة
             try {
-                localStorage.setItem('financial_dashboard_state', JSON.stringify(state));
-                localStorage.setItem('financial_dashboard_backup_1', JSON.stringify(state));
-                localStorage.setItem('financial_dashboard_backup_2', JSON.stringify(state));
-                console.log('✅ تم حفظ البيانات في localStorage مع نسخ احتياطية');
+                const stateData = JSON.stringify(state);
+                localStorage.setItem('financial_dashboard_state', stateData);
+                localStorage.setItem('financial_dashboard_backup_1', stateData);
+                localStorage.setItem('financial_dashboard_backup_2', stateData);
+                
+                // حفظ إضافي مع timestamp
+                const timestamp = new Date().toISOString();
+                localStorage.setItem(`financial_dashboard_${timestamp.split('T')[0]}`, stateData);
+                
+                console.log('✅ تم حفظ البيانات في localStorage مع نسخ احتياطية متعددة');
             } catch (error) {
                 console.error('❌ خطأ في حفظ البيانات:', error);
             }
             
-            // حفظ في Firebase إذا كان المستخدم مسجل
+            // حفظ في Firebase إذا كان المستخدم مسجل (اختياري)
             if (currentUser) {
                 const saveToFirebase = async () => {
                     try {
