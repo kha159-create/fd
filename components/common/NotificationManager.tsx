@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 interface NotificationManagerProps {
     notifications: boolean;
     onToggle: () => void;
+    language?: 'ar' | 'en';
 }
 
-const NotificationManager: React.FC<NotificationManagerProps> = ({ notifications, onToggle }) => {
+const NotificationManager: React.FC<NotificationManagerProps> = ({ notifications, onToggle, language = 'ar' }) => {
     const [permission, setPermission] = useState<NotificationPermission>('default');
 
     useEffect(() => {
@@ -33,7 +34,9 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({ notifications
 
     return (
         <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">الإشعارات</span>
+            <span className="text-sm font-medium">
+                {language === 'ar' ? 'الإشعارات' : 'Notifications'}
+            </span>
             <button
                 onClick={onToggle}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
@@ -54,7 +57,7 @@ const NotificationManager: React.FC<NotificationManagerProps> = ({ notifications
                     onClick={requestPermission}
                     className="text-xs text-blue-600 hover:text-blue-800 underline"
                 >
-                    تفعيل الإشعارات
+                    {language === 'ar' ? 'تفعيل الإشعارات' : 'Enable Notifications'}
                 </button>
             )}
         </div>

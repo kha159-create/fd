@@ -114,14 +114,25 @@ const App: React.FC = () => {
         };
     }, [transactionForm.isOpen, cardForm.isOpen, bankAccountForm.isOpen, loanForm.isOpen, transferModal.isOpen, modalConfig, loadingState.isLoading]);
 
-    // إدارة الوضع المظلم
+    // إدارة الوضع المظلم واللغة
     useEffect(() => {
+        // إدارة الوضع المظلم
         if (state.settings.darkMode) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-    }, [state.settings.darkMode]);
+
+        // إدارة اللغة والاتجاه
+        const htmlElement = document.documentElement;
+        if (state.settings.language === 'ar') {
+            htmlElement.setAttribute('lang', 'ar');
+            htmlElement.setAttribute('dir', 'rtl');
+        } else {
+            htmlElement.setAttribute('lang', 'en');
+            htmlElement.setAttribute('dir', 'ltr');
+        }
+    }, [state.settings.darkMode, state.settings.language]);
 
     // تسجيل Service Worker للـ PWA
     useEffect(() => {
@@ -736,6 +747,16 @@ const App: React.FC = () => {
         }));
     };
 
+    const toggleLanguage = () => {
+        setState(prev => ({
+            ...prev,
+            settings: {
+                ...prev.settings,
+                language: prev.settings.language === 'ar' ? 'en' : 'ar'
+            }
+        }));
+    };
+
     const handleTransfer = () => {
         if (!transferData.fromAccount || !transferData.toAccount || transferData.amount <= 0) {
             setModalConfig({ title: 'خطأ', body: '<p>يرجى ملء جميع البيانات بشكل صحيح.</p>', hideCancel: true, confirmText: 'موافق' });
@@ -936,7 +957,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="bg-slate-100 min-h-screen font-sans">
+        <div className={`min-h-screen font-sans ${state.settings.darkMode ? 'dark' : ''}`}>
             <Header
                 selectedYear={selectedYear}
                 selectedMonth={selectedMonth}
@@ -948,11 +969,13 @@ const App: React.FC = () => {
             />
             
             {/* شريط الإعدادات */}
-            <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 p-4">
+            <div className={`backdrop-blur-sm border-b p-4 ${state.settings.darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-slate-200'}`}>
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium">الوضع المظلم</span>
+                            <span className={`text-sm font-medium ${state.settings.darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                                {state.settings.language === 'ar' ? 'الوضع المظلم' : 'Dark Mode'}
+                            </span>
                             <DarkModeToggle 
                                 darkMode={state.settings.darkMode} 
                                 onToggle={toggleDarkMode} 
@@ -960,14 +983,30 @@ const App: React.FC = () => {
                         </div>
                         <NotificationManager 
                             notifications={state.settings.notifications} 
-                            onToggle={toggleNotifications} 
+                            onToggle={toggleNotifications}
+                            language={state.settings.language}
                         />
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium">العربية</span>
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-blue-600 font-bold">A</span>
-                        </div>
+                        <button
+                            onClick={toggleLanguage}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                                state.settings.darkMode 
+                                    ? 'bg-slate-700 hover:bg-slate-600 text-slate-200' 
+                                    : 'bg-blue-100 hover:bg-blue-200 text-slate-700'
+                            }`}
+                        >
+                            <span className="text-sm font-medium">
+                                {state.settings.language === 'ar' ? 'العربية' : 'English'}
+                            </span>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                state.settings.darkMode ? 'bg-blue-500' : 'bg-blue-600'
+                            }`}>
+                                <span className="text-white font-bold text-xs">
+                                    {state.settings.language === 'ar' ? 'A' : 'E'}
+                                </span>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="html-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +22,7 @@
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     :root { 
       --bg-light: #f8fafc;
@@ -37,14 +38,46 @@
     }
     
     .dark {
-      --bg-light: #1f2937;
-      --card-light: #374151;
-      --border-light: #4b5563;
-      --text-dark: #f3f4f6;
-      --text-headings: #ffffff;
+      --bg-light: #0f172a;
+      --card-light: #1e293b;
+      --border-light: #334155;
+      --text-dark: #e2e8f0;
+      --text-headings: #f8fafc;
+    }
+    
+    .dark body {
+      background-color: var(--bg-light) !important;
+      color: var(--text-dark) !important;
+    }
+    
+    .dark .glass-card {
+      background: rgba(30, 41, 59, 0.95) !important;
+      border-color: var(--border-light) !important;
+      color: var(--text-dark) !important;
+    }
+    
+    .dark input,
+    .dark select,
+    .dark textarea {
+      background-color: #1e293b !important;
+      color: var(--text-dark) !important;
+      border-color: var(--border-light) !important;
+    }
+    
+    .dark .tab-bar {
+      background: rgba(30, 41, 59, 0.7) !important;
+      border-color: var(--border-light) !important;
+    }
+    
+    .dark .modal-content {
+      background: var(--card-light) !important;
+      border-color: var(--border-light) !important;
+      color: var(--text-dark) !important;
     }
     
     * { font-family: 'Cairo', sans-serif; }
+    
+    [lang="en"] * { font-family: 'Inter', 'Segoe UI', sans-serif; }
     body { background-color: var(--bg-light); color: var(--text-dark); }
     .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-light); border-radius: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.06); }
     .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
