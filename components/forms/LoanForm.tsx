@@ -23,7 +23,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ onClose, onSave, initialData, bankA
         totalMonths: 0,
         lender: '',
         status: 'active',
-        linkedAccount: ''
+        linkedAccount: '',
+        prepaidAmount: 0,
+        prepaidInstallments: 0
     });
 
     const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -37,7 +39,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ onClose, onSave, initialData, bankA
     // حساب المدة الإجمالية والمتبقية
     useEffect(() => {
         if (loan.totalAmount > 0 && loan.downPayment >= 0 && loan.finalPayment >= 0 && loan.monthlyPayment > 0) {
-            const remainingAmount = loan.totalAmount - loan.downPayment - loan.finalPayment;
+            const remainingAmount = loan.totalAmount - loan.downPayment - loan.finalPayment - (loan.prepaidAmount || 0);
             if (remainingAmount > 0) {
                 const totalMonths = Math.ceil(remainingAmount / loan.monthlyPayment);
                 const startDate = new Date(loan.startDate);
@@ -52,7 +54,23 @@ const LoanForm: React.FC<LoanFormProps> = ({ onClose, onSave, initialData, bankA
                 }));
             }
         }
-    }, [loan.totalAmount, loan.downPayment, loan.finalPayment, loan.monthlyPayment, loan.startDate]);
+    }, [loan.totalAmount, loan.downPayment, loan.finalPayment, loan.monthlyPayment, loan.startDate, loan.prepaidAmount]);
+
+    // حساب الأقساط المدفوعة مسبقاً
+    useEffect(() => {
+        if (loan.prepaidAmount && loan.monthlyPayment > 0) {
+            const prepaidInstallments = Math.floor(loan.prepaidAmount / loan.monthlyPayment);
+            setLoan(prev => ({
+                ...prev,
+                prepaidInstallments
+            }));
+        } else {
+            setLoan(prev => ({
+                ...prev,
+                prepaidInstallments: 0
+            }));
+        }
+    }, [loan.prepaidAmount, loan.monthlyPayment]);
 
     const loanTypes: { value: LoanType; label: string; icon: string }[] = [
         { value: 'car', label: 'سيارة', icon: '🚗' },
@@ -251,6 +269,33 @@ const LoanForm: React.FC<LoanFormProps> = ({ onClose, onSave, initialData, bankA
                                 />
                                 {errors.monthlyPayment && <p className="text-red-500 text-sm mt-1">{errors.monthlyPayment}</p>}
                             </div>
+                        </div>
+
+                        {/* المبلغ المدفوع مسبقاً */}
+                        <div>
+                            <label htmlFor="prepaidAmount" className="block text-sm font-medium text-slate-600 mb-2">المبلغ المدفوع مسبقاً (اختياري)</label>
+                            <input
+                                type="number"
+                                id="prepaidAmount"
+                                name="prepaidAmount"
+                                value={loan.prepaidAmount || 0}
+                                onChange={handleChange}
+                                className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                step="0.01"
+                                min="0"
+                                placeholder="0"
+                            />
+                            <p className="text-sm text-slate-500 mt-1">المبلغ الذي تم دفعه قبل إضافة القرض للنظام</p>
+                            {(loan.prepaidAmount || 0) > 0 && (
+                                <div className="bg-blue-50 p-3 rounded-lg mt-2">
+                                    <p className="text-blue-700 font-semibold text-sm">
+                                        الأقساط المدفوعة مسبقاً: {loan.prepaidInstallments || 0} قسط
+                                    </p>
+                                    <p className="text-blue-600 text-sm">
+                                        المبلغ المتبقي: {formatCurrency(loan.totalAmount - loan.downPayment - loan.finalPayment - (loan.prepaidAmount || 0))} ريال
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* التواريخ */}

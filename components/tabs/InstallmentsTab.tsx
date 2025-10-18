@@ -193,6 +193,79 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
         });
     };
 
+    const handleEditInstallment = (installmentId: string) => {
+        const installment = state.installments.find(i => i.id === installmentId);
+        if (!installment) return;
+
+        const body = `
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">وصف القسط</label>
+                    <input type="text" id="edit-description" value="${installment.description}" class="w-full p-3 border border-slate-300 rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">قيمة القسط</label>
+                    <input type="number" id="edit-amount" value="${installment.installmentAmount}" step="0.01" class="w-full p-3 border border-slate-300 rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">عدد الأقساط الإجمالي</label>
+                    <input type="number" id="edit-total" value="${installment.total}" min="1" class="w-full p-3 border border-slate-300 rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-2">عدد الأقساط المدفوعة</label>
+                    <input type="number" id="edit-paid" value="${installment.paid}" min="0" max="${installment.total}" class="w-full p-3 border border-slate-300 rounded-lg" />
+                </div>
+            </div>
+        `;
+
+        setModal({
+            show: true,
+            title: 'تعديل خطة القسط',
+            body,
+            confirmText: 'حفظ التعديلات',
+            onConfirm: () => {
+                const newDescription = (document.getElementById('edit-description') as HTMLInputElement).value;
+                const newAmount = parseFloat((document.getElementById('edit-amount') as HTMLInputElement).value);
+                const newTotal = parseInt((document.getElementById('edit-total') as HTMLInputElement).value);
+                const newPaid = parseInt((document.getElementById('edit-paid') as HTMLInputElement).value);
+
+                setState(prev => ({
+                    ...prev,
+                    installments: prev.installments.map(i => 
+                        i.id === installmentId 
+                            ? { ...i, description: newDescription, installmentAmount: newAmount, total: newTotal, paid: newPaid }
+                            : i
+                    )
+                }));
+
+                setModal({ show: false });
+            }
+        });
+    };
+
+    const handleDeleteInstallment = (installmentId: string) => {
+        const installment = state.installments.find(i => i.id === installmentId);
+        if (!installment) return;
+
+        const body = `<p>هل أنت متأكد من حذف خطة القسط "${installment.description}"؟ سيتم حذف جميع الحركات المرتبطة بها.</p>`;
+
+        setModal({
+            show: true,
+            title: 'حذف خطة القسط',
+            body,
+            confirmText: 'حذف',
+            onConfirm: () => {
+                setState(prev => ({
+                    ...prev,
+                    installments: prev.installments.filter(i => i.id !== installmentId),
+                    transactions: prev.transactions.filter(t => t.installmentId !== installmentId)
+                }));
+
+                setModal({ show: false });
+            }
+        });
+    };
+
     const handlePayInstallment = (installmentId: string) => {
         const installment = state.installments.find(i => i.id === installmentId);
         if (!installment || installment.paid >= installment.total) return;
@@ -381,8 +454,10 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                                     <span className="text-xs text-slate-500">{progress.toFixed(1)}% مكتمل</span>
                                 </div>
                             </div>
-                            <div className="text-center mt-3">
-                                <button onClick={() => handlePayInstallment(i.id)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 text-sm w-full shadow-md font-semibold">💳 دفع القسط التالي</button>
+                            <div className="flex gap-2 mt-3">
+                                <button onClick={() => handlePayInstallment(i.id)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 text-sm shadow-md font-semibold">💳 دفع القسط التالي</button>
+                                <button onClick={() => handleEditInstallment(i.id)} className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors text-sm" title="تعديل القسط">✏️</button>
+                                <button onClick={() => handleDeleteInstallment(i.id)} className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors text-sm" title="حذف القسط">🗑️</button>
                             </div>
                         </div>
                     );

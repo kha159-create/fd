@@ -193,6 +193,34 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                                             <p className="text-xl font-bold text-blue-900">{formatCurrency(loan.totalAmount)}</p>
                                         </div>
 
+                                        {/* خط الإنجاز */}
+                                        {(loan.prepaidAmount || 0) > 0 && (
+                                            <div className="bg-slate-50 p-3 rounded-lg">
+                                                <div className="flex justify-between text-sm mb-2">
+                                                    <span className="font-medium text-slate-700">التقدم</span>
+                                                    <span className="font-medium text-slate-700">
+                                                        {Math.round(((loan.prepaidAmount || 0) / loan.totalAmount) * 100)}%
+                                                    </span>
+                                                </div>
+                                                <div className="w-full bg-slate-200 rounded-full h-3 mb-2">
+                                                    <div 
+                                                        className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500" 
+                                                        style={{width: `${((loan.prepaidAmount || 0) / loan.totalAmount) * 100}%`}}
+                                                    ></div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 text-center">
+                                                    <div className="bg-green-50 p-2 rounded">
+                                                        <p className="text-green-700 font-bold text-sm">{Math.floor((loan.prepaidAmount || 0) / loan.monthlyPayment)}</p>
+                                                        <p className="text-green-600 text-xs">مدفوع</p>
+                                                    </div>
+                                                    <div className="bg-blue-50 p-2 rounded">
+                                                        <p className="text-blue-700 font-bold text-sm">{loan.totalMonths - Math.floor((loan.prepaidAmount || 0) / loan.monthlyPayment)}</p>
+                                                        <p className="text-blue-600 text-xs">متبقي</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="bg-slate-50 p-3 rounded-lg">
                                                 <p className="text-slate-600 text-xs mb-1">القسط الشهري</p>
@@ -204,12 +232,27 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                                             </div>
                                         </div>
 
+                                        {(loan.prepaidAmount || 0) > 0 && (
+                                            <div className="bg-orange-50 p-3 rounded-lg">
+                                                <p className="text-orange-700 font-semibold text-sm mb-1">مدفوع مسبقاً</p>
+                                                <p className="text-orange-900 font-bold text-lg">{formatCurrency(loan.prepaidAmount || 0)}</p>
+                                            </div>
+                                        )}
+
+                                        {/* موعد القسط التالي */}
+                                        <div className="bg-yellow-50 p-3 rounded-lg">
+                                            <p className="text-yellow-700 font-semibold text-sm mb-1">القسط التالي</p>
+                                            <p className="text-yellow-900 font-bold text-lg">
+                                                {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-GB')}
+                                            </p>
+                                        </div>
+
                                         <div className="flex justify-between items-center">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(loan.status)}`}>
                                                 {getStatusName(loan.status)}
                                             </span>
                                             <span className="text-xs text-slate-500">
-                                                بدأ في: {new Date(loan.startDate).toLocaleDateString('ar-SA')}
+                                                بدأ في: {new Date(loan.startDate).toLocaleDateString('en-GB')}
                                             </span>
                                         </div>
                                     </div>

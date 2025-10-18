@@ -149,6 +149,8 @@ export interface Loan {
     lender: string;
     status: 'active' | 'completed' | 'defaulted';
     linkedAccount?: string; // ربط بالحساب البنكي
+    prepaidAmount?: number; // المبلغ المدفوع مسبقاً
+    prepaidInstallments?: number; // عدد الأقساط المدفوعة مسبقاً
     createdAt: string;
 }
 
