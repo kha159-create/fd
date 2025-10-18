@@ -292,10 +292,38 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
+            setModal({ title: t('success', language), body: `<p>تم إنشاء النسخة الاحتياطية بنجاح</p>`, hideCancel: true, confirmText: t('confirm', language) });
         } catch (error) {
-            setModal({ title: t('error', language), body: `<p>${t('unknown.error', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
+            setModal({ title: t('error', language), body: `<p>فشل في إنشاء النسخة الاحتياطية</p>`, hideCancel: true, confirmText: t('confirm', language) });
         }
+    };
+
+    // استعادة البيانات المحلية
+    const handleRestoreLocal = () => {
+        setModal({
+            title: 'استعادة البيانات المحلية',
+            body: '<p>هل تريد استعادة البيانات من النسخ الاحتياطية المحلية؟</p>',
+            confirmText: 'نعم، استعادة',
+            onConfirm: () => {
+                try {
+                    // محاولة استعادة من النسخ الاحتياطية
+                    let backupData = localStorage.getItem('financial_dashboard_backup_1');
+                    if (!backupData) {
+                        backupData = localStorage.getItem('financial_dashboard_backup_2');
+                    }
+                    
+                    if (backupData) {
+                        const parsedData = JSON.parse(backupData);
+                        setState(parsedData);
+                        setModal({ title: t('success', language), body: '<p>تم استعادة البيانات بنجاح</p>', hideCancel: true, confirmText: t('confirm', language) });
+                    } else {
+                        setModal({ title: t('error', language), body: '<p>لم توجد نسخ احتياطية محلية</p>', hideCancel: true, confirmText: t('confirm', language) });
+                    }
+                } catch (error) {
+                    setModal({ title: t('error', language), body: '<p>فشل في استعادة البيانات</p>', hideCancel: true, confirmText: t('confirm', language) });
+                }
+            }
+        });
     };
 
     const handleFirebaseBackup = async () => {
@@ -811,9 +839,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                         />
                         <button
                             onClick={() => document.getElementById('backup-file')?.click()}
-                            className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+                            className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors mb-2"
                         >
-                            📥 استعادة البيانات
+                            📥 استعادة من ملف
+                        </button>
+                        <button
+                            onClick={handleRestoreLocal}
+                            className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
+                        >
+                            🔄 استعادة محلية
                         </button>
                     </div>
                 </div>

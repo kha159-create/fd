@@ -196,7 +196,24 @@ const App: React.FC = () => {
 
     const loadLocalData = async () => {
         try {
-            const savedState = localStorage.getItem('financial_dashboard_state');
+            // محاولة تحميل البيانات الرئيسية
+            let savedState = localStorage.getItem('financial_dashboard_state');
+            
+            // إذا لم توجد البيانات الرئيسية، جرب النسخ الاحتياطية
+            if (!savedState) {
+                savedState = localStorage.getItem('financial_dashboard_backup_1');
+                if (savedState) {
+                    console.log('🔄 تم تحميل البيانات من النسخة الاحتياطية الأولى');
+                }
+            }
+            
+            if (!savedState) {
+                savedState = localStorage.getItem('financial_dashboard_backup_2');
+                if (savedState) {
+                    console.log('🔄 تم تحميل البيانات من النسخة الاحتياطية الثانية');
+                }
+            }
+            
             if (savedState) {
                 const parsedState = JSON.parse(savedState);
                 const initialState = getInitialState();
@@ -208,17 +225,26 @@ const App: React.FC = () => {
                     investments: { ...initialState.investments, ...(parsedState.investments || {}) },
                 };
                 setState(mergedState);
-                console.log('✅ تم تحميل البيانات من localStorage');
+                console.log('✅ تم تحميل البيانات بنجاح');
+            } else {
+                console.log('ℹ️ لم توجد بيانات محفوظة، سيتم استخدام البيانات الافتراضية');
             }
         } catch (error) {
-            console.error('خطأ في تحميل البيانات المحلية:', error);
+            console.error('❌ خطأ في تحميل البيانات المحلية:', error);
         }
     };
 
     useEffect(() => {
         if (isInitialized && !isCheckingAuth) {
-            // حفظ في localStorage دائماً
-            localStorage.setItem('financial_dashboard_state', JSON.stringify(state));
+            // حفظ في localStorage دائماً مع نسخ احتياطية متعددة
+            try {
+                localStorage.setItem('financial_dashboard_state', JSON.stringify(state));
+                localStorage.setItem('financial_dashboard_backup_1', JSON.stringify(state));
+                localStorage.setItem('financial_dashboard_backup_2', JSON.stringify(state));
+                console.log('✅ تم حفظ البيانات في localStorage مع نسخ احتياطية');
+            } catch (error) {
+                console.error('❌ خطأ في حفظ البيانات:', error);
+            }
             
             // حفظ في Firebase إذا كان المستخدم مسجل
             if (currentUser) {
