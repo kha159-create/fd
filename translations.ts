@@ -214,7 +214,17 @@ export const translations = {
         'auth.error': 'خطأ في المصادقة',
         'permission.error': 'خطأ في الصلاحية',
         'validation.error': 'خطأ في التحقق',
-        'unknown.error': 'خطأ غير معروف'
+        'unknown.error': 'خطأ غير معروف',
+        
+        // Additional keys
+        'details': 'التفاصيل',
+        'cannot.delete': 'لا يمكن الحذف',
+        'cannot.delete.category': 'لا يمكن حذف هذه الفئة لأنها مستخدمة في بعض الحركات',
+        'cannot.delete.transaction.type': 'لا يمكن حذف نوع الحركة هذا لأنه مستخدم في بعض الحركات',
+        'cannot.delete.payment.method': 'لا يمكن حذف وسيلة الدفع هذه لأنها مستخدمة في بعض الحركات',
+        'restore.backup': 'استعادة نسخة احتياطية',
+        'confirm.restore': 'هل أنت متأكد؟ سيتم الكتابة فوق جميع بياناتك الحالية',
+        'api.status': 'حالة مفاتيح API'
     },
     
     en: {
@@ -432,7 +442,17 @@ export const translations = {
         'auth.error': 'Authentication Error',
         'permission.error': 'Permission Error',
         'validation.error': 'Validation Error',
-        'unknown.error': 'Unknown Error'
+        'unknown.error': 'Unknown Error',
+        
+        // Additional keys
+        'details': 'Details',
+        'cannot.delete': 'Cannot Delete',
+        'cannot.delete.category': 'Cannot delete this category as it is used in some transactions',
+        'cannot.delete.transaction.type': 'Cannot delete this transaction type as it is used in some transactions',
+        'cannot.delete.payment.method': 'Cannot delete this payment method as it is used in some transactions',
+        'restore.backup': 'Restore Backup',
+        'confirm.restore': 'Are you sure? This will overwrite all your current data',
+        'api.status': 'API Keys Status'
     }
 };
 

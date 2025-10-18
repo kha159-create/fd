@@ -2,11 +2,14 @@ import React, { useMemo } from 'react';
 import { AppState, CardConfig, Transaction, CardDetails } from '../../types';
 import { TrashIcon } from '../common/Icons';
 import { formatCurrency } from '../../utils/formatting';
+import { t } from '../../translations';
 
 interface CardsTabProps {
     state: AppState;
     openCardFormModal: (cardId?: string) => void;
     deleteCard: (cardId: string) => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
 

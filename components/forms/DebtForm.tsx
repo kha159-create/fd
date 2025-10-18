@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DebtToMe, DebtFromMe } from '../../types';
+import { t } from '../../translations';
 import { XMarkIcon } from '../common/Icons';
 
 interface DebtFormProps {
@@ -7,9 +8,11 @@ interface DebtFormProps {
     onSave: (debt: Omit<DebtToMe, 'id' | 'createdAt'> | Omit<DebtFromMe, 'id' | 'createdAt'>, id?: string) => void;
     initialData?: DebtToMe | DebtFromMe | null;
     type: 'toMe' | 'fromMe';
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const DebtForm: React.FC<DebtFormProps> = ({ onClose, onSave, initialData, type }) => {
+const DebtForm: React.FC<DebtFormProps> = ({ onClose, onSave, initialData, type, darkMode = false, language = 'ar' }) => {
     const [debt, setDebt] = useState({
         [type === 'toMe' ? 'debtor' : 'creditor']: '',
         amount: 0,

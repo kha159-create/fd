@@ -1,15 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { CardConfig } from '../../types';
+import { t } from '../../translations';
 import { XMarkIcon } from '../common/Icons';
 
 interface CardFormProps {
     onClose: () => void;
     onSave: (card: Omit<CardConfig, 'id'>, id?: string) => void;
     initialData?: CardConfig | null;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const CardForm: React.FC<CardFormProps> = ({ onClose, onSave, initialData }) => {
+const CardForm: React.FC<CardFormProps> = ({ onClose, onSave, initialData, darkMode = false, language = 'ar' }) => {
     const [card, setCard] = useState<Omit<CardConfig, 'id'>>({
         name: '',
         limit: 0,

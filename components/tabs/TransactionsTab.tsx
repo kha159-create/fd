@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Transaction, Category, AppState, CardConfig, BankAccountConfig } from '../../types';
 import { TrashIcon } from '../common/Icons';
 import { formatCurrency } from '../../utils/formatting';
+import { t } from '../../translations';
 
 interface TransactionsTabProps {
     transactions: Transaction[];
@@ -10,10 +11,12 @@ interface TransactionsTabProps {
     deleteTransaction: (id: string) => void;
     editTransaction: (id: string) => void;
     state: AppState;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
 
-const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTransactions, categories, deleteTransaction, editTransaction, state }) => {
+const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTransactions, categories, deleteTransaction, editTransaction, state, darkMode = false, language = 'ar' }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterMethod, setFilterMethod] = useState('');
     const [filterCategory, setFilterCategory] = useState('');

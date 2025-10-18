@@ -942,17 +942,17 @@ const App: React.FC = () => {
 
     const renderTabContent = () => {
         switch (activeTab) {
-            case 'summary': return <DashboardTab calculations={calculations} categories={state.categories} />;
-            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={state.transactions} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} />;
-            case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} />;
-            case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} />;
-            case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} />;
-            case 'investment': return <InvestmentTab state={state} setState={setState} calculations={calculations} setModal={setModalConfig} />;
-            case 'cards': return <CardsTab state={state} openCardFormModal={openCardFormModal} deleteCard={handleDeleteCard} />;
-            case 'bank': return <BankTab state={state} setState={setState} calculations={calculations} filteredTransactions={filteredTransactions} categories={state.categories} setModal={setModalConfig} openBankAccountFormModal={openBankAccountFormModal} deleteBankAccount={handleDeleteBankAccount} openTransferModal={() => setTransferModal({ isOpen: true })} />;
-            case 'installments': return <InstallmentsTab state={state} setState={setState} filteredTransactions={filteredTransactions} setModal={setModalConfig} />;
-            case 'debts-loans': return <DebtsLoansTab state={state} setState={setState} setModal={setModalConfig} openLoanFormModal={openLoanFormModal} />;
-            case 'settings': return <SettingsTab state={state} setState={setState} setModal={setModalConfig} setLoading={setLoading} onRestore={handleRestore} />;
+            case 'summary': return <DashboardTab calculations={calculations} categories={state.categories} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={state.transactions} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'investment': return <InvestmentTab state={state} setState={setState} calculations={calculations} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'cards': return <CardsTab state={state} openCardFormModal={openCardFormModal} deleteCard={handleDeleteCard} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'bank': return <BankTab state={state} setState={setState} calculations={calculations} filteredTransactions={filteredTransactions} categories={state.categories} setModal={setModalConfig} openBankAccountFormModal={openBankAccountFormModal} deleteBankAccount={handleDeleteBankAccount} openTransferModal={() => setTransferModal({ isOpen: true })} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'installments': return <InstallmentsTab state={state} setState={setState} filteredTransactions={filteredTransactions} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'debts-loans': return <DebtsLoansTab state={state} setState={setState} setModal={setModalConfig} openLoanFormModal={openLoanFormModal} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'settings': return <SettingsTab state={state} setState={setState} setModal={setModalConfig} setLoading={setLoading} onRestore={handleRestore} darkMode={state.settings.darkMode} language={state.settings.language} />;
             default: return <div>Tab not found</div>;
         }
     };
@@ -1032,6 +1032,8 @@ const App: React.FC = () => {
                     bankAccounts={state.bankAccounts}
                     loans={state.loans}
                     setModalConfig={setModalConfig}
+                    darkMode={state.settings.darkMode}
+                    language={state.settings.language}
                 />
             )}
 

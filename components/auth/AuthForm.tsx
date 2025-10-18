@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { firebaseService } from '../../services/firebaseService';
+import { t } from '../../translations';
 
 interface AuthFormProps {
     onSuccess: (user: any) => void;
     onClose: () => void;
     hideCloseButton?: boolean;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, onClose, hideCloseButton = false }) => {
+const AuthForm: React.FC<AuthFormProps> = ({ onSuccess, onClose, hideCloseButton = false, darkMode = false, language = 'ar' }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
         email: '',

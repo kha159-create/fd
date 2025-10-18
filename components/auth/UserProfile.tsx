@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { firebaseService } from '../../services/firebaseService';
+import { t } from '../../translations';
 
 interface UserProfileProps {
     user: any;
     onSignOut: () => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ user, onSignOut }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ user, onSignOut, darkMode = false, language = 'ar' }) => {
     const [isSigningOut, setIsSigningOut] = useState(false);
 
     const handleSignOut = async () => {

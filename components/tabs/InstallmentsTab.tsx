@@ -1,12 +1,15 @@
 import React from 'react';
 import { AppState, Transaction, BankAccountConfig, CardConfig } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
+import { t } from '../../translations';
 
 interface InstallmentsTabProps {
     state: AppState;
     setState: React.Dispatch<React.SetStateAction<AppState>>;
     filteredTransactions: Transaction[];
     setModal: (config: any) => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
 const getPaymentMethodName = (key: string, state: AppState): string => {

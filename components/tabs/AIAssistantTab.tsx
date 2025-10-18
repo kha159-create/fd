@@ -3,10 +3,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Message, FinancialCalculations } from '../../types';
 import { analyzeFinancialData } from '../../services/geminiService';
 import { SendIcon } from '../common/Icons';
+import { t } from '../../translations';
 
 interface AIAssistantTabProps {
     calculations: FinancialCalculations,
     filteredTransactions: any,
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
 const TypingIndicator: React.FC = () => (
@@ -17,7 +20,7 @@ const TypingIndicator: React.FC = () => (
   </div>
 );
 
-const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ calculations, filteredTransactions }) => {
+const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ calculations, filteredTransactions, darkMode = false, language = 'ar' }) => {
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', text: 'أهلاً بك! أنا مساعدك المالي الشامل. يمكنك أن تسألني أسئلة تفصيلية عن وضعك المالي، مثل "ما هو إجمالي ديوني؟" أو "هل إنفاقي هذا الشهر يتوافق مع أهدافي؟"', sender: 'ai' }
     ]);

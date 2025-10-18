@@ -4,6 +4,7 @@ import { firebaseService } from '../../services/firebaseService';
 import { suggestCategoryIcon } from '../../services/geminiService';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '../common/Icons';
 import { AppState, Category } from '../../types';
+import { t } from '../../translations';
 
 interface SettingsTabProps {
     state: AppState;
@@ -11,9 +12,11 @@ interface SettingsTabProps {
     setModal: (config: any) => void;
     setLoading: (loading: boolean, text?: string) => void;
     onRestore?: (restoredState: any) => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, setLoading, onRestore }) => {
+const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, setLoading, onRestore, darkMode = false, language = 'ar' }) => {
     const [validation, setValidation] = useState(validateConfig());
     const [firebaseStatus, setFirebaseStatus] = useState<{connected: boolean, error?: string}>({connected: false});
     const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +79,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
 
     const handleAddCategory = () => {
         if (!newCategory.name.trim() || !newCategory.icon.trim()) {
-            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وأيقونة للفئة.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('error', language), body: `<p>${t('required.field', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             return;
         }
 
@@ -93,14 +96,14 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         }));
 
         setNewCategory({ name: '', icon: '' });
-        setModal({ title: 'نجح', body: '<p>تم إضافة الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
     };
 
     const [isSuggestingCategoryIcon, setIsSuggestingCategoryIcon] = useState(false);
     const handleSuggestIcon = async () => {
         const categoryName = newCategory.name.trim();
         if (!categoryName) {
-            setModal({ title: 'خطأ', body: '<p>الرجاء إدخال اسم الفئة أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('error', language), body: `<p>${t('required.field', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             return;
         }
 
@@ -118,15 +121,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewCategory(prev => ({ ...prev, icon: iconSuggestion.trim() }));
             } else {
-                setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
+                setModal({ title: t('error', language), body: `<p>${t('unknown.error', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             }
         } catch (error) {
             console.error("Icon suggestion error:", error);
             setModal({ 
-                title: 'خطأ', 
-                body: `<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API بشكل صحيح.</p><p>تفاصيل الخطأ: ${error.message}</p>`, 
+                title: t('error', language), 
+                body: `<p>${t('try.again', language)}</p><p>${t('details', language)}: ${error.message}</p>`, 
                 hideCancel: true, 
-                confirmText: 'موافق' 
+                confirmText: t('confirm', language) 
             });
         } finally {
             setIsSuggestingCategoryIcon(false);
@@ -135,10 +138,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
 
     const handleDeleteCategory = (id: string) => {
         if (state.transactions.some(t => t.categoryId === id)) {
-            setModal({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف هذه الفئة لأنها مستخدمة في بعض الحركات. يرجى تغيير فئة الحركات أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('cannot.delete', language), body: `<p>${t('cannot.delete.category', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         } else {
             setState(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }));
-            setModal({ title: 'نجح', body: '<p>تم حذف الفئة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         }
     };
 
@@ -147,7 +150,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
     const handleSuggestTransactionTypeIcon = async () => {
         const transactionTypeName = newTransactionType.name.trim();
         if (!transactionTypeName) {
-            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم نوع الحركة أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('error', language), body: `<p>${t('required.field', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             return;
         }
 
@@ -158,15 +161,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewTransactionType(prev => ({ ...prev, icon: iconSuggestion.trim() }));
             } else {
-                setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
+                setModal({ title: t('error', language), body: `<p>${t('unknown.error', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             }
         } catch (error) {
             console.error("Transaction type icon suggestion error:", error);
             setModal({ 
-                title: 'خطأ', 
-                body: `<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API بشكل صحيح.</p><p>تفاصيل الخطأ: ${error.message}</p>`, 
+                title: t('error', language), 
+                body: `<p>${t('try.again', language)}</p><p>${t('details', language)}: ${error.message}</p>`, 
                 hideCancel: true, 
-                confirmText: 'موافق' 
+                confirmText: t('confirm', language) 
             });
         } finally {
             setIsSuggestingTransactionTypeIcon(false);
@@ -178,7 +181,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
     const handleSuggestPaymentMethodIcon = async () => {
         const paymentMethodName = newPaymentMethod.name.trim();
         if (!paymentMethodName) {
-            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وسيلة الدفع أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('error', language), body: `<p>${t('required.field', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             return;
         }
 
@@ -189,15 +192,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             if (iconSuggestion && iconSuggestion.trim()) {
                 setNewPaymentMethod(prev => ({ ...prev, icon: iconSuggestion.trim() }));
             } else {
-                setModal({ title: 'خطأ', body: '<p>لم أتمكن من العثور على أيقونة مناسبة.</p>', hideCancel: true, confirmText: 'موافق' });
+                setModal({ title: t('error', language), body: `<p>${t('unknown.error', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             }
         } catch (error) {
             console.error("Payment method icon suggestion error:", error);
             setModal({ 
-                title: 'خطأ', 
-                body: `<p>حدث خطأ أثناء اقتراح الأيقونة. تأكد من إعداد مفتاح Gemini API بشكل صحيح.</p><p>تفاصيل الخطأ: ${error.message}</p>`, 
+                title: t('error', language), 
+                body: `<p>${t('try.again', language)}</p><p>${t('details', language)}: ${error.message}</p>`, 
                 hideCancel: true, 
-                confirmText: 'موافق' 
+                confirmText: t('confirm', language) 
             });
         } finally {
             setIsSuggestingPaymentMethodIcon(false);
@@ -207,7 +210,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
     // إدارة أنواع الحركات المخصصة
     const handleAddTransactionType = () => {
         if (!newTransactionType.name.trim() || !newTransactionType.icon.trim()) {
-            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وأيقونة لنوع الحركة.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('error', language), body: `<p>${t('required.field', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             return;
         }
 
@@ -225,25 +228,25 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         }));
 
         setNewTransactionType({ name: '', icon: '' });
-        setModal({ title: 'نجح', body: '<p>تم إضافة نوع الحركة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
     };
 
     const handleDeleteTransactionType = (id: string) => {
         if (state.transactions.some(t => t.type === id)) {
-            setModal({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف نوع الحركة هذا لأنه مستخدم في بعض الحركات. يرجى تغيير نوع الحركات أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('cannot.delete', language), body: `<p>${t('cannot.delete.transaction.type', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         } else {
             setState(prev => ({
                 ...prev,
                 customTransactionTypes: (prev.customTransactionTypes || []).filter(t => t.id !== id)
             }));
-            setModal({ title: 'نجح', body: '<p>تم حذف نوع الحركة بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         }
     };
 
     // إدارة وسائل الدفع المخصصة
     const handleAddPaymentMethod = () => {
         if (!newPaymentMethod.name.trim() || !newPaymentMethod.icon.trim()) {
-            setModal({ title: 'خطأ', body: '<p>يرجى إدخال اسم وأيقونة لوسيلة الدفع.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('error', language), body: `<p>${t('required.field', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
             return;
         }
 
@@ -261,18 +264,18 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
         }));
 
         setNewPaymentMethod({ name: '', icon: '' });
-        setModal({ title: 'نجح', body: '<p>تم إضافة وسيلة الدفع بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+        setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
     };
 
     const handleDeletePaymentMethod = (id: string) => {
         if (state.transactions.some(t => t.paymentMethod === id)) {
-            setModal({ title: 'لا يمكن الحذف', body: '<p>لا يمكن حذف وسيلة الدفع هذه لأنها مستخدمة في بعض الحركات. يرجى تغيير وسيلة الدفع أولاً.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('cannot.delete', language), body: `<p>${t('cannot.delete.payment.method', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         } else {
             setState(prev => ({
                 ...prev,
                 customPaymentMethods: (prev.customPaymentMethods || []).filter(p => p.id !== id)
             }));
-            setModal({ title: 'نجح', body: '<p>تم حذف وسيلة الدفع بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         }
     };
 
@@ -289,14 +292,14 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            setModal({ title: 'نجح', body: '<p>تم إنشاء النسخة الاحتياطية المحلية بنجاح.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         } catch (error) {
-            setModal({ title: 'خطأ', body: '<p>فشل إنشاء النسخة الاحتياطية.</p>', hideCancel: true, confirmText: 'موافق' });
+            setModal({ title: t('error', language), body: `<p>${t('unknown.error', language)}</p>`, hideCancel: true, confirmText: t('confirm', language) });
         }
     };
 
     const handleFirebaseBackup = async () => {
-        setLoading(true, "جاري حفظ النسخة الاحتياطية في السحابة...");
+        setLoading(true, t('loading', language));
         try {
             const result = await firebaseService.saveData('backups', `backup_${new Date().toISOString().split('T')[0]}`, {
                 ...state,
@@ -306,20 +309,20 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             
             if (result.success) {
                 setModal({ 
-                    title: 'نجح', 
-                    body: '<p>تم حفظ النسخة الاحتياطية في السحابة بنجاح.</p>', 
+                    title: t('success', language), 
+                    body: `<p>${t('success', language)}</p>`, 
                     hideCancel: true, 
-                    confirmText: 'موافق' 
+                    confirmText: t('confirm', language) 
                 });
             } else {
                 throw new Error(result.error);
             }
         } catch (error) {
             setModal({ 
-                title: 'خطأ', 
-                body: '<p>فشل في حفظ النسخة الاحتياطية في السحابة.</p>', 
+                title: t('error', language), 
+                body: `<p>${t('unknown.error', language)}</p>`, 
                 hideCancel: true, 
-                confirmText: 'موافق' 
+                confirmText: t('confirm', language) 
             });
         } finally {
             setLoading(false);
@@ -339,9 +342,9 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                     } else {
                         setModal({
                             show: true,
-                            title: "استعادة نسخة احتياطية",
-                            body: "<p>هل أنت متأكد؟ سيتم الكتابة فوق جميع بياناتك الحالية.</p>",
-                            confirmText: 'نعم، استعادة',
+                            title: t('restore.backup', language),
+                            body: `<p>${t('confirm.restore', language)}</p>`,
+                            confirmText: t('confirm', language),
                             onConfirm: () => {
                                 const validatedState: AppState = {
                                     transactions: restoredState.transactions || [],
@@ -352,7 +355,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                                     bankAccounts: restoredState.bankAccounts || {}
                                 };
                                 setState(validatedState);
-                                setModal({ title: "تم الاستعادة بنجاح", body: "<p>تم استعادة بياناتك بنجاح.</p>", confirmText: 'موافق', hideCancel: true });
+                                setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, confirmText: t('confirm', language), hideCancel: true });
                             }
                         });
                     }
@@ -360,7 +363,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                     throw new Error("Invalid backup file format.");
                 }
             } catch (error) {
-                setModal({ show: true, title: "خطأ", body: "<p>فشل في استعادة النسخة الاحتياطية. الملف غير صالح.</p>", confirmText: 'موافق', hideCancel: true });
+                setModal({ show: true, title: t('error', language), body: `<p>${t('unknown.error', language)}</p>`, confirmText: t('confirm', language), hideCancel: true });
             }
         };
         reader.readAsText(file);
@@ -370,21 +373,21 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
     return (
         <div className="space-y-6 animate-fade-in">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-slate-900">⚙️ إعدادات النظام</h2>
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>⚙️ {t('settings', language)}</h2>
             </div>
 
             {/* حالة المفاتيح */}
             <div className="glass-card p-6">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">🔑 حالة مفاتيح API</h3>
+                <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>🔑 {t('api.status', language)}</h3>
                 
                 <div className="space-y-4">
                     {/* Firebase Settings */}
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className={`flex items-center justify-between p-4 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-50'}`}>
                         <div className="flex items-center gap-3">
                             <div className="text-2xl">🔥</div>
                             <div>
-                                <h4 className="font-semibold text-slate-800">Firebase Configuration</h4>
-                                <p className="text-sm text-slate-600">
+                                <h4 className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>Firebase Configuration</h4>
+                                <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                                     Project ID: {config.firebase.projectId}
                                 </p>
                             </div>

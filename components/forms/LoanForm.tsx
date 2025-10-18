@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loan, LoanType, BankAccountConfig } from '../../types';
+import { t } from '../../translations';
 import { XMarkIcon } from '../common/Icons';
 
 interface LoanFormProps {
@@ -7,9 +8,11 @@ interface LoanFormProps {
     onSave: (loan: Loan) => void;
     initialData?: Loan | null;
     bankAccounts: { [key: string]: BankAccountConfig };
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const LoanForm: React.FC<LoanFormProps> = ({ onClose, onSave, initialData, bankAccounts }) => {
+const LoanForm: React.FC<LoanFormProps> = ({ onClose, onSave, initialData, bankAccounts, darkMode = false, language = 'ar' }) => {
     const [loan, setLoan] = useState<Omit<Loan, 'id' | 'createdAt'>>({
         type: 'car',
         name: '',

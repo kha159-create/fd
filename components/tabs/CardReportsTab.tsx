@@ -1,15 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, Category, CardConfig } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
+import { t } from '../../translations';
 
 interface CardReportsTabProps {
     allTransactions: Transaction[];
     categories: Category[];
     cards: { [key: string]: CardConfig };
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
 
-const CardReportsTab: React.FC<CardReportsTabProps> = ({ allTransactions, categories, cards }) => {
+const CardReportsTab: React.FC<CardReportsTabProps> = ({ allTransactions, categories, cards, darkMode = false, language = 'ar' }) => {
     const [filters, setFilters] = useState({
         card: 'all',
         dateFrom: '',

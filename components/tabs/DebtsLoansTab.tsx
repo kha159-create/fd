@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppState, Loan, DebtToMe, DebtFromMe, BankAccountConfig } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
 import { TrashIcon } from '../common/Icons';
+import { t } from '../../translations';
 import DebtForm from '../forms/DebtForm';
 
 interface DebtsLoansTabProps {
@@ -9,11 +10,13 @@ interface DebtsLoansTabProps {
     setState: React.Dispatch<React.SetStateAction<AppState>>;
     setModal: (config: any) => void;
     openLoanFormModal: (loanId?: string) => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
 type TabType = 'loans' | 'debts-to-me' | 'debts-from-me';
 
-const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal, openLoanFormModal }) => {
+const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal, openLoanFormModal, darkMode = false, language = 'ar' }) => {
     const [activeTab, setActiveTab] = useState<TabType>('loans');
     const [showLoanForm, setShowLoanForm] = useState(false);
     const [showDebtToMeForm, setShowDebtToMeForm] = useState(false);

@@ -1,15 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { BankAccountConfig } from '../../types';
+import { t } from '../../translations';
 import { XMarkIcon } from '../common/Icons';
 
 interface BankAccountFormProps {
     onClose: () => void;
     onSave: (account: Omit<BankAccountConfig, 'id'>, id?: string) => void;
     initialData?: BankAccountConfig | null;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const BankAccountForm: React.FC<BankAccountFormProps> = ({ onClose, onSave, initialData }) => {
+const BankAccountForm: React.FC<BankAccountFormProps> = ({ onClose, onSave, initialData, darkMode = false, language = 'ar' }) => {
     const [account, setAccount] = useState<Omit<BankAccountConfig, 'id'>>({
         name: '',
         balance: 0,

@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { FinancialCalculations, Category, Transaction } from '../../types';
 import type { Chart } from 'chart.js';
+import { t } from '../../translations';
 
 interface AnalysisTabProps {
     calculations: FinancialCalculations;
     categories: Category[];
     allTransactions: Transaction[]; // Pass all transactions for historical analysis
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const AnalysisTab: React.FC<AnalysisTabProps> = ({ calculations, categories, allTransactions }) => {
+const AnalysisTab: React.FC<AnalysisTabProps> = ({ calculations, categories, allTransactions, darkMode = false, language = 'ar' }) => {
     const pieChartRef = useRef<HTMLCanvasElement>(null);
     const barChartRef = useRef<HTMLCanvasElement>(null);
     const chartInstances = useRef<{ pie?: Chart, bar?: Chart }>({});

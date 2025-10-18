@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Transaction, Category, CardConfig, BankAccountConfig, TransactionType, PaymentMethod, Loan } from '../../types';
 import { analyzePastedText } from '../../services/geminiService';
 import { MagicIcon, XMarkIcon } from '../common/Icons';
+import { t } from '../../translations';
 
 interface TransactionFormProps {
     onClose: () => void;
@@ -12,9 +13,11 @@ interface TransactionFormProps {
     bankAccounts: { [key: string]: BankAccountConfig };
     loans: { [key: string]: Loan };
     setModalConfig: (config: any) => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, initialData, categories, cards, bankAccounts, loans, setModalConfig }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, initialData, categories, cards, bankAccounts, loans, setModalConfig, darkMode = false, language = 'ar' }) => {
     const [transaction, setTransaction] = useState<Omit<Transaction, 'id'>>({
         amount: 0,
         date: new Date().toISOString().split('T')[0],
@@ -123,7 +126,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSave, init
                 }));
             }
         } catch (error) {
-            setPasteError(error instanceof Error ? error.message : 'فشل تحليل النص.');
+            setPasteError(error instanceof Error ? error.message : t('unknown.error', language));
             console.error(error);
         } finally {
             setIsPasting(false);

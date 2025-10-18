@@ -3,15 +3,18 @@ import { AppState, FinancialCalculations, Message, Transaction, TransactionType,
 import { generateInvestmentAdvice } from '../../services/geminiService';
 import { SendIcon } from '../common/Icons';
 import { formatCurrency } from '../../utils/formatting';
+import { t } from '../../translations';
 
 interface InvestmentTabProps {
     state: AppState;
     setState: React.Dispatch<React.SetStateAction<AppState>>;
     calculations: FinancialCalculations;
     setModal: (config: any) => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
-const InvestmentTab: React.FC<InvestmentTabProps> = ({ state, setState, calculations, setModal }) => {
+const InvestmentTab: React.FC<InvestmentTabProps> = ({ state, setState, calculations, setModal, darkMode = false, language = 'ar' }) => {
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', text: 'أهلاً بك! أنا مرشدك لفهم عالم الاستثمار. يمكنك سؤالي عن استراتيجيات، أو مفاهيم مثل "ما هو الاستثمار طويل الأجل؟". تذكر، أنا لا أقدم نصائح مباشرة لشراء أسهم معينة.', sender: 'ai' }
     ]);

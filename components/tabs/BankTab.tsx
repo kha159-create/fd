@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FinancialCalculations, Transaction, Category, AppState, BankAccountDetails } from '../../types';
 import { TrashIcon } from '../common/Icons';
 import { formatCurrency } from '../../utils/formatting';
+import { t } from '../../translations';
 
 interface BankTabProps {
     state: AppState;
@@ -13,6 +14,8 @@ interface BankTabProps {
     openBankAccountFormModal: (accountId?: string) => void;
     deleteBankAccount: (accountId: string) => void;
     openTransferModal: () => void;
+    darkMode?: boolean;
+    language?: 'ar' | 'en';
 }
 
 const getTransactionTypeName = (type: string, state: AppState) => {
