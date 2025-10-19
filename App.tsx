@@ -417,12 +417,12 @@ const App: React.FC = () => {
                  }
                  // Handle card payment transactions (like "سداد ENBD الإمارات")
                  // If this is a payment TO this card from another card, subtract the amount
-                 if (t.type === 'expense' && t.description?.includes(`سداد ${card.name}`)) {
+                 if ((t.type === 'expense' || t.type?.includes('سداد')) && (t.description?.includes(`سداد ${card.name}`) || t.type === `سداد ${card.name}`)) {
                      currentBalance -= t.amount;
                  }
                  // Handle payments made FROM this card to other cards
                  // If this card made a payment to another card, add the amount to this card's balance
-                 if (t.type === 'expense' && t.paymentMethod === cardId && t.description?.includes('سداد') && !t.description?.includes(card.name)) {
+                 if ((t.type === 'expense' || t.type?.includes('سداد')) && t.paymentMethod === cardId && (t.description?.includes('سداد') || t.type?.includes('سداد')) && !t.description?.includes(card.name) && t.type !== `سداد ${card.name}`) {
                      currentBalance += t.amount;
                  }
              });

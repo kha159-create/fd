@@ -143,7 +143,7 @@ const CardsTab: React.FC<CardsTabProps> = ({ state, openCardFormModal, deleteCar
             const upcomingTransactions = state.transactions.filter(t => {
                 const postingDate = new Date(t.postingDate || t.date);
                 const isCardExpense = t.paymentMethod === cardConfig.id && (t.type === 'expense' || t.type === 'bnpl-payment');
-                const isCardPayment = t.description?.includes(`سداد ${cardConfig.name}`) && t.type === 'expense';
+                const isCardPayment = (t.description?.includes(`سداد ${cardConfig.name}`) || t.type === `سداد ${cardConfig.name}`) && (t.type === 'expense' || t.type?.includes('سداد'));
                 return (isCardExpense || isCardPayment) && postingDate > statementEndDate;
             });
 
