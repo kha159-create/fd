@@ -86,34 +86,8 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories, s
     const net = totalIncome - totalExpenses;
     const cardColors = ['bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'];
 
-    // حساب بيانات البطاقات بنفس منطق CardsTab
-    const cardDetails = useMemo(() => {
-        const details: { [key: string]: CardDetails } = {};
-        const allCards: CardConfig[] = Object.values(state.cards);
-        
-        allCards.forEach(cardConfig => {
-            // استخدام نفس منطق الحساب من CardsTab
-            let currentBalance = state.transactions
-                .filter(t => t.paymentMethod === cardConfig.id && (t.type === 'expense' || t.type === 'bnpl-payment'))
-                .reduce((sum, t) => sum + t.amount, 0);
-            
-            // طرح المدفوعات
-            state.transactions.forEach(t => {
-                if (t.type === `${cardConfig.id}-payment`) {
-                    currentBalance -= t.amount;
-                }
-            });
-            
-            details[cardConfig.id] = {
-                ...cardConfig,
-                balance: currentBalance,
-                available: cardConfig.limit - currentBalance,
-                usagePercentage: cardConfig.limit > 0 ? (currentBalance / cardConfig.limit) * 100 : 0,
-            };
-        });
-        
-        return details;
-    }, [state.transactions, state.cards]);
+    // استخدام الحسابات المركزية الدقيقة من App.tsx
+    const cardDetails = calculations.cardDetails;
 
     // حساب المجاميع من بيانات البطاقات المحسوبة
     const totalDebt = Object.values(cardDetails).reduce((sum, card) => sum + card.balance, 0);
