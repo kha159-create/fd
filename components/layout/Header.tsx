@@ -34,22 +34,22 @@ const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChan
     ]), []);
 
     return (
-        <header className="bg-slate-50/95 backdrop-blur-lg border-b border-slate-200 py-3 shadow-sm">
+        <header className="bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700 py-3 shadow-sm">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-right gap-4">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-xl">💰</div>
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 tracking-wide">لوحة التحكم المالية</h1>
-                            <p className="text-xs text-slate-500">Developed by K.A Team</p>
+                            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-wide">لوحة التحكم المالية</h1>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Developed by K.A Team</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 bg-slate-200 p-1.5 rounded-lg">
-                            <select value={selectedYear} onChange={(e) => onYearChange(parseInt(e.target.value))} className="bg-slate-200 text-slate-800 font-semibold border-0 focus:ring-0 appearance-none p-2 rounded-md">
+                        <div className="flex items-center gap-2 bg-slate-200 dark:bg-slate-700 p-1.5 rounded-lg">
+                            <select value={selectedYear} onChange={(e) => onYearChange(parseInt(e.target.value))} className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold border-0 focus:ring-0 appearance-none p-2 rounded-md">
                                 {years.map(y => <option key={y} value={y}>{y}</option>)}
                             </select>
-                            <select value={selectedMonth} onChange={(e) => onMonthChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} className="bg-slate-200 text-slate-800 font-semibold border-0 focus:ring-0 appearance-none p-2 rounded-md">
+                            <select value={selectedMonth} onChange={(e) => onMonthChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))} className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold border-0 focus:ring-0 appearance-none p-2 rounded-md">
                                 {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                             </select>
                         </div>
@@ -57,10 +57,10 @@ const Header: React.FC<HeaderProps> = ({ selectedYear, selectedMonth, onYearChan
                         {/* معلومات المستخدم */}
                         <div className="flex items-center gap-3">
                             <div className="text-right">
-                                <p className="font-semibold text-slate-800 text-sm">{currentUser.displayName || 'المستخدم'}</p>
-                                <p className="text-xs text-slate-500">{currentUser.email}</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{currentUser.displayName || 'المستخدم'}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">{currentUser.email}</p>
                             </div>
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
                                 <span className="text-blue-600 font-bold text-sm">
                                     {(currentUser.displayName || currentUser.email || 'U').charAt(0).toUpperCase()}
                                 </span>

@@ -1178,10 +1178,10 @@ const App: React.FC = () => {
                     setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '', exchangeRate: 1 });
                     setExchangeRateError('');
                 }}>
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-slate-800">💸 تحويل بين الحسابات</h2>
+                                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">💸 تحويل بين الحسابات</h2>
                                 <button onClick={() => {
                                     setTransferModal({ isOpen: false });
                                     setTransferData({ fromAccount: '', toAccount: '', amount: 0, description: '', exchangeRate: 1 });
@@ -1334,9 +1334,9 @@ const App: React.FC = () => {
                     className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10001] flex items-center justify-center p-4"
                     onClick={() => setModalConfig(null)}
                 >
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold text-slate-800 mb-4">{modalConfig.title}</h3>
-                        <div className="text-slate-600" dangerouslySetInnerHTML={{ __html: modalConfig.body }}></div>
+                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md mx-4 animate-fade-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">{modalConfig.title}</h3>
+                        <div className="text-slate-600 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: modalConfig.body }}></div>
                         <div className="flex justify-end gap-3 mt-6">
                             {!modalConfig.hideCancel && <button onClick={() => setModalConfig(null)} className="px-4 py-2 bg-slate-200 rounded-lg">إلغاء</button>}
                             <button onClick={() => { if (!modalConfig.onConfirm || modalConfig.onConfirm() !== false) setModalConfig(null); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg">{modalConfig.confirmText || 'موافق'}</button>

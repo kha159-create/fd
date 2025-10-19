@@ -484,7 +484,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
 
             {/* معلومات المشروع */}
             <div className="glass-card p-6">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">📱 معلومات المشروع</h3>
+                <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">📱 معلومات المشروع</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-3 bg-slate-50 rounded-lg">
@@ -526,7 +526,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
             {/* تعليمات الإعداد */}
             {(!validation.isValid || !firebaseStatus.connected) && (
                 <div className="glass-card p-6">
-                    <h3 className="text-lg font-bold mb-4 text-slate-900">📝 تعليمات الإعداد</h3>
+                    <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">📝 تعليمات الإعداد</h3>
                     
                     <div className="space-y-4">
                         {!configStatus.gemini && (
@@ -561,7 +561,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
 
             {/* إدارة الفئات */}
             <div className="glass-card p-6">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">📂 إدارة الفئات</h3>
+                <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">📂 إدارة الفئات</h3>
                 
                 {/* إضافة فئة جديدة */}
                 <div className="mb-6 p-4 bg-slate-50 rounded-lg">
@@ -608,7 +608,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 {/* قائمة الفئات */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {state.categories.map((category) => (
-                        <div key={category.id} className="p-3 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+                        <div key={category.id} className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">{category.icon}</span>
                                 <span className="text-sm font-medium text-slate-800">{category.name}</span>
@@ -627,7 +627,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
 
             {/* إدارة أنواع الحركات ووسائل الدفع */}
             <div className="glass-card p-6">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">⚙️ إدارة أنواع الحركات ووسائل الدفع</h3>
+                <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">⚙️ إدارة أنواع الحركات ووسائل الدفع</h3>
                 
                 {/* أنواع الحركات المخصصة */}
                 <div className="mb-6 p-4 bg-slate-50 rounded-lg">
@@ -673,7 +673,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                     {/* قائمة أنواع الحركات المخصصة */}
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
                         {(state.customTransactionTypes || []).map((type) => (
-                            <div key={type.id} className="p-2 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+                            <div key={type.id} className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm">{type.icon}</span>
                                     <span className="text-xs font-medium text-slate-800">{type.name}</span>
@@ -734,7 +734,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                     {/* قائمة وسائل الدفع المخصصة */}
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
                         {(state.customPaymentMethods || []).map((method) => (
-                            <div key={method.id} className="p-2 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+                            <div key={method.id} className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm">{method.icon}</span>
                                     <span className="text-xs font-medium text-slate-800">{method.name}</span>
@@ -805,7 +805,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
 
             {/* النسخ الاحتياطي */}
             <div className="glass-card p-6">
-                <h3 className="text-lg font-bold mb-4 text-slate-900">💾 النسخ الاحتياطي والاستعادة</h3>
+                <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">💾 النسخ الاحتياطي والاستعادة</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <h4 className="font-semibold text-slate-800 mb-2">📤 نسخة احتياطية محلية</h4>

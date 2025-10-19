@@ -153,17 +153,17 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-slate-900">📊 الديون والقروض</h2>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">📊 الديون والقروض</h2>
             </div>
 
             {/* Tabs */}
-            <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg">
+            <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                 <button
                     onClick={() => setActiveTab('loans')}
                     className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
                         activeTab === 'loans'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                 >
                     🏦 القروض ({totalActiveLoans})
@@ -172,8 +172,8 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                     onClick={() => setActiveTab('debts-to-me')}
                     className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
                         activeTab === 'debts-to-me'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                 >
                     💰 الديون لي ({totalDebtsToMe})
@@ -182,8 +182,8 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                     onClick={() => setActiveTab('debts-from-me')}
                     className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
                         activeTab === 'debts-from-me'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                 >
                     💸 الديون علي ({totalDebtsFromMe})
@@ -212,14 +212,14 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {Object.values(state.loans).map((loan) => (
-                                <div key={loan.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div key={loan.id} className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                                                 <span className="text-blue-600 text-xl">{getLoanTypeIcon(loan.type)}</span>
                                             </div>
                                             <div>
-                                                <h4 className="text-lg font-bold text-slate-900">{loan.name}</h4>
+                                                <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">{loan.name}</h4>
                                                 <p className="text-sm text-slate-500">{getLoanTypeName(loan.type)} - {loan.lender}</p>
                                             </div>
                                         </div>
@@ -338,10 +338,10 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {Object.values(state.debtsToMe).map((debt) => (
-                                <div key={debt.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div key={debt.id} className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <h4 className="text-lg font-bold text-slate-900">{debt.debtor}</h4>
+                                            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">{debt.debtor}</h4>
                                             <p className="text-sm text-slate-500">{debt.description}</p>
                                         </div>
                                         <button
@@ -396,10 +396,10 @@ const DebtsLoansTab: React.FC<DebtsLoansTabProps> = ({ state, setState, setModal
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {Object.values(state.debtsFromMe).map((debt) => (
-                                <div key={debt.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div key={debt.id} className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <h4 className="text-lg font-bold text-slate-900">{debt.creditor}</h4>
+                                            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">{debt.creditor}</h4>
                                             <p className="text-sm text-slate-500">{debt.description}</p>
                                         </div>
                                         <button

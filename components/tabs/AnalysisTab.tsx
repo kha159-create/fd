@@ -137,13 +137,13 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ calculations, categories, all
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
             <div className="glass-card p-6">
-                <h3 className="text-xl font-bold mb-4 text-slate-900">📊 توزيع مصاريف الفترة</h3>
+                <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">📊 توزيع مصاريف الفترة</h3>
                 <div className="h-80">
-                   {categoryExpenseData.length > 0 ? <canvas ref={pieChartRef}></canvas> : <p className="text-center text-slate-500 mt-10">لا توجد مصاريف لعرضها.</p>}
+                   {categoryExpenseData.length > 0 ? <canvas ref={pieChartRef}></canvas> : <p className="text-center text-slate-500 dark:text-slate-400 mt-10">لا توجد مصاريف لعرضها.</p>}
                 </div>
             </div>
             <div className="glass-card p-6">
-                <h3 className="text-xl font-bold mb-4 text-slate-900">📈 الدخل مقابل المصاريف (آخر 6 أشهر)</h3>
+                <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">📈 الدخل مقابل المصاريف (آخر 6 أشهر)</h3>
                 <div className="h-80">
                     <canvas ref={barChartRef}></canvas>
                 </div>
