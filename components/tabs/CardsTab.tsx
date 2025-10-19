@@ -142,9 +142,13 @@ const CardsTab: React.FC<CardsTabProps> = ({ state, openCardFormModal, deleteCar
 
             const upcomingTransactions = state.transactions.filter(t => {
                 const postingDate = new Date(t.postingDate || t.date);
+                // المصروفات العادية بالبطاقة (تظهر باللون الأحمر)
                 const isCardExpense = t.paymentMethod === cardConfig.id && (t.type === 'expense' || t.type === 'bnpl-payment');
-                const isCardPayment = (t.description?.includes(`سداد ${cardConfig.name}`) || t.type === `سداد ${cardConfig.name}` || t.type === `${cardConfig.id}-payment`) && (t.type === 'expense' || t.type?.includes('سداد') || t.type?.includes('-payment'));
-                return (isCardExpense || isCardPayment) && postingDate > statementEndDate;
+                // السدادات المستلمة لهذه البطاقة (تظهر باللون الأخضر)
+                const isCardPaymentReceived = (t.description?.includes(`سداد ${cardConfig.name}`) || t.type === `سداد ${cardConfig.name}` || t.type === `${cardConfig.id}-payment`) && (t.type === 'expense' || t.type?.includes('سداد') || t.type?.includes('-payment'));
+                // السدادات المدفوعة من هذه البطاقة (تظهر باللون الأحمر)
+                const isCardPaymentMade = t.paymentMethod === cardConfig.id && (t.description?.includes('سداد') || t.type?.includes('سداد') || t.type?.includes('-payment')) && !t.description?.includes(cardConfig.name) && t.type !== `سداد ${cardConfig.name}` && t.type !== `${cardConfig.id}-payment`;
+                return (isCardExpense || isCardPaymentReceived || isCardPaymentMade) && postingDate > statementEndDate;
             });
 
             const statementDueAmount = transactionsInStatement.reduce((sum, t) => sum + t.amount, 0);

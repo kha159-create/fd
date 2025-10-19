@@ -415,22 +415,22 @@ const App: React.FC = () => {
                  if (t.type === `${cardId}-payment`) {
                      currentBalance -= t.amount;
                  }
-                 // Handle card payment transactions (like "سداد ENBD الإمارات" or "enbd-card-payment")
-                 // If this is a payment TO this card from another card, subtract the amount
-                 if ((t.type === 'expense' || t.type?.includes('سداد') || t.type === `${cardId}-payment`) && 
-                     (t.description?.includes(`سداد ${card.name}`) || t.type === `سداد ${card.name}` || t.type === `${cardId}-payment`)) {
-                     currentBalance -= t.amount;
-                 }
-                 // Handle payments made FROM this card to other cards
-                 // If this card made a payment to another card, add the amount to this card's balance
-                 if ((t.type === 'expense' || t.type?.includes('سداد') || t.type?.includes('-payment')) && 
-                     t.paymentMethod === cardId && 
-                     (t.description?.includes('سداد') || t.type?.includes('سداد') || t.type?.includes('-payment')) && 
-                     !t.description?.includes(card.name) && 
-                     t.type !== `سداد ${card.name}` && 
-                     t.type !== `${cardId}-payment`) {
-                     currentBalance += t.amount;
-                 }
+                // Handle card payment transactions (like "سداد ENBD الإمارات" or "enbd-card-payment")
+                // If this is a payment TO this card from another card, subtract the amount (because it reduces debt)
+                if ((t.type === 'expense' || t.type?.includes('سداد') || t.type === `${cardId}-payment`) && 
+                    (t.description?.includes(`سداد ${card.name}`) || t.type === `سداد ${card.name}` || t.type === `${cardId}-payment`)) {
+                    currentBalance -= t.amount; // تقليل الدين = تقليل الرصيد المستحق
+                }
+                // Handle payments made FROM this card to other cards
+                // If this card made a payment to another card, add the amount to this card's balance (increases debt)
+                if ((t.type === 'expense' || t.type?.includes('سداد') || t.type?.includes('-payment')) && 
+                    t.paymentMethod === cardId && 
+                    (t.description?.includes('سداد') || t.type?.includes('سداد') || t.type?.includes('-payment')) && 
+                    !t.description?.includes(card.name) && 
+                    t.type !== `سداد ${card.name}` && 
+                    t.type !== `${cardId}-payment`) {
+                    currentBalance += t.amount; // زيادة الدين = زيادة الرصيد المستحق
+                }
              });
              
              cardDetails[cardId].balance = currentBalance;
