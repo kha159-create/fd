@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { AppState, CardConfig, Transaction, CardDetails } from '../../types';
+import { AppState, CardConfig, Transaction, CardDetails, FinancialCalculations } from '../../types';
 import { TrashIcon } from '../common/Icons';
 import { formatCurrency } from '../../utils/formatting';
 import { t } from '../../translations';
 
 interface CardsTabProps {
     state: AppState;
+    calculations: FinancialCalculations;
     openCardFormModal: (cardId?: string) => void;
     deleteCard: (cardId: string) => void;
     darkMode?: boolean;
@@ -28,17 +29,24 @@ const CreditCardDetails: React.FC<{
     deleteCard: (cardId: string) => void;
 }> = ({ card, statementDetails, openCardFormModal, deleteCard }) => {
     
-    const transactionRows = (transactions: Transaction[]) => {
+    const transactionRows = (transactions: Transaction[], currentCard: CardDetails) => {
         if (!transactions || transactions.length === 0) {
             return '<tr><td colspan="3" class="text-center text-slate-500 py-3">لا توجد حركات</td></tr>';
         }
-        return transactions.map(t => `
-            <tr class="hover:bg-slate-50">
-                <td class="p-2">${t.postingDate || t.date}</td>
-                <td class="p-2 truncate" title="${t.description}">${t.description}</td>
-                <td class="p-2 number-display text-red-500">${formatCurrency(t.amount)}</td>
-            </tr>
-        `).join('');
+        return transactions.map(t => {
+            // تحديد نوع المعاملة والألوان
+            const isPaymentReceived = (t.description?.includes(`سداد ${currentCard.name}`) || t.type === `سداد ${currentCard.name}` || t.type === `${currentCard.id}-payment`);
+            const amountClass = isPaymentReceived ? 'text-green-500' : 'text-red-500';
+            const amountSign = isPaymentReceived ? '+' : '';
+            
+            return `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-2">${t.postingDate || t.date}</td>
+                    <td class="p-2 truncate" title="${t.description}">${t.description}</td>
+                    <td class="p-2 number-display ${amountClass}">${amountSign}${formatCurrency(t.amount)}</td>
+                </tr>
+            `;
+        }).join('');
     };
 
     return (
@@ -97,14 +105,14 @@ const CreditCardDetails: React.FC<{
             <div className="mt-4 flex-grow flex flex-col">
                 <h4 className="font-semibold text-slate-600 mb-2 border-b border-slate-200 pb-1">المعاملات القادمة ({statementDetails.upcomingTransactions.length})</h4>
                 <div className="flex-grow max-h-32 overflow-y-auto">
-                    <table className="w-full text-xs" dangerouslySetInnerHTML={{ __html: `<tbody>${transactionRows(statementDetails.upcomingTransactions)}</tbody>` }}></table>
+                    <table className="w-full text-xs" dangerouslySetInnerHTML={{ __html: `<tbody>${transactionRows(statementDetails.upcomingTransactions, card)}</tbody>` }}></table>
                 </div>
             </div>
         </div>
     );
 };
 
-const CardsTab: React.FC<CardsTabProps> = ({ state, openCardFormModal, deleteCard }) => {
+const CardsTab: React.FC<CardsTabProps> = ({ state, calculations, openCardFormModal, deleteCard }) => {
     
     const statementDetailsMap = useMemo(() => {
         const map: { [key: string]: CardStatementDetails } = {};
@@ -176,24 +184,8 @@ const CardsTab: React.FC<CardsTabProps> = ({ state, openCardFormModal, deleteCar
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  {allCards.map(cardConfig => {
-                     // استخدام نفس منطق الحساب من App.tsx
-                     let currentBalance = state.transactions
-                        .filter(t => t.paymentMethod === cardConfig.id && (t.type === 'expense' || t.type === 'bnpl-payment'))
-                        .reduce((sum, t) => sum + t.amount, 0);
-                     
-                     // طرح المدفوعات
-                     state.transactions.forEach(t => {
-                         if (t.type === `${cardConfig.id}-payment`) {
-                             currentBalance -= t.amount;
-                         }
-                     });
-                     
-                     const card: CardDetails = {
-                         ...cardConfig,
-                         balance: currentBalance,
-                         available: cardConfig.limit - currentBalance,
-                         usagePercentage: cardConfig.limit > 0 ? (currentBalance / cardConfig.limit) * 100 : 0,
-                     };
+                     // استخدام الحسابات المركزية الصحيحة من App.tsx
+                     const card = calculations.cardDetails[cardConfig.id];
                      
                      return (
                          <CreditCardDetails 
