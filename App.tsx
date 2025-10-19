@@ -855,10 +855,21 @@ const App: React.FC = () => {
             return;
         }
 
+        // تحديد نوع الحسابين (بنكي أو بطاقة)
+        const fromBankAccount = state.bankAccounts[transferData.fromAccount];
+        const toBankAccount = state.bankAccounts[transferData.toAccount];
+        const fromCard = state.cards[transferData.fromAccount];
+        const toCard = state.cards[transferData.toAccount];
+        
+        const fromAccount = fromBankAccount || fromCard;
+        const toAccount = toBankAccount || toCard;
+        
         // حساب المبلغ المحول مع معدل التحويل
-        const fromAccount = state.bankAccounts[transferData.fromAccount];
-        const toAccount = state.bankAccounts[transferData.toAccount];
         const convertedAmount = transferData.amount * transferData.exchangeRate;
+        
+        // تحديد نوع الحركة حسب نوع الحساب
+        const fromTransactionType = fromCard ? `${transferData.fromAccount}-payment` : 'expense';
+        const toTransactionType = toCard ? `${transferData.toAccount}-payment` : 'income';
         
         // إنشاء حركتين: سحب من الحساب المصدر وإيداع في الحساب الهدف
         const withdrawalTransaction = {
@@ -867,7 +878,7 @@ const App: React.FC = () => {
             date: new Date().toISOString().split('T')[0],
             description: `تحويل إلى ${toAccount?.name || 'حساب آخر'}: ${transferData.description}${transferData.exchangeRate !== 1 ? ` (معدل: ${transferData.exchangeRate})` : ''}`,
             paymentMethod: transferData.fromAccount,
-            type: 'expense' as const,
+            type: fromTransactionType as any,
             categoryId: null
         };
 
@@ -877,7 +888,7 @@ const App: React.FC = () => {
             date: new Date().toISOString().split('T')[0],
             description: `تحويل من ${fromAccount?.name || 'حساب آخر'}: ${transferData.description}${transferData.exchangeRate !== 1 ? ` (معدل: ${transferData.exchangeRate})` : ''}`,
             paymentMethod: transferData.toAccount,
-            type: 'income' as const,
+            type: toTransactionType as any,
             categoryId: null
         };
 
@@ -1182,7 +1193,10 @@ const App: React.FC = () => {
                                     >
                                         <option value="">اختر الحساب المصدر</option>
                                         {Object.entries(state.bankAccounts).map(([id, account]) => (
-                                            <option key={id} value={id}>{account.name}</option>
+                                            <option key={id} value={id}>🏦 {account.name}</option>
+                                        ))}
+                                        {Object.entries(state.cards).map(([id, card]) => (
+                                            <option key={id} value={id}>💳 {card.name}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -1201,7 +1215,12 @@ const App: React.FC = () => {
                                         {Object.entries(state.bankAccounts)
                                             .filter(([id]) => id !== transferData.fromAccount)
                                             .map(([id, account]) => (
-                                            <option key={id} value={id}>{account.name}</option>
+                                            <option key={id} value={id}>🏦 {account.name}</option>
+                                        ))}
+                                        {Object.entries(state.cards)
+                                            .filter(([id]) => id !== transferData.fromAccount)
+                                            .map(([id, card]) => (
+                                            <option key={id} value={id}>💳 {card.name}</option>
                                         ))}
                                     </select>
                                 </div>
