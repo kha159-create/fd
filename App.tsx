@@ -415,6 +415,11 @@ const App: React.FC = () => {
                  if (t.type === `${cardId}-payment`) {
                      currentBalance -= t.amount;
                  }
+                 // Handle card payment transactions (like "سداد ENBD الإمارات")
+                 // If this is a payment TO this card from another card, subtract the amount
+                 if (t.type === 'expense' && t.description?.includes(`سداد ${card.name}`)) {
+                     currentBalance -= t.amount;
+                 }
              });
              
              cardDetails[cardId].balance = currentBalance;
