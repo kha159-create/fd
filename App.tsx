@@ -406,20 +406,20 @@ const App: React.FC = () => {
              // Calculate cumulative balance: start with configured balance + all transactions
              let currentBalance = 0; // Start from zero (cards don't have initial balance like banks)
              
-             // Add all expenses made with this card
-             state.transactions.forEach(t => {
-                 if (t.paymentMethod === cardId && t.type === 'expense') {
-                     currentBalance += t.amount;
-                 }
-                 // Subtract all payments made TO this card
-                 if (t.type === `${cardId}-payment`) {
-                     currentBalance -= t.amount;
-                 }
+            // Add all expenses made with this card (increases debt/balance)
+            state.transactions.forEach(t => {
+                if (t.paymentMethod === cardId && (t.type === 'expense' || t.type === 'bnpl-payment')) {
+                    currentBalance += t.amount; // المصروفات تزيد الرصيد المستحق
+                }
+                // Subtract all payments made TO this card (reduces debt/balance)
+                if (t.type === `${cardId}-payment` || t.type === `سداد ${card.name}`) {
+                    currentBalance -= t.amount; // السدادات تقلل الرصيد المستحق
+                }
                 // Handle card payment transactions (like "سداد ENBD الإمارات" or "enbd-card-payment")
-                // If this is a payment TO this card from another card, subtract the amount (because it reduces debt)
+                // If this is a payment TO this card from another card, subtract the amount (reduces debt)
                 if ((t.type === 'expense' || t.type?.includes('سداد') || t.type === `${cardId}-payment`) && 
                     (t.description?.includes(`سداد ${card.name}`) || t.type === `سداد ${card.name}` || t.type === `${cardId}-payment`)) {
-                    currentBalance -= t.amount; // تقليل الدين = تقليل الرصيد المستحق
+                    currentBalance -= t.amount; // السداد المستلم يقلل الرصيد المستحق
                 }
                 // Handle payments made FROM this card to other cards
                 // If this card made a payment to another card, add the amount to this card's balance (increases debt)
@@ -429,9 +429,9 @@ const App: React.FC = () => {
                     !t.description?.includes(card.name) && 
                     t.type !== `سداد ${card.name}` && 
                     t.type !== `${cardId}-payment`) {
-                    currentBalance += t.amount; // زيادة الدين = زيادة الرصيد المستحق
+                    currentBalance += t.amount; // السداد المدفوع يزيد الرصيد المستحق
                 }
-             });
+            });
              
              cardDetails[cardId].balance = currentBalance;
              cardDetails[cardId].available = card.limit - currentBalance;

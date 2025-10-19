@@ -142,11 +142,11 @@ const CardsTab: React.FC<CardsTabProps> = ({ state, openCardFormModal, deleteCar
 
             const upcomingTransactions = state.transactions.filter(t => {
                 const postingDate = new Date(t.postingDate || t.date);
-                // المصروفات العادية بالبطاقة (تظهر باللون الأحمر)
+                // المصروفات العادية بالبطاقة (تظهر باللون الأحمر - تزيد الرصيد المستحق)
                 const isCardExpense = t.paymentMethod === cardConfig.id && (t.type === 'expense' || t.type === 'bnpl-payment');
-                // السدادات المستلمة لهذه البطاقة (تظهر باللون الأخضر)
+                // السدادات المستلمة لهذه البطاقة (تظهر باللون الأخضر - تقلل الرصيد المستحق)
                 const isCardPaymentReceived = (t.description?.includes(`سداد ${cardConfig.name}`) || t.type === `سداد ${cardConfig.name}` || t.type === `${cardConfig.id}-payment`) && (t.type === 'expense' || t.type?.includes('سداد') || t.type?.includes('-payment'));
-                // السدادات المدفوعة من هذه البطاقة (تظهر باللون الأحمر)
+                // السدادات المدفوعة من هذه البطاقة (تظهر باللون الأحمر - تزيد الرصيد المستحق)
                 const isCardPaymentMade = t.paymentMethod === cardConfig.id && (t.description?.includes('سداد') || t.type?.includes('سداد') || t.type?.includes('-payment')) && !t.description?.includes(cardConfig.name) && t.type !== `سداد ${cardConfig.name}` && t.type !== `${cardConfig.id}-payment`;
                 return (isCardExpense || isCardPaymentReceived || isCardPaymentMade) && postingDate > statementEndDate;
             });
