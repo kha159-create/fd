@@ -22,7 +22,7 @@ const getPaymentMethodName = (key: string, state: AppState): string => {
     return key;
 };
 
-const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filteredTransactions, setModal }) => {
+const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filteredTransactions, setModal, darkMode = false, language = 'ar' }) => {
     const [showCompletedModal, setShowCompletedModal] = React.useState(false);
 
     // حساب ملخص الأقساط
@@ -373,15 +373,15 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                             <span className="text-blue-600 text-2xl">📊</span>
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-slate-900">ملخص الأقساط</h3>
-                            <p className="text-sm text-slate-600">إجمالي الأقساط النشطة والمستحقة</p>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">ملخص الأقساط</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">إجمالي الأقساط النشطة والمستحقة</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     {/* إجمالي الأقساط */}
-                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="flex items-center gap-2 mb-2">
                             <span className="text-2xl">🎯</span>
                             <span className="font-semibold text-blue-800">إجمالي الأقساط</span>
@@ -390,7 +390,7 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                     </div>
 
                     {/* تابي */}
-                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="flex items-center gap-2 mb-2">
                             <span className="text-2xl">📱</span>
                             <span className="font-semibold text-blue-800">تابي</span>
@@ -399,7 +399,7 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                     </div>
 
                     {/* تمارا */}
-                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="flex items-center gap-2 mb-2">
                             <span className="text-2xl">📱</span>
                             <span className="font-semibold text-blue-800">تمارا</span>
@@ -469,37 +469,37 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                 </div>
             </div>
 
-            <h3 className="text-2xl font-bold mb-4 text-slate-900">📱 خطط الأقساط النشطة</h3>
+            <h3 className="text-2xl font-bold mb-4 text-slate-900 dark:text-slate-100">📱 خطط الأقساط النشطة</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {activeInstallments.length > 0 ? activeInstallments.map(i => {
                     const progress = (i.paid / i.total) * 100;
                     console.log('📊 عرض قسط:', { id: i.id, paid: i.paid, total: i.total, progress });
                     return (
-                        <div key={i.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div key={i.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                         <span className="text-blue-600 text-lg">📱</span>
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-slate-900">{i.description}</h4>
-                                        <p className="text-sm text-slate-500">{getPaymentMethodName(i.provider, state)}</p>
+                                        <h4 className="font-bold text-slate-900 dark:text-slate-100">{i.description}</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{getPaymentMethodName(i.provider, state)}</p>
                                     </div>
                                 </div>
                                 <div className="bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
                                     <span className="font-bold text-blue-800 number-display text-sm">{formatCurrency(i.installmentAmount)}/شهر</span>
                                 </div>
                             </div>
-                            <div className="bg-slate-50 p-3 rounded-lg border border-gray-200 mb-3">
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-gray-200 dark:border-slate-700 mb-3">
                                 <div className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden">
                                      <div className="bg-blue-700 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
                                 </div>
-                                <div className="flex justify-between text-xs text-slate-600">
+                                <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
                                     <span className="font-medium">{i.paid} / {i.total} مدفوع</span>
                                     <span className="font-medium">متبقي: {i.total - i.paid}</span>
                                 </div>
                                 <div className="text-center mt-2">
-                                    <span className="text-xs text-slate-500">{progress.toFixed(1)}% مكتمل</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">{progress.toFixed(1)}% مكتمل</span>
                                 </div>
                             </div>
                             <div className="flex gap-2 mt-3">
@@ -512,23 +512,23 @@ const InstallmentsTab: React.FC<InstallmentsTabProps> = ({ state, setState, filt
                 }) : <div className="md:col-span-2 text-center p-6 glass-card"><p className="text-slate-500">🎉 لا توجد أقساط نشطة حاليًا!</p></div>}
             </div>
             <div className="glass-card p-6 mt-8">
-                <h3 className="text-xl font-bold mb-4 text-slate-900">📋 سجل دفعات الأقساط</h3>
+                <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100">📋 سجل دفعات الأقساط</h3>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                        <thead className="border-b border-gray-200">
+                        <thead className="border-b border-gray-200 dark:border-slate-700">
                             <tr>
-                                <th className="text-right p-3 font-semibold">التاريخ</th>
-                                <th className="text-right p-3 font-semibold">الوصف</th>
-                                <th className="text-right p-3 font-semibold">المصدر</th>
-                                <th className="text-right p-3 font-semibold">المبلغ</th>
-                                <th className="text-right p-3 font-semibold">الإجراءات</th>
+                                <th className="text-right p-3 font-semibold text-slate-600 dark:text-slate-400">التاريخ</th>
+                                <th className="text-right p-3 font-semibold text-slate-600 dark:text-slate-400">الوصف</th>
+                                <th className="text-right p-3 font-semibold text-slate-600 dark:text-slate-400">المصدر</th>
+                                <th className="text-right p-3 font-semibold text-slate-600 dark:text-slate-400">المبلغ</th>
+                                <th className="text-right p-3 font-semibold text-slate-600 dark:text-slate-400">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
                             {installmentTransactions.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
-                                <tr key={t.id} className="border-b border-gray-200/50">
+                                <tr key={t.id} className="border-b border-gray-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300">
                                     <td className="p-3">{new Date(t.date).toLocaleDateString('en-GB')}</td>
-                                    <td className="p-3 text-slate-600">{t.description}</td>
+                                    <td className="p-3 text-slate-600 dark:text-slate-400">{t.description}</td>
                                     <td className="p-3">{getPaymentMethodName(t.paymentMethod, state)}</td>
                                     <td className="p-3 text-red-500 font-semibold number-display">{formatCurrency(t.amount)}</td>
                                     <td className="p-3">
