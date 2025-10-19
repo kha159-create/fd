@@ -406,30 +406,23 @@ const App: React.FC = () => {
              // Calculate cumulative balance: start with configured balance + all transactions
              let currentBalance = 0; // Start from zero (cards don't have initial balance like banks)
              
-            // Add all expenses made with this card (increases debt/balance)
+            // Process all transactions with mutually exclusive conditions to prevent double counting
             state.transactions.forEach(t => {
-                if (t.paymentMethod === cardId && (t.type === 'expense' || t.type === 'bnpl-payment')) {
-                    currentBalance += t.amount; // المصروفات تزيد الرصيد المستحق
-                }
-                // Subtract all payments made TO this card (reduces debt/balance)
-                if (t.type === `${cardId}-payment` || t.type === `سداد ${card.name}`) {
-                    currentBalance -= t.amount; // السدادات تقلل الرصيد المستحق
-                }
-                // Handle card payment transactions (like "سداد ENBD الإمارات" or "enbd-card-payment")
-                // If this is a payment TO this card from another card, subtract the amount (reduces debt)
-                if ((t.type === 'expense' || t.type?.includes('سداد') || t.type === `${cardId}-payment`) && 
-                    (t.description?.includes(`سداد ${card.name}`) || t.type === `سداد ${card.name}` || t.type === `${cardId}-payment`)) {
+                // CASE 1: Payment RECEIVED by this card (reduces debt/balance)
+                if ((t.description?.includes(`سداد ${card.name}`) || t.type === `سداد ${card.name}` || t.type === `${cardId}-payment`)) {
                     currentBalance -= t.amount; // السداد المستلم يقلل الرصيد المستحق
                 }
-                // Handle payments made FROM this card to other cards
-                // If this card made a payment to another card, add the amount to this card's balance (increases debt)
-                if ((t.type === 'expense' || t.type?.includes('سداد') || t.type?.includes('-payment')) && 
-                    t.paymentMethod === cardId && 
-                    (t.description?.includes('سداد') || t.type?.includes('سداد') || t.type?.includes('-payment')) && 
-                    !t.description?.includes(card.name) && 
-                    t.type !== `سداد ${card.name}` && 
-                    t.type !== `${cardId}-payment`) {
+                // CASE 2: Payment MADE from this card to another card (increases debt/balance)
+                else if (t.paymentMethod === cardId && 
+                        (t.description?.includes('سداد') || t.type?.includes('سداد') || t.type?.includes('-payment')) && 
+                        !t.description?.includes(card.name) && 
+                        t.type !== `سداد ${card.name}` && 
+                        t.type !== `${cardId}-payment`) {
                     currentBalance += t.amount; // السداد المدفوع يزيد الرصيد المستحق
+                }
+                // CASE 3: Regular expenses made with this card (increases debt/balance)
+                else if (t.paymentMethod === cardId && (t.type === 'expense' || t.type === 'bnpl-payment')) {
+                    currentBalance += t.amount; // المصروفات العادية تزيد الرصيد المستحق
                 }
             });
              
