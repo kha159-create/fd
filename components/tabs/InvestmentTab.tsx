@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AppState, FinancialCalculations, Message, Transaction, TransactionType, BankAccountConfig } from '../../types';
-import { generateInvestmentAdvice } from '../../services/geminiService';
+import { advancedInvestmentAdvice, analyzeMarketAndPortfolio } from '../../services/geminiService';
 import { SendIcon } from '../common/Icons';
 import { formatCurrency } from '../../utils/formatting';
 import { t } from '../../translations';
@@ -16,7 +16,27 @@ interface InvestmentTabProps {
 
 const InvestmentTab: React.FC<InvestmentTabProps> = ({ state, setState, calculations, setModal, darkMode = false, language = 'ar' }) => {
     const [messages, setMessages] = useState<Message[]>([
-        { id: '1', text: 'أهلاً بك! أنا مرشدك لفهم عالم الاستثمار. يمكنك سؤالي عن استراتيجيات، أو مفاهيم مثل "ما هو الاستثمار طويل الأجل؟". تذكر، أنا لا أقدم نصائح مباشرة لشراء أسهم معينة.', sender: 'ai' }
+        { id: '1', text: `مرحباً! أنا مستشارك الاستثماري الذكي 🎯📈
+
+💼 **خبرتي تشمل:**
+• تحليل شامل لسوق تداول السعودي
+• استراتيجيات استثمارية متقدمة
+• إدارة المخاطر وتحسين المحافظ
+• توصيات أسهم محددة مع تحليل عميق
+
+📊 **يمكنني مساعدتك في:**
+• تحليل محفظتك الحالية وتحسينها
+• توصيات أسهم مع أهداف سعرية واضحة
+• قراءة السوق وتوقعات الاتجاهات
+• استراتيجيات دخول وخروج محددة
+
+💡 **اسألني مثلاً:**
+• "ما رأيك في أسهم أرامكو الآن؟"
+• "كيف أحسن محفظتي الاستثمارية؟"
+• "ما هي أفضل القطاعات للاستثمار؟"
+• "أريد تحليل شامل لسوق اليوم"
+
+أخبرني عن محفظتك وأهدافك الاستثمارية! 🚀`, sender: 'ai' }
     ]);
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -61,10 +81,25 @@ const InvestmentTab: React.FC<InvestmentTabProps> = ({ state, setState, calculat
         setIsLoading(true);
 
         try {
-            const aiResponseText = await generateInvestmentAdvice(query);
+            // تحضير بيانات المحفظة الحالية للتحليل
+            const currentPortfolio = {
+                currentValue: state.investments.currentValue,
+                totalDeposited: state.investments.totalDeposited,
+                totalWithdrawn: state.investments.totalWithdrawn,
+                transactions: state.transactions.filter(t => t.type === 'investment-deposit' || t.type === 'investment-withdrawal'),
+                recentPerformance: calculations.investments
+            };
+
+            // استخدام المستشار الاستثماري المتقدم
+            const aiResponseText = await advancedInvestmentAdvice(query, currentPortfolio, {
+                marketDate: new Date().toLocaleDateString('en-CA'),
+                saudiMarketContext: 'Tadawul analysis requested',
+                userInvestmentHistory: currentPortfolio
+            });
+            
             setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: aiResponseText, sender: 'ai' }]);
         } catch (error) {
-            setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: error instanceof Error ? error.message : 'عذراً، حدث خطأ.', sender: 'ai' }]);
+            setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: error instanceof Error ? error.message : 'عذراً، حدث خطأ في الاستشارة الاستثمارية.', sender: 'ai' }]);
         } finally {
             setIsLoading(false);
         }
@@ -106,7 +141,10 @@ const InvestmentTab: React.FC<InvestmentTabProps> = ({ state, setState, calculat
                 </div>
             </div>
             <div className="lg:col-span-2 glass-card overflow-hidden flex flex-col" style={{ height: '75vh' }}>
-                <div className="p-4 bg-gray-100 text-center flex-shrink-0"><h3 className="text-xl font-bold text-slate-900">🤖 مستشارك الاستثماري الذكي</h3><p className="text-sm text-slate-500">اسأل عن المفاهيم والاستراتيجيات لاتخاذ قرارات أفضل</p></div>
+                <div className={`p-4 ${darkMode ? 'bg-slate-800' : 'bg-gray-100'} text-center flex-shrink-0`}>
+                    <h3 className={`text-xl font-bold ${darkMode ? 'text-slate-100' : 'text-slate-900'}`}>🎯 مستشارك الاستثماري المتقدم</h3>
+                    <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>تحليل السوق + توصيات أسهم + إدارة المحافظ</p>
+                </div>
                 <div ref={chatBoxRef} className="p-4 flex-grow overflow-y-auto flex flex-col gap-4">
                     {messages.map(msg => (
                         <div key={msg.id} className={`chat-bubble ${msg.sender === 'user' ? 'user-bubble' : 'ai-bubble'}`} dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, '<br/>') }}></div>
