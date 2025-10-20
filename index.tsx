@@ -17,7 +17,7 @@ root.render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('./sw.js')
+      .register('./fd/sw.js')
       .then(reg => {
         console.log('✅ Service Worker registered successfully:', reg);
         

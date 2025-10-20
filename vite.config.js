@@ -9,14 +9,11 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     rollupOptions: {
-      external: ['@google/generative-ai'],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth']
-        },
-        globals: {
-          '@google/generative-ai': 'genai'
+          firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          gemini: ['@google/generative-ai']
         }
       }
     }
