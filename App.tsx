@@ -143,17 +143,19 @@ const App: React.FC = () => {
     }, [state.settings.darkMode, state.settings.language]);
 
     // تسجيل Service Worker للـ PWA
-    useEffect(() => {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => {
-                    console.log('Service Worker registered successfully:', registration);
-                })
-                .catch(error => {
-                    console.log('Service Worker registration failed:', error);
-                });
-        }
-    }, []);
+useEffect(() => {
+    if ('serviceWorker' in navigator) {
+        // ✅ هذا هو الكود الأكثر استقرارًا وموثوقية
+        // سيقوم Vite تلقائيًا باستبدال import.meta.env.BASE_URL بالقيمة الصحيحة (/fd/)
+        navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`)
+            .then(registration => {
+                console.log('✅ Service Worker registered successfully:', registration);
+            })
+            .catch(error => {
+                console.error('❌ Service Worker registration failed:', error);
+            });
+    }
+}, []);
 
     // Auto-update exchange rate when accounts change
     useEffect(() => {
