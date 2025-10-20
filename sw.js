@@ -3,8 +3,8 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
 // Install event
@@ -48,8 +48,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('push', event => {
   const options = {
     body: event.data ? event.data.text() : 'إشعار جديد من MASROF',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -59,12 +59,12 @@ self.addEventListener('push', event => {
       {
         action: 'explore',
         title: 'فتح التطبيق',
-        icon: '/icon-192.png'
+        icon: '/icons/icon-192.png'
       },
       {
         action: 'close',
         title: 'إغلاق',
-        icon: '/icon-192.png'
+        icon: '/icons/icon-192.png'
       }
     ]
   };
