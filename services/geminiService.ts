@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI, GenerateContentResponse } from "@google/generative-ai";
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Transaction, Category, FinancialCalculations, CardConfig, BankAccountConfig } from '../types';
 import { config, validateConfig } from '../config';
 
-let ai: GoogleGenerativeAI;
+let ai: GoogleGenAI;
 const GEMINI_MODEL = "gemini-2.5-flash";
 
 // تهيئة خدمة Gemini باستخدام المفتاح من ملف الإعدادات
