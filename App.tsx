@@ -66,7 +66,13 @@ const App: React.FC = () => {
         const initializeApp = async () => {
             // تهيئة الخدمات
             initializeAi();
-            initializeFirebase();
+            
+            // تهيئة Firebase فقط إذا لم يتم تهيئته مسبقاً
+            try {
+                initializeFirebase();
+            } catch (error) {
+                console.warn('Firebase already initialized or error:', error);
+            }
             
             // الاستماع لتغييرات حالة المصادقة
             const unsubscribe = await firebaseService.onAuthStateChanged(async (user) => {

@@ -1,6 +1,6 @@
 // نظام التخزين الهجين: IndexedDB + Firebase Cloud Backup
 import localforage from 'localforage';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 
 // إعداد Firebase
@@ -13,8 +13,15 @@ const firebaseConfig = {
   appId: "1:123456789012:web:abcdef1234567890abcdef"
 };
 
-// تهيئة Firebase
-const app = initializeApp(firebaseConfig);
+// تهيئة Firebase مع فحص التطبيقات الموجودة
+let app;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+  console.log('🔥 تم إنشاء تطبيق Firebase جديد في storage.js');
+} else {
+  app = getApp();
+  console.log('🔥 تم استخدام تطبيق Firebase الموجود في storage.js');
+}
 const db = getFirestore(app);
 
 // إعداد IndexedDB

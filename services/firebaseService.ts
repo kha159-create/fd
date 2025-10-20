@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
 import { config, validateConfig } from '../config';
@@ -16,7 +16,15 @@ const initializeFirebaseApp = () => {
       return { success: false, error: 'مفاتيح Firebase غير متوفرة' };
     }
 
-    app = initializeApp(config.firebase);
+    // التحقق من وجود تطبيق Firebase مسبقاً
+    if (getApps().length === 0) {
+      app = initializeApp(config.firebase);
+      console.log('🔥 تم إنشاء تطبيق Firebase جديد');
+    } else {
+      app = getApp();
+      console.log('🔥 تم استخدام تطبيق Firebase الموجود');
+    }
+    
     db = getFirestore(app);
     auth = getAuth(app);
     
