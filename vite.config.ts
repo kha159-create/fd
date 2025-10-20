@@ -24,31 +24,49 @@ export default defineConfig(({ mode }) => {
         plugins: [
             react(),
             VitePWA({
-                // ✅ هذا السطر يخبر الإضافة أن تقوم بتسجيل الـ Service Worker تلقائيًا
-                // وهي الطريقة الصحيحة والموصى بها
+                // ✅ تسجيل تلقائي مع تحديث
                 registerType: 'autoUpdate',
                 
-                // هذا يضمن أن الـ Service Worker يعمل بشكل صحيح
+                // ✅ إعدادات workbox محسنة
                 workbox: {
-                    globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+                    globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+                    runtimeCaching: [
+                        {
+                            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                            handler: 'CacheFirst',
+                            options: {
+                                cacheName: 'google-fonts-cache',
+                                expiration: {
+                                    maxEntries: 10,
+                                    maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                                }
+                            }
+                        }
+                    ]
                 },
                 
-                // إعدادات ملف المانيفست ليكون تطبيقك قابلاً للتثبيت
+                // ✅ إعدادات manifest محسنة
                 manifest: {
                     name: 'MASROF - لوحة التحكم المالية',
                     short_name: 'MASROF',
                     description: 'تطبيق إدارة المالية الشخصية مع الذكاء الاصطناعي',
+                    start_url: '/fd/',
+                    scope: '/fd/',
                     theme_color: '#3b82f6',
+                    background_color: '#ffffff',
+                    display: 'standalone',
                     icons: [
                         {
-                            src: 'icon-192.png', // سيتم البحث عنها في مجلد public
+                            src: 'icon-192.png',
                             sizes: '192x192',
-                            type: 'image/png'
+                            type: 'image/png',
+                            purpose: 'any maskable'
                         },
                         {
-                            src: 'icon-512.png', // سيتم البحث عنها في مجلد public
+                            src: 'icon-512.png',
                             sizes: '512x512',
-                            type: 'image/png'
+                            type: 'image/png',
+                            purpose: 'any maskable'
                         }
                     ]
                 }
