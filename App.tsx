@@ -145,7 +145,7 @@ const App: React.FC = () => {
     // تسجيل Service Worker للـ PWA
     useEffect(() => {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('sw.js')
                 .then(registration => {
                     console.log('Service Worker registered successfully:', registration);
                 })
