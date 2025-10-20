@@ -82,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <header className="bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700 py-3 shadow-sm">
+        <header className="bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700 py-3 shadow-sm relative z-30">
             <div className="container mx-auto px-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-right gap-4">
                     <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({
 
                             {/* القائمة المنسدلة */}
                             {isDropdownOpen && (
-                                <div className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50">
+                                <div className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-[9999]">
                                     {/* معلومات المستخدم */}
                                     <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
                                         <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{getUserDisplayName()}</p>
