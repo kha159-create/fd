@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan, Loan } from './types';
-import DarkModeToggle from './components/common/DarkModeToggle';
-import NotificationManager from './components/common/NotificationManager';
 import { t } from './translations';
 import { getInitialState } from './constants';
 import { initializeAi, getExchangeRate } from './services/geminiService';
@@ -1162,50 +1160,12 @@ const App: React.FC = () => {
                 currentUser={currentUser}
                 onSignOut={handleSignOut}
                 language={state.settings.language}
+                darkMode={state.settings.darkMode}
+                notifications={state.settings.notifications}
+                onToggleDarkMode={handleToggleDarkMode}
+                onToggleNotifications={handleToggleNotifications}
+                onToggleLanguage={handleToggleLanguage}
             />
-            
-            {/* شريط الإعدادات */}
-            <div className={`backdrop-blur-sm border-b p-4 ${state.settings.darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-slate-200'}`}>
-                <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3">
-                            <span className={`text-sm font-medium ${state.settings.darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                                {t('dark.mode', state.settings.language)}
-                            </span>
-                            <DarkModeToggle 
-                                darkMode={state.settings.darkMode} 
-                                onToggle={toggleDarkMode} 
-                            />
-                        </div>
-                        <NotificationManager 
-                            notifications={state.settings.notifications} 
-                            onToggle={toggleNotifications}
-                            language={state.settings.language}
-                        />
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={toggleLanguage}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                                state.settings.darkMode 
-                                    ? 'bg-slate-700 hover:bg-slate-600 text-slate-200' 
-                                    : 'bg-blue-100 hover:bg-blue-200 text-slate-700'
-                            }`}
-                        >
-                            <span className="text-sm font-medium">
-                                {t('language', state.settings.language)}
-                            </span>
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                                state.settings.darkMode ? 'bg-blue-500' : 'bg-blue-600'
-                            }`}>
-                                <span className="text-white font-bold text-xs">
-                                    {state.settings.language === 'ar' ? 'A' : 'E'}
-                                </span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
             
             <main className="container mx-auto px-2 sm:px-4 max-w-7xl mt-8 mb-20">
                 <TabsComponent activeTab={activeTab} setActiveTab={setActiveTab} language={state.settings.language} />
