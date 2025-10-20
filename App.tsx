@@ -1050,7 +1050,7 @@ const App: React.FC = () => {
         switch (activeTab) {
             case 'summary': return <DashboardTab calculations={calculations} categories={state.categories} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={allTransactionsSorted} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
-            case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} allTransactions={allTransactionsSorted} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'investment': return <InvestmentTab state={state} setState={setState} calculations={calculations} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;

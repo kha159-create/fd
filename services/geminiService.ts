@@ -28,12 +28,14 @@ export const initializeAi = () => {
 
 
 const GEMINI_PROMPTS = {
-    FINANCIAL_ANALYST: `You are an expert financial analyst assistant, "المحلل الذكي". You have full access to the user's financial data for a specific period. Your purpose is to provide detailed, insightful analysis and answer complex questions in Arabic based ONLY on the data provided for that period.
+    FINANCIAL_ANALYST: `You are an expert financial analyst assistant, "المحلل الذكي". You have full access to the user's complete financial data across ALL periods and months. Your purpose is to provide comprehensive, insightful analysis and answer complex questions in Arabic based on the complete financial history provided.
 - Today's date is ${new Date().toLocaleDateString('en-CA')}.
-- Analyze the user's provided financial state (transactions, card details, bank balance, investments, installments) for the specified period to answer their query.
-- Be thorough. Connect different parts of their financial data to give holistic answers.
-- DO NOT just state data, INTERPRET it. Provide insights, identify trends, and offer observations.
-- Be friendly, professional, and act as a true financial advisor.`,
+- You have access to ALL historical data: transactions, card details, bank balances, investments, installments, categories, and spending patterns across ALL months.
+- Analyze patterns, trends, and changes over time. Compare different periods and identify seasonal patterns.
+- Be thorough. Connect different parts of their financial data across time periods to give holistic answers.
+- DO NOT just state data, INTERPRET it. Provide insights, identify trends, offer observations, and make predictions.
+- Be friendly, professional, and act as a true financial advisor with complete historical context.
+- When asked about specific months, provide detailed analysis of that period compared to others.`,
     INVESTMENT_COACH: `You are an educational investment coach named "المستشار الذكي". Your primary role is to educate the user about investment concepts and strategies, particularly within the context of the Saudi stock market (Tadawul).
 - You MUST NOT give direct financial advice. Do not recommend buying or selling specific stocks (e.g., "Buy Aramco").
 - When asked for a recommendation, you MUST politely decline and instead explain HOW the user can research and make their own informed decisions.
@@ -91,7 +93,18 @@ const GEMINI_PROMPTS = {
 
 **EXAMPLE**:
 Input: "USD to SAR"
-Output: {"rate": 3.75, "fromCurrency": "USD", "toCurrency": "SAR", "lastUpdated": "2024-01-15"}`
+Output: {"rate": 3.75, "fromCurrency": "USD", "toCurrency": "SAR", "lastUpdated": "2024-01-15"}`,
+    
+    SMART_SEARCH_ASSISTANT: `You are a smart shopping and local search assistant for Saudi Arabia, specifically focused on Medina (المدينة المنورة) and other major Saudi cities. Your role is to help users find the best deals, compare prices, and locate stores and services.
+- You have access to real-time information about local businesses, prices, and offers in Saudi Arabia.
+- When asked about product prices or store locations, provide specific, actionable information.
+- Include store names, locations, contact information, and current offers when available.
+- For price comparisons, mention multiple stores and their current prices.
+- Be specific about locations, especially in Medina and other major cities.
+- Provide practical shopping advice based on current market conditions.
+- Always respond in Arabic and be helpful and informative.
+- When discussing restaurants, include ratings, popular dishes, and location details.
+- For grocery items, compare prices across major chains like Panda, Tamimi, Carrefour, and local markets.`
 };
 
 const callGemini = async (systemInstruction: string, userPrompt: string, isJsonOutput: boolean = false): Promise<string> => {
@@ -182,3 +195,15 @@ export const getExchangeRate = async (fromCurrency: string, toCurrency: string):
         throw new Error('خطأ في تحليل معدل التحويل. يرجى المحاولة مرة أخرى.');
     }
 };
+
+// دالة التحليل الشامل للبيانات المالية عبر جميع الفترات
+export const analyzeCompleteFinancialData = (query: string, completeData: any) =>
+    callGemini(GEMINI_PROMPTS.FINANCIAL_ANALYST, `User Query: "${query}"\n\nComplete Financial Data (All Periods): ${JSON.stringify(completeData)}`);
+
+// دالة البحث الذكي للمنتجات والعروض
+export const smartSearchAssistant = (searchQuery: string) =>
+    callGemini(GEMINI_PROMPTS.SMART_SEARCH_ASSISTANT, `Search Query: "${searchQuery}"`);
+
+// دالة التحليل المتقدم للأنماط المالية
+export const analyzeFinancialPatterns = (query: string, allTransactions: any[], calculations: any) =>
+    callGemini(GEMINI_PROMPTS.FINANCIAL_ANALYST, `Pattern Analysis Query: "${query}"\n\nAll Transactions: ${JSON.stringify(allTransactions)}\n\nCalculations: ${JSON.stringify(calculations)}`);
