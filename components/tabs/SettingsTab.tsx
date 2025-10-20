@@ -14,9 +14,13 @@ interface SettingsTabProps {
     onRestore?: (restoredState: any) => void;
     darkMode?: boolean;
     language?: 'ar' | 'en';
+    onSaveToCloud?: () => void;
+    onRestoreFromCloud?: () => void;
+    onDownloadBackup?: () => void;
+    onRestoreFromFile?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, setLoading, onRestore, darkMode = false, language = 'ar' }) => {
+const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, setLoading, onRestore, darkMode = false, language = 'ar', onSaveToCloud, onRestoreFromCloud, onDownloadBackup, onRestoreFromFile }) => {
     const [validation, setValidation] = useState(validateConfig());
     const [firebaseStatus, setFirebaseStatus] = useState<{connected: boolean, error?: string}>({connected: false});
     const [isLoading, setIsLoading] = useState(true);
@@ -803,53 +807,56 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                 </div>
             </div>
 
-            {/* النسخ الاحتياطي */}
+            {/* النسخ الاحتياطي والاستعادة */}
             <div className="glass-card p-6">
                 <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">💾 النسخ الاحتياطي والاستعادة</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <h4 className="font-semibold text-slate-800 mb-2">📤 نسخة احتياطية محلية</h4>
-                        <p className="text-slate-600 mb-3 text-sm">احفظ جميع بياناتك في ملف آمن.</p>
-                        <button
-                            onClick={handleBackup}
-                            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                        >
-                            💾 تحميل ملف
-                        </button>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-slate-800 mb-2">☁️ نسخة احتياطية سحابية</h4>
-                        <p className="text-slate-600 mb-3 text-sm">احفظ بياناتك في السحابة للوصول من أي مكان.</p>
-                        <button
-                            onClick={handleFirebaseBackup}
-                            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                        >
-                            ☁️ حفظ في السحابة
-                        </button>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-slate-800 mb-2">📥 استعادة البيانات</h4>
-                        <p className="text-slate-600 mb-3 text-sm">استعد بياناتك من ملف نسخة احتياطية.</p>
+                <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm">احفظ بياناتك في السحابة أو استعدها بسهولة.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button
+                        onClick={onDownloadBackup}
+                        className="btn btn-primary flex flex-col items-center justify-center p-4 h-24"
+                    >
+                        <span className="text-2xl mb-2">💾</span>
+                        <span className="font-semibold">تحميل ملف</span>
+                    </button>
+
+                    <button
+                        onClick={onSaveToCloud}
+                        className="btn btn-secondary flex flex-col items-center justify-center p-4 h-24"
+                    >
+                        <span className="text-2xl mb-2">☁️</span>
+                        <span className="font-semibold">حفظ في السحابة</span>
+                    </button>
+
+                    <label className="btn btn-secondary flex flex-col items-center justify-center p-4 h-24 cursor-pointer">
+                        <span className="text-2xl mb-2">📤</span>
+                        <span className="font-semibold">استعادة من ملف</span>
                         <input
                             type="file"
-                            id="backup-file"
                             accept=".json"
                             className="hidden"
-                            onChange={handleRestore}
+                            onChange={onRestoreFromFile}
                         />
-                        <button
-                            onClick={() => document.getElementById('backup-file')?.click()}
-                            className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors mb-2"
-                        >
-                            📥 استعادة من ملف
-                        </button>
-                        <button
-                            onClick={handleRestoreLocal}
-                            className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
-                        >
-                            🔄 استعادة محلية
-                        </button>
-                    </div>
+                    </label>
+
+                    <button
+                        onClick={onRestoreFromCloud}
+                        className="btn btn-info flex flex-col items-center justify-center p-4 h-24"
+                        style={{ backgroundColor: '#0ea5e9', color: '#fff' }}
+                    >
+                        <span className="text-2xl mb-2">☁️</span>
+                        <span className="font-semibold">استعادة من السحابة</span>
+                    </button>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 نصائح مهمة:</h4>
+                    <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                        <li>• احفظ نسخة احتياطية بانتظام لتجنب فقدان البيانات</li>
+                        <li>• النسخ السحابية متاحة من أي جهاز</li>
+                        <li>• ملفات النسخ الاحتياطية محمية ومشفرة</li>
+                    </ul>
                 </div>
             </div>
 

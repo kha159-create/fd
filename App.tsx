@@ -8,6 +8,7 @@ import { t } from './translations';
 import { getInitialState } from './constants';
 import { initializeAi, getExchangeRate } from './services/geminiService';
 import { initializeFirebase, firebaseService } from './services/firebaseService';
+import { saveData, loadData, saveToCloud, restoreFromCloud, downloadBackup, restoreFromFile } from './src/utils/storage';
 import AuthForm from './components/auth/AuthForm';
 import UserProfile from './components/auth/UserProfile';
 
@@ -843,6 +844,99 @@ const App: React.FC = () => {
         }));
     };
 
+    // دوال النسخ الاحتياطي الجديدة
+    const handleSaveToCloud = async () => {
+        try {
+            const success = await saveToCloud(state);
+            if (success) {
+                setModalConfig({
+                    title: '✅ تم بنجاح',
+                    body: '<p>تم حفظ جميع البيانات في السحابة بنجاح!</p>',
+                    confirmText: 'موافق'
+                });
+            } else {
+                throw new Error('فشل في حفظ البيانات');
+            }
+        } catch (error) {
+            setModalConfig({
+                title: '❌ خطأ',
+                body: '<p>حدث خطأ أثناء حفظ البيانات في السحابة. يرجى المحاولة مرة أخرى.</p>',
+                confirmText: 'موافق'
+            });
+        }
+    };
+
+    const handleRestoreFromCloud = async () => {
+        try {
+            const result = await restoreFromCloud();
+            if (result.success) {
+                // إعادة تحميل البيانات
+                window.location.reload();
+                setModalConfig({
+                    title: '✅ تم بنجاح',
+                    body: `<p>${result.message}</p><p>تم تحديث البيانات بنجاح!</p>`,
+                    confirmText: 'موافق'
+                });
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            setModalConfig({
+                title: '❌ خطأ',
+                body: `<p>${error.message}</p>`,
+                confirmText: 'موافق'
+            });
+        }
+    };
+
+    const handleDownloadBackup = async () => {
+        try {
+            const success = await downloadBackup();
+            if (success) {
+                setModalConfig({
+                    title: '✅ تم بنجاح',
+                    body: '<p>تم تحميل ملف النسخة الاحتياطية بنجاح!</p>',
+                    confirmText: 'موافق'
+                });
+            } else {
+                throw new Error('فشل في تحميل النسخة الاحتياطية');
+            }
+        } catch (error) {
+            setModalConfig({
+                title: '❌ خطأ',
+                body: '<p>حدث خطأ أثناء تحميل النسخة الاحتياطية.</p>',
+                confirmText: 'موافق'
+            });
+        }
+    };
+
+    const handleRestoreFromFile = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        restoreFromFile(file)
+            .then(result => {
+                if (result.success) {
+                    // إعادة تحميل البيانات
+                    window.location.reload();
+                    setModalConfig({
+                        title: '✅ تم بنجاح',
+                        body: `<p>${result.message}</p><p>تم تحديث البيانات بنجاح!</p>`,
+                        confirmText: 'موافق'
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+            })
+            .catch(error => {
+                setModalConfig({
+                    title: '❌ خطأ',
+                    body: `<p>${error.message}</p>`,
+                    confirmText: 'موافق'
+                });
+            });
+    };
+
     const toggleLanguage = () => {
         setState(prev => ({
             ...prev,
@@ -1058,7 +1152,7 @@ const App: React.FC = () => {
             case 'bank': return <BankTab state={state} setState={setState} calculations={calculations} filteredTransactions={filteredTransactions} categories={state.categories} setModal={setModalConfig} openBankAccountFormModal={openBankAccountFormModal} deleteBankAccount={handleDeleteBankAccount} openTransferModal={() => setTransferModal({ isOpen: true })} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'installments': return <InstallmentsTab state={state} setState={setState} filteredTransactions={filteredTransactions} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'debts-loans': return <DebtsLoansTab state={state} setState={setState} setModal={setModalConfig} openLoanFormModal={openLoanFormModal} darkMode={state.settings.darkMode} language={state.settings.language} />;
-            case 'settings': return <SettingsTab state={state} setState={setState} setModal={setModalConfig} setLoading={setLoading} onRestore={handleRestore} darkMode={state.settings.darkMode} language={state.settings.language} />;
+            case 'settings': return <SettingsTab state={state} setState={setState} setModal={setModalConfig} setLoading={setLoading} onRestore={handleRestore} darkMode={state.settings.darkMode} language={state.settings.language} onSaveToCloud={handleSaveToCloud} onRestoreFromCloud={handleRestoreFromCloud} onDownloadBackup={handleDownloadBackup} onRestoreFromFile={handleRestoreFromFile} />;
             default: return <div>Tab not found</div>;
         }
     };
