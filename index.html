@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MASROF | لوحة التحكم المالية</title>
 
-  <!-- Pre-load Gemini AI library to prevent race conditions -->
-  <script src="https://aistudiocdn.com/@google/genai@^1.21.0"></script>
+
   
   <!-- Cache busting for deployment fixes -->
   <script>
@@ -273,7 +272,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- CSS styles are included inline above -->
-  <script type="module" crossorigin src="/fd/assets/index-B8MuW3xn.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0"
+    }
+  }
+  </script>
+  <script type="module" crossorigin src="/fd/assets/index-D-c9GNtJ.js"></script>
   <link rel="modulepreload" crossorigin href="/fd/assets/vendor-DJ1oPbzn.js">
   <link rel="modulepreload" crossorigin href="/fd/assets/firebase-B0X-WtUt.js">
   <link rel="stylesheet" crossorigin href="/fd/assets/index-NKm-A0vQ.css">
