@@ -1162,9 +1162,9 @@ const App: React.FC = () => {
                 language={state.settings.language}
                 darkMode={state.settings.darkMode}
                 notifications={state.settings.notifications}
-                onToggleDarkMode={handleToggleDarkMode}
-                onToggleNotifications={handleToggleNotifications}
-                onToggleLanguage={handleToggleLanguage}
+                onToggleDarkMode={toggleDarkMode}
+                onToggleNotifications={toggleNotifications}
+                onToggleLanguage={toggleLanguage}
             />
             
             <main className="container mx-auto px-2 sm:px-4 max-w-7xl mt-8 mb-20">
