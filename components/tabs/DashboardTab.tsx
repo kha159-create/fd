@@ -156,10 +156,6 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories, s
                         );
                     })}
                 </div>
-                 <div className="mt-4 card-consistent text-center">
-                    <h3 className="font-semibold text-lg text-slate-800 mb-2">🏦 إجمالي الأرصدة البنكية</h3>
-                    <p className="font-bold text-xl text-blue-900 number-display">{formatCurrency(totalBankBalance)}</p>
-                </div>
             </div>
             <div className="card-consistent xl:col-span-1">
                 <h3 className="font-semibold text-lg text-slate-800 mb-4">📈 تقرير مالي شامل</h3>
