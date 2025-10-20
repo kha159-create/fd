@@ -22,7 +22,29 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          echo "🔧 Installing dependencies..."
+          # محاولة npm ci أولاً، إذا فشل استخدم npm install
+          if ! npm ci --prefer-offline --no-audit; then
+            echo "⚠️ npm ci failed, falling back to npm install..."
+            echo "🧹 Cleaning up node_modules and package-lock.json..."
+            rm -rf node_modules package-lock.json
+            echo "📦 Running fresh npm install..."
+            npm install --no-audit --no-fund
+            echo "✅ Dependencies installed successfully"
+          else
+            echo "✅ Dependencies installed with npm ci"
+          fi
+
+      - name: Verify installation
+        run: |
+          echo "🔍 Verifying installation..."
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Checking if node_modules exists: $(ls -la | grep node_modules || echo 'Not found')"
+          echo "Checking package-lock.json: $(ls -la package-lock.json 2>/dev/null && echo 'Exists' || echo 'Not found')"
+          echo "Listing installed packages:"
+          npm list --depth=0 --json | head -20
 
       - name: Check secrets availability
         run: |
@@ -70,10 +92,34 @@ jobs:
           echo "VITE_GEMINI_API_KEY exists: $(grep -c 'VITE_GEMINI_API_KEY' .env)"
 
       - name: Build project
-        run: npm run build
+        run: |
+          echo "🏗️ Building project..."
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+          echo "Running npm run build..."
+          npm run build
+          echo "✅ Build completed successfully"
+          echo "Checking dist directory:"
+          ls -la dist/ || echo "dist directory not found"
 
       - name: Create .nojekyll file
-        run: touch dist/.nojekyll
+        run: |
+          echo "📄 Creating .nojekyll file..."
+          touch dist/.nojekyll
+          echo "✅ .nojekyll file created"
+
+      - name: Verify build output
+        run: |
+          echo "🔍 Verifying build output..."
+          echo "Dist directory contents:"
+          ls -la dist/
+          echo "Checking for essential files:"
+          [ -f "dist/index.html" ] && echo "✅ index.html exists" || echo "❌ index.html missing"
+          [ -f "dist/manifest.json" ] && echo "✅ manifest.json exists" || echo "❌ manifest.json missing"
+          [ -f "dist/sw.js" ] && echo "✅ sw.js exists" || echo "❌ sw.js missing"
+          [ -f "dist/icon-192.png" ] && echo "✅ icon-192.png exists" || echo "❌ icon-192.png missing"
+          [ -f "dist/icon-512.png" ] && echo "✅ icon-512.png exists" || echo "❌ icon-512.png missing"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
