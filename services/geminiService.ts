@@ -184,8 +184,10 @@ const callGemini = async (systemInstruction: string, userPrompt: string, isJsonO
   }
 };
 
-const analyzeFinancialData = (query: string, filteredData: any) =>
-    callGemini(GEMINI_PROMPTS.FINANCIAL_ANALYST, `User Query: "${query}"\n\nFinancial Data: ${JSON.stringify(filteredData)}`);
+const analyzeFinancialData = (query: string, filteredData: any) => {
+    const prompts = createGeminiPrompts();
+    return callGemini(prompts.FINANCIAL_ANALYST, `User Query: "${query}"\n\nFinancial Data: ${JSON.stringify(filteredData)}`);
+};
 
 const analyzePastedText = (text: string, categories: Category[], cards: { [key: string]: CardConfig }, bankAccounts: { [key: string]: BankAccountConfig }) => {
     const cardIds = Object.keys(cards);
@@ -210,28 +212,38 @@ const analyzePastedText = (text: string, categories: Category[], cards: { [key: 
 
     mappingRules += "  - If no specific bank account keywords match for a bank/mada transaction, default to the first bank account ID in the list.";
     
-    const systemInstruction = GEMINI_PROMPTS.PASTE_ANALYZER
+    const prompts = createGeminiPrompts();
+    const systemInstruction = prompts.PASTE_ANALYZER
         .replace('{{PAYMENT_METHOD_MAPPING}}', mappingRules);
 
     return callGemini(systemInstruction, `Text to analyze: "${text}"\n\nAvailable Categories: ${JSON.stringify(categories)}\n\nFirst bank account ID is '${bankAccountIds[0]}'`, true);
 };
 
 
-const generateInvestmentAdvice = (query: string) =>
-    callGemini(GEMINI_PROMPTS.INVESTMENT_COACH, query);
+const generateInvestmentAdvice = (query: string) => {
+    const prompts = createGeminiPrompts();
+    return callGemini(prompts.INVESTMENT_COACH, query);
+};
 
-const suggestCategoryIcon = (categoryName: string) =>
-    callGemini(GEMINI_PROMPTS.ICON_SUGGESTER, `Category: ${categoryName}`);
+const suggestCategoryIcon = (categoryName: string) => {
+    const prompts = createGeminiPrompts();
+    return callGemini(prompts.ICON_SUGGESTER, `Category: ${categoryName}`);
+};
     
-const generateSmartSummary = (calculations: FinancialCalculations) =>
-    callGemini(GEMINI_PROMPTS.SMART_SUMMARY_GENERATOR, `Financial Data: ${JSON.stringify(calculations)}`);
+const generateSmartSummary = (calculations: FinancialCalculations) => {
+    const prompts = createGeminiPrompts();
+    return callGemini(prompts.SMART_SUMMARY_GENERATOR, `Financial Data: ${JSON.stringify(calculations)}`);
+};
 
-const generateBudgetPlan = (totalBudget: number, categories: Category[], recentTransactions: Transaction[]) =>
-    callGemini(GEMINI_PROMPTS.BUDGET_PLANNER, `Total monthly budget is: ${totalBudget} SAR. My spending categories are: ${JSON.stringify(categories)}. My transactions from the last 60 days are: ${JSON.stringify(recentTransactions)}`);
+const generateBudgetPlan = (totalBudget: number, categories: Category[], recentTransactions: Transaction[]) => {
+    const prompts = createGeminiPrompts();
+    return callGemini(prompts.BUDGET_PLANNER, `Total monthly budget is: ${totalBudget} SAR. My spending categories are: ${JSON.stringify(categories)}. My transactions from the last 60 days are: ${JSON.stringify(recentTransactions)}`);
+};
 
 const getExchangeRate = async (fromCurrency: string, toCurrency: string): Promise<{rate: number, fromCurrency: string, toCurrency: string, lastUpdated: string}> => {
+    const prompts = createGeminiPrompts();
     const userPrompt = `Get current exchange rate from ${fromCurrency} to ${toCurrency}`;
-    const result = await callGemini(GEMINI_PROMPTS.EXCHANGE_RATE, userPrompt, true);
+    const result = await callGemini(prompts.EXCHANGE_RATE, userPrompt, true);
     
     try {
         const exchangeData = JSON.parse(result);
