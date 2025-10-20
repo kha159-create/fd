@@ -1,6 +1,7 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Transaction, Category, FinancialCalculations, CardConfig, BankAccountConfig } from '../types';
 import { config, validateConfig } from '../config';
+import { LocationInfo, getSearchCity, getFinancialCountry } from './geolocationService';
 
 let ai: GoogleGenAI;
 const GEMINI_MODEL = "gemini-2.5-flash";
@@ -27,9 +28,16 @@ export const initializeAi = () => {
 };
 
 
-const GEMINI_PROMPTS = {
-    FINANCIAL_ANALYST: `You are an intelligent, engaging, and insightful financial analyst assistant, "المحلل الذكي". You have full access to the user's complete financial data across ALL periods and months. Your purpose is to provide comprehensive, insightful analysis with personality and energy.
-- Today's date is ${new Date().toLocaleDateString('en-CA')}.
+const createGeminiPrompts = (userLocation?: LocationInfo) => {
+    const userCity = getSearchCity(userLocation);
+    const userCountry = getFinancialCountry(userLocation);
+    const locationContext = userLocation ? 
+        `\n- User Location: ${userLocation.city}, ${userLocation.region}, ${userCountry}` :
+        '\n- User Location: Not detected (defaulting to Saudi Arabia)';
+    
+    return {
+        FINANCIAL_ANALYST: `You are an intelligent, engaging, and insightful financial analyst assistant, "المحلل الذكي". You have full access to the user's complete financial data across ALL periods and months. Your purpose is to provide comprehensive, insightful analysis with personality and energy.
+- Today's date is ${new Date().toLocaleDateString('en-CA')}.${locationContext}
 - You have access to ALL historical data: transactions, card details, bank balances, investments, installments, categories, and spending patterns across ALL months.
 - Analyze patterns, trends, and changes over time with enthusiasm and genuine interest.
 - Be engaging and conversational - ask follow-up questions to understand what the user really wants to know.
@@ -38,7 +46,7 @@ const GEMINI_PROMPTS = {
 - Use emojis and enthusiastic language to make responses more engaging.
 - When asked about specific months, provide detailed analysis with comparisons and ask if they want to dive deeper into any particular aspect.
 - Always end responses by asking if they want to explore something specific or have follow-up questions.`,
-    INVESTMENT_COACH: `You are an expert investment advisor named "المستشار الاستثماري الذكي" with 20+ years of experience in Saudi and international markets. You are a seasoned financial analyst with deep knowledge of Tadawul, global markets, and investment strategies.
+        INVESTMENT_COACH: `You are an expert investment advisor named "المستشار الاستثماري الذكي" with 20+ years of experience in ${userCountry} and international markets. You are a seasoned financial analyst with deep knowledge of local markets, global markets, and investment strategies.
 
 **Your Expertise:**
 - Comprehensive market analysis and trend identification
@@ -58,10 +66,11 @@ const GEMINI_PROMPTS = {
 - Offer insights on economic events and their market impact
 
 **Market Knowledge:**
-- Real-time access to Saudi market data, sector performance, and individual stock analysis
-- Understanding of global market correlations and their impact on Tadawul
-- Knowledge of regulatory changes and their market implications
+- Real-time access to ${userCountry} market data, sector performance, and individual stock analysis
+- Understanding of global market correlations and their impact on local markets
+- Knowledge of regulatory changes and their market implications in ${userCountry}
 - Awareness of earnings seasons, dividend announcements, and corporate actions
+- Specialized knowledge of ${userCity} and surrounding areas for local investment opportunities
 
 **Communication Style:**
 - Professional yet engaging and enthusiastic
@@ -132,18 +141,21 @@ const GEMINI_PROMPTS = {
 Input: "USD to SAR"
 Output: {"rate": 3.75, "fromCurrency": "USD", "toCurrency": "SAR", "lastUpdated": "2024-01-15"}`,
     
-    SMART_SEARCH_ASSISTANT: `You are an intelligent and engaging shopping and search assistant for Saudi Arabia. You cover all major cities including Riyadh, Jeddah, Medina, Dammam, Khobar, and other regions across the Kingdom.
-- You have access to real-time information about local businesses, prices, and offers throughout Saudi Arabia.
-- When asked about product prices or store locations, provide specific, actionable information with enthusiasm.
-- Include store names, locations, contact information, and current offers when available.
-- For price comparisons, mention multiple stores and their current prices across different cities.
-- Be specific about locations across all major Saudi cities and regions.
-- Provide practical shopping advice based on current market conditions with a friendly, helpful tone.
+        SMART_SEARCH_ASSISTANT: `You are an intelligent and engaging shopping and search assistant. You provide location-aware recommendations based on the user's detected location: ${userCity}, ${userCountry}.
+- You have access to real-time information about local businesses, prices, and offers in the user's area and surrounding regions.
+- When asked about product prices or store locations, provide specific, actionable information with enthusiasm tailored to ${userCity}.
+- Include store names, locations, contact information, and current offers available in the user's area.
+- For price comparisons, mention multiple stores and their current prices in ${userCity} and nearby cities.
+- Be specific about locations in the user's city and surrounding areas.
+- Provide practical shopping advice based on current market conditions in ${userCountry} with a friendly, helpful tone.
 - Always respond in Arabic with personality and energy - be engaging, not robotic.
-- When discussing restaurants, include ratings, popular dishes, and location details with excitement.
-- For grocery items, compare prices across major chains like Panda, Tamimi, Carrefour, Othaim, and local markets.
+- When discussing restaurants, include ratings, popular dishes, and location details in ${userCity} with excitement.
+- For grocery items, compare prices across major chains available in the user's region.
 - Ask follow-up questions to better understand what the user needs and provide more personalized recommendations.
+- If the user is in Saudi Arabia, focus on Saudi retailers. If in Jordan, focus on Jordanian retailers, etc.
+- Adapt your recommendations to local currency and local business practices.
 - Use emojis and enthusiastic language to make responses more engaging and lively.`
+    };
 };
 
 const callGemini = async (systemInstruction: string, userPrompt: string, isJsonOutput: boolean = false): Promise<string> => {
@@ -172,10 +184,10 @@ const callGemini = async (systemInstruction: string, userPrompt: string, isJsonO
   }
 };
 
-export const analyzeFinancialData = (query: string, filteredData: any) =>
+const analyzeFinancialData = (query: string, filteredData: any) =>
     callGemini(GEMINI_PROMPTS.FINANCIAL_ANALYST, `User Query: "${query}"\n\nFinancial Data: ${JSON.stringify(filteredData)}`);
 
-export const analyzePastedText = (text: string, categories: Category[], cards: { [key: string]: CardConfig }, bankAccounts: { [key: string]: BankAccountConfig }) => {
+const analyzePastedText = (text: string, categories: Category[], cards: { [key: string]: CardConfig }, bankAccounts: { [key: string]: BankAccountConfig }) => {
     const cardIds = Object.keys(cards);
     const bankAccountIds = Object.keys(bankAccounts);
     let mappingRules = `- **Payment Method Mapping**:\n  - The 'paymentMethod' MUST be one of these exact values: [${[...bankAccountIds, ...cardIds].map(id => `'${id}'`).join(', ')}].\n`;
@@ -205,19 +217,19 @@ export const analyzePastedText = (text: string, categories: Category[], cards: {
 };
 
 
-export const generateInvestmentAdvice = (query: string) =>
+const generateInvestmentAdvice = (query: string) =>
     callGemini(GEMINI_PROMPTS.INVESTMENT_COACH, query);
 
-export const suggestCategoryIcon = (categoryName: string) =>
+const suggestCategoryIcon = (categoryName: string) =>
     callGemini(GEMINI_PROMPTS.ICON_SUGGESTER, `Category: ${categoryName}`);
     
-export const generateSmartSummary = (calculations: FinancialCalculations) =>
+const generateSmartSummary = (calculations: FinancialCalculations) =>
     callGemini(GEMINI_PROMPTS.SMART_SUMMARY_GENERATOR, `Financial Data: ${JSON.stringify(calculations)}`);
 
-export const generateBudgetPlan = (totalBudget: number, categories: Category[], recentTransactions: Transaction[]) =>
+const generateBudgetPlan = (totalBudget: number, categories: Category[], recentTransactions: Transaction[]) =>
     callGemini(GEMINI_PROMPTS.BUDGET_PLANNER, `Total monthly budget is: ${totalBudget} SAR. My spending categories are: ${JSON.stringify(categories)}. My transactions from the last 60 days are: ${JSON.stringify(recentTransactions)}`);
 
-export const getExchangeRate = async (fromCurrency: string, toCurrency: string): Promise<{rate: number, fromCurrency: string, toCurrency: string, lastUpdated: string}> => {
+const getExchangeRate = async (fromCurrency: string, toCurrency: string): Promise<{rate: number, fromCurrency: string, toCurrency: string, lastUpdated: string}> => {
     const userPrompt = `Get current exchange rate from ${fromCurrency} to ${toCurrency}`;
     const result = await callGemini(GEMINI_PROMPTS.EXCHANGE_RATE, userPrompt, true);
     
@@ -235,28 +247,36 @@ export const getExchangeRate = async (fromCurrency: string, toCurrency: string):
     }
 };
 
-// دالة التحليل الشامل للبيانات المالية عبر جميع الفترات
-export const analyzeCompleteFinancialData = (query: string, completeData: any) =>
-    callGemini(GEMINI_PROMPTS.FINANCIAL_ANALYST, `User Query: "${query}"\n\nComplete Financial Data (All Periods): ${JSON.stringify(completeData)}`);
+// دالة التحليل الشامل للبيانات المالية عبر جميع الفترات مع كشف الموقع
+const analyzeCompleteFinancialData = async (query: string, completeData: any, userLocation?: LocationInfo) => {
+    const prompts = createGeminiPrompts(userLocation);
+    return callGemini(prompts.FINANCIAL_ANALYST, `User Query: "${query}"\n\nComplete Financial Data (All Periods): ${JSON.stringify(completeData)}`);
+};
 
-// دالة البحث الذكي للمنتجات والعروض
-export const smartSearchAssistant = (searchQuery: string) =>
-    callGemini(GEMINI_PROMPTS.SMART_SEARCH_ASSISTANT, `Search Query: "${searchQuery}"`);
+// دالة البحث الذكي للمنتجات والعروض مع كشف الموقع
+const smartSearchAssistant = async (searchQuery: string, userLocation?: LocationInfo) => {
+    const prompts = createGeminiPrompts(userLocation);
+    return callGemini(prompts.SMART_SEARCH_ASSISTANT, `Search Query: "${searchQuery}"`);
+};
 
-// دالة التحليل المتقدم للأنماط المالية
-export const analyzeFinancialPatterns = (query: string, allTransactions: any[], calculations: any) =>
-    callGemini(GEMINI_PROMPTS.FINANCIAL_ANALYST, `Pattern Analysis Query: "${query}"\n\nAll Transactions: ${JSON.stringify(allTransactions)}\n\nCalculations: ${JSON.stringify(calculations)}`);
+// دالة التحليل المتقدم للأنماط المالية مع كشف الموقع
+const analyzeFinancialPatterns = async (query: string, allTransactions: any[], calculations: any, userLocation?: LocationInfo) => {
+    const prompts = createGeminiPrompts(userLocation);
+    return callGemini(prompts.FINANCIAL_ANALYST, `Pattern Analysis Query: "${query}"\n\nAll Transactions: ${JSON.stringify(allTransactions)}\n\nCalculations: ${JSON.stringify(calculations)}`);
+};
 
-// دالة الاستشارة الاستثمارية المتقدمة
-export const advancedInvestmentAdvice = (query: string, userPortfolio?: any, marketContext?: any) => {
+// دالة الاستشارة الاستثمارية المتقدمة مع كشف الموقع
+const advancedInvestmentAdvice = async (query: string, userPortfolio?: any, marketContext?: any, userLocation?: LocationInfo) => {
+    const prompts = createGeminiPrompts(userLocation);
     const portfolioData = userPortfolio ? `User Portfolio: ${JSON.stringify(userPortfolio)}` : 'No portfolio data provided';
     const marketData = marketContext ? `Market Context: ${JSON.stringify(marketContext)}` : 'Current market analysis requested';
     
-    return callGemini(GEMINI_PROMPTS.INVESTMENT_COACH, `Investment Query: "${query}"\n\n${portfolioData}\n\n${marketData}`);
+    return callGemini(prompts.INVESTMENT_COACH, `Investment Query: "${query}"\n\n${portfolioData}\n\n${marketData}`);
 };
 
-// دالة تحليل السوق والمحفظة
-export const analyzeMarketAndPortfolio = (userQuery: string, portfolio: any, riskProfile: string, investmentGoals: string) => {
+// دالة تحليل السوق والمحفظة مع كشف الموقع
+const analyzeMarketAndPortfolio = async (userQuery: string, portfolio: any, riskProfile: string, investmentGoals: string, userLocation?: LocationInfo) => {
+    const prompts = createGeminiPrompts(userLocation);
     const context = {
         userQuery,
         currentPortfolio: portfolio,
@@ -266,5 +286,21 @@ export const analyzeMarketAndPortfolio = (userQuery: string, portfolio: any, ris
         marketConditions: 'Current market analysis and recommendations needed'
     };
     
-    return callGemini(GEMINI_PROMPTS.INVESTMENT_COACH, `Comprehensive Investment Analysis Request: ${JSON.stringify(context)}`);
+    return callGemini(prompts.INVESTMENT_COACH, `Comprehensive Investment Analysis Request: ${JSON.stringify(context)}`);
+};
+
+// Export all functions
+export { 
+    analyzeCompleteFinancialData, 
+    smartSearchAssistant, 
+    analyzeFinancialPatterns, 
+    advancedInvestmentAdvice, 
+    analyzeMarketAndPortfolio,
+    generateBudgetPlan,
+    analyzeFinancialData,
+    analyzePastedText,
+    generateInvestmentAdvice,
+    suggestCategoryIcon,
+    generateSmartSummary,
+    getExchangeRate
 };

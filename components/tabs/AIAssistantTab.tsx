@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, FinancialCalculations, Transaction } from '../../types';
 import { analyzeCompleteFinancialData, smartSearchAssistant, analyzeFinancialPatterns } from '../../services/geminiService';
+import { detectUserLocation, LocationInfo } from '../../services/geolocationService';
 import { SendIcon } from '../common/Icons';
 import { t } from '../../translations';
 
@@ -23,28 +24,75 @@ const TypingIndicator: React.FC = () => (
 );
 
 const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ calculations, filteredTransactions, allTransactions, state, darkMode = false, language = 'ar' }) => {
-    const [messages, setMessages] = useState<Message[]>([
-        { id: '1', text: `مرحباً! أنا مساعدك الذكي 🤖✨
-
-🔍 **يمكنني مساعدتك في:**
-• تحليل بياناتك المالية عبر جميع الأشهر
-• البحث عن أفضل العروض والأسعار في السعودية
-• مقارنة الأسعار والمطاعم
-
-💬 **اسألني مثلاً:**
-• "كم صرفت هذا الشهر؟"
-• "أين أفضل عروض في الرياض؟"
-• "كم سعر الهاتف في سوق اليوم؟"
-
-ماذا تريد أن تعرف؟ 😊`, sender: 'ai' }
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [userLocation, setUserLocation] = useState<LocationInfo | null>(null);
+    const [locationDetected, setLocationDetected] = useState(false);
     const chatBoxRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         chatBoxRef.current?.scrollTo(0, chatBoxRef.current.scrollHeight);
     }, [messages, isLoading]);
+
+    // كشف الموقع الجغرافي عند تحميل المكون
+    useEffect(() => {
+        const detectLocation = async () => {
+            if (!locationDetected) {
+                console.log('🌍 بدء كشف الموقع الجغرافي...');
+                const locationResult = await detectUserLocation();
+                
+                if (locationResult.success && locationResult.location) {
+                    setUserLocation(locationResult.location);
+                    console.log('✅ تم كشف الموقع:', locationResult.location);
+                    
+                    // إرسال رسالة ترحيب مخصصة حسب الموقع
+                    const welcomeMessage = createLocationBasedWelcome(locationResult.location);
+                    setMessages([welcomeMessage]);
+                } else {
+                    console.log('⚠️ فشل في كشف الموقع، استخدام الافتراضي');
+                    // رسالة ترحيب افتراضية
+                    const defaultMessage = createLocationBasedWelcome();
+                    setMessages([defaultMessage]);
+                }
+                
+                setLocationDetected(true);
+            }
+        };
+
+        detectLocation();
+    }, [locationDetected]);
+
+    // إنشاء رسالة ترحيب مخصصة حسب الموقع
+    const createLocationBasedWelcome = (location?: LocationInfo): Message => {
+        const locationText = location ? 
+            `📍 **تم كشف موقعك:** ${location.city}, ${location.region}` :
+            '📍 **الموقع:** لم يتم كشف الموقع (استخدام الافتراضي)';
+        
+        const cityName = location?.city || 'الرياض';
+        const countryName = location?.country || 'السعودية';
+        
+        return {
+            id: '1',
+            text: `مرحباً! أنا مساعدك الذكي 🤖✨
+
+${locationText}
+
+🔍 **يمكنني مساعدتك في:**
+• تحليل بياناتك المالية عبر جميع الأشهر
+• البحث عن أفضل العروض والأسعار في ${cityName} و${countryName}
+• مقارنة الأسعار والمطاعم في منطقتك
+
+💬 **اسألني مثلاً:**
+• "كم صرفت هذا الشهر؟"
+• "أين أفضل عروض في ${cityName}؟"
+• "كم سعر الهاتف في سوق اليوم؟"
+• "أفضل مطاعم في منطقتي"
+
+ماذا تريد أن تعرف؟ 😊`,
+            sender: 'ai'
+        };
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,10 +115,10 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ calculations, filteredT
             const isFinancialQuery = financialKeywords.some(keyword => query.toLowerCase().includes(keyword.toLowerCase()));
             
             if (isSearchQuery) {
-                // استخدام البحث الذكي للمنتجات والعروض
-                aiResponseText = await smartSearchAssistant(query);
+                // استخدام البحث الذكي للمنتجات والعروض مع الموقع الجغرافي
+                aiResponseText = await smartSearchAssistant(query, userLocation || undefined);
             } else if (isFinancialQuery) {
-                // استخدام التحليل الشامل للبيانات المالية
+                // استخدام التحليل الشامل للبيانات المالية مع الموقع الجغرافي
                 const completeData = {
                     currentPeriod: {
                         calculations: calculations,
@@ -87,10 +135,10 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ calculations, filteredT
                     },
                     state: state
                 };
-                aiResponseText = await analyzeCompleteFinancialData(query, completeData);
+                aiResponseText = await analyzeCompleteFinancialData(query, completeData, userLocation || undefined);
             } else {
-                // استخدام التحليل المتقدم للأنماط
-                aiResponseText = await analyzeFinancialPatterns(query, allTransactions, calculations);
+                // استخدام التحليل المتقدم للأنماط مع الموقع الجغرافي
+                aiResponseText = await analyzeFinancialPatterns(query, allTransactions, calculations, userLocation || undefined);
             }
             
             const newAiMessage: Message = { id: (Date.now() + 1).toString(), text: aiResponseText, sender: 'ai' };
