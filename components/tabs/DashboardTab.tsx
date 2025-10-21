@@ -52,7 +52,7 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
         .sort(([, a], [, b]) => (b as number) - (a as number));
 
     return (
-        <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2">
             {sortedCategories.map(([categoryId, total]) => {
                 const category = categories.find(c => c.id === categoryId);
                 const name = category ? `${category.icon} ${category.name}` : t('other', language);
@@ -60,20 +60,47 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
                 // Explicitly cast `total` to `Number` as Object.entries() may return `unknown`.
                 const percentage = (Number(total) / totalExpenses) * 100;
                 return (
-                    <button key={categoryId} className={`w-full p-3 rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 h-20 flex flex-col justify-between cursor-pointer ${darkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-slate-600' : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`} onClick={() => onNavigateToTransactions?.(categoryId)}>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className="text-base">{category?.icon || '📊'}</span>
-                                <span className={`font-medium truncate text-sm ${darkMode ? 'text-slate-300' : 'text-slate-700'}`} title={category?.name}>{category?.name || t('other', language)}</span>
+                    <button key={categoryId} className={`group relative w-full p-4 rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] ${darkMode ? 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 hover:border-slate-600' : 'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:from-gray-50 hover:to-gray-100 hover:border-gray-300'}`} onClick={() => onNavigateToTransactions?.(categoryId)}>
+                        {/* Header with icon and name */}
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className={`w-12 h-12 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-lg shadow-md ${darkMode ? 'bg-slate-700 group-hover:bg-slate-600' : 'bg-blue-100 group-hover:bg-blue-200'}`}>
+                                    {category?.icon || '📊'}
+                                </div>
+                                <div className="flex flex-col items-start flex-1 min-w-0">
+                                    <span className={`font-semibold text-sm sm:text-xs truncate w-full ${darkMode ? 'text-slate-200' : 'text-slate-800'}`} title={category?.name}>
+                                        {category?.name || t('other', language)}
+                                    </span>
+                                    <span className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        {percentage.toFixed(1)}%
+                                    </span>
+                                </div>
                             </div>
-                            <span className={`font-semibold number-display text-sm px-2 py-1 rounded border ${darkMode ? 'text-slate-200 bg-slate-700 border-slate-600' : 'text-slate-900 bg-slate-50 border-gray-200'}`}>
-                                {formatCurrency(total as number)}
-                            </span>
+                            <div className={`px-3 py-2 rounded-xl shadow-sm flex-shrink-0 ${darkMode ? 'bg-slate-700 group-hover:bg-slate-600' : 'bg-blue-50 group-hover:bg-blue-100'}`}>
+                                <span className={`font-bold text-sm sm:text-xs number-display ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                                    {formatCurrency(total as number)}
+                                </span>
+                            </div>
                         </div>
-                        <div className={`mt-2 rounded-full h-1.5 overflow-hidden ${darkMode ? 'bg-slate-600' : 'bg-slate-200'}`}>
-                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full transition-all duration-500" style={{ width: `${percentage.toFixed(1)}%` }}></div>
+                        
+                        {/* Progress bar */}
+                        <div className={`rounded-full h-2.5 overflow-hidden shadow-inner ${darkMode ? 'bg-slate-600' : 'bg-gray-200'}`}>
+                            <div 
+                                className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 h-2.5 rounded-full transition-all duration-700 ease-out shadow-sm relative overflow-hidden" 
+                                style={{ width: `${percentage.toFixed(1)}%` }}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
+                            </div>
                         </div>
-                        <div className={`text-xs mt-1 text-center ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{percentage.toFixed(1)}%</div>
+                        
+                        {/* Hover effect indicator */}
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${darkMode ? 'bg-blue-600' : 'bg-blue-500'}`}>
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                    </div>
                     </button>
                 );
             })}
