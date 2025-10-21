@@ -9,6 +9,7 @@ interface DashboardTabProps {
     state: AppState;
     darkMode?: boolean;
     language?: 'ar' | 'en';
+    onNavigateToTransactions?: (categoryId?: string, monthFilter?: string) => void;
 }
 
 
@@ -37,7 +38,7 @@ const CardDebtWidget: React.FC<{ title: string, details: CardDetails, barColor: 
 );
 
 
-const CategorySummary: React.FC<{ calculations: FinancialCalculations, categories: Category[], darkMode?: boolean, language?: 'ar' | 'en' }> = ({ calculations, categories, darkMode = false, language = 'ar' }) => {
+const CategorySummary: React.FC<{ calculations: FinancialCalculations, categories: Category[], darkMode?: boolean, language?: 'ar' | 'en', onNavigateToTransactions?: (categoryId?: string, monthFilter?: string) => void }> = ({ calculations, categories, darkMode = false, language = 'ar', onNavigateToTransactions }) => {
     // FIX: Operator '+' cannot be applied to types 'unknown' and 'number'.
     // Explicitly cast `amount` to `Number` as Object.values() may return `unknown`.
     const totalExpenses = Object.values(calculations.expensesByCategory).reduce((sum, amount) => sum + Number(amount), 0);
@@ -59,7 +60,7 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
                 // Explicitly cast `total` to `Number` as Object.entries() may return `unknown`.
                 const percentage = (Number(total) / totalExpenses) * 100;
                 return (
-                    <div key={categoryId} className={`p-3 rounded-lg border shadow-sm hover:shadow-md transition-shadow h-20 flex flex-col justify-between ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+                    <div key={categoryId} className={`p-3 rounded-lg border shadow-sm hover:shadow-md transition-shadow h-20 flex flex-col justify-between cursor-pointer ${darkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-750' : 'bg-white border-gray-200 hover:bg-gray-50'}`} onClick={() => onNavigateToTransactions?.(categoryId)}>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="text-base">{category?.icon || '📊'}</span>
@@ -73,6 +74,9 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
                             <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full transition-all duration-500" style={{ width: `${percentage.toFixed(1)}%` }}></div>
                         </div>
                         <div className={`text-xs mt-1 text-center ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{percentage.toFixed(1)}%</div>
+                        <div className="text-xs text-center mt-1 text-blue-500 hover:text-blue-600">
+                            انقر لعرض الحركات
+                        </div>
                     </div>
                 );
             })}
@@ -81,7 +85,7 @@ const CategorySummary: React.FC<{ calculations: FinancialCalculations, categorie
 };
 
 
-const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories, state, darkMode = false, language = 'ar' }) => {
+const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories, state, darkMode = false, language = 'ar', onNavigateToTransactions }) => {
     const { totalIncome, totalExpenses, cardPayments, bankAccountDetails, totalBankBalance } = calculations;
     const net = totalIncome - totalExpenses;
     const cardColors = ['bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'];
@@ -176,7 +180,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ calculations, categories, s
             </div>
             <div className="card-consistent xl:col-span-1">
                 <h3 className="font-semibold text-lg text-slate-800 mb-4">📊 ملخص الفئات</h3>
-                <CategorySummary calculations={calculations} categories={categories} />
+                <CategorySummary calculations={calculations} categories={categories} onNavigateToTransactions={onNavigateToTransactions} />
             </div>
         </div>
     );
