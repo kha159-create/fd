@@ -40,7 +40,7 @@ const App: React.FC = () => {
     const [loadingState, setLoadingState] = useState({ isLoading: false, text: '' });
     const [modalConfig, setModalConfig] = useState<any>(null);
     const [transactionForm, setTransactionForm] = useState<{ isOpen: boolean; initialData?: Transaction | null }>({ isOpen: false });
-    const [transactionFilters, setTransactionFilters] = useState<{ categoryId?: string; monthFilter?: string }>({});
+    const [transactionFilters, setTransactionFilters] = useState<{ categoryId?: string }>({});
     const [cardForm, setCardForm] = useState<{ isOpen: boolean; initialData?: CardConfig | null }>({ isOpen: false });
     const [bankAccountForm, setBankAccountForm] = useState<{ isOpen: boolean; initialData?: BankAccountConfig | null }>({ isOpen: false });
     const [loanForm, setLoanForm] = useState<{ isOpen: boolean; initialData?: Loan | null }>({ isOpen: false });
@@ -594,8 +594,8 @@ const App: React.FC = () => {
         }
     };
 
-    const navigateToTransactionsWithFilter = (categoryId?: string, monthFilter?: string) => {
-        setTransactionFilters({ categoryId, monthFilter });
+    const navigateToTransactionsWithFilter = (categoryId?: string) => {
+        setTransactionFilters({ categoryId });
         setActiveTab('transactions');
     };
 
@@ -1152,7 +1152,7 @@ const App: React.FC = () => {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'summary': return <DashboardTab calculations={calculations} categories={state.categories} state={state} darkMode={state.settings.darkMode} language={state.settings.language} onNavigateToTransactions={navigateToTransactionsWithFilter} />;
-            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={allTransactionsSorted} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} darkMode={state.settings.darkMode} language={state.settings.language} initialCategoryFilter={transactionFilters.categoryId} initialMonthFilter={transactionFilters.monthFilter} />;
+            case 'transactions': return <TransactionsTab transactions={filteredTransactions} allTransactions={allTransactionsSorted} categories={state.categories} deleteTransaction={handleDeleteTransaction} editTransaction={handleEditTransaction} state={state} darkMode={state.settings.darkMode} language={state.settings.language} initialCategoryFilter={transactionFilters.categoryId} />;
             case 'ai-assistant': return <AIAssistantTab calculations={calculations} filteredTransactions={filteredTransactions} allTransactions={allTransactionsSorted} state={state} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'analysis': return <AnalysisTab calculations={calculations} categories={state.categories} allTransactions={state.transactions} darkMode={state.settings.darkMode} language={state.settings.language} />;
             case 'budget': return <BudgetTab state={state} setLoading={setLoading} setModal={setModalConfig} darkMode={state.settings.darkMode} language={state.settings.language} />;

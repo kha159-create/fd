@@ -14,17 +14,15 @@ interface TransactionsTabProps {
     darkMode?: boolean;
     language?: 'ar' | 'en';
     initialCategoryFilter?: string;
-    initialMonthFilter?: string;
 }
 
 
-const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTransactions, categories, deleteTransaction, editTransaction, state, darkMode = false, language = 'ar', initialCategoryFilter, initialMonthFilter }) => {
+const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTransactions, categories, deleteTransaction, editTransaction, state, darkMode = false, language = 'ar', initialCategoryFilter }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterMethod, setFilterMethod] = useState('');
     const [filterCategory, setFilterCategory] = useState(initialCategoryFilter || '');
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
-    const [monthFilter, setMonthFilter] = useState(initialMonthFilter || '');
 
     const getPaymentMethodName = (key: string): string => {
         const standardMethods: { [key: string]: string } = {
@@ -52,23 +50,15 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
     };
 
     const filteredTransactions = useMemo(() => {
-        // Start with all transactions for comprehensive sorting
-        let filteredData = allTransactions;
+        // Start with filtered transactions (already filtered by month from App.tsx)
+        let filteredData = transactions;
 
-        // Apply month filter first (if selected)
-        if (monthFilter) {
-            filteredData = allTransactions.filter(t => {
-                const transactionDate = new Date(t.date);
-                const transactionMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
-                return transactionMonth === monthFilter;
-            });
-        }
-        // If month filter is not set, apply date range filter
-        else if (dateFrom && dateTo) {
+        // Apply date range filter if specified
+        if (dateFrom && dateTo) {
             const startDate = new Date(dateFrom);
             const endDate = new Date(dateTo);
             endDate.setHours(23, 59, 59, 999);
-            filteredData = allTransactions.filter(t => {
+            filteredData = transactions.filter(t => {
                 const transactionDate = new Date(t.date);
                 return transactionDate >= startDate && transactionDate <= endDate;
             });
@@ -100,7 +90,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
             
             return dateComparison;
         });
-    }, [transactions, allTransactions, searchTerm, filterMethod, filterCategory, dateFrom, dateTo, monthFilter, categories]);
+    }, [transactions, searchTerm, filterMethod, filterCategory, dateFrom, dateTo, categories]);
 
     const totals = useMemo(() => {
         return filteredTransactions.reduce((acc, t) => {
@@ -120,37 +110,14 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
             <div className="glass-card p-6">
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4">📋 سجل المعاملات والتقارير</h3>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end p-4 bg-slate-100 rounded-lg mb-6">
-                    <div>
-                        <label htmlFor="monthFilter" className="block text-sm font-medium text-slate-600 mb-1">فلتر الشهر</label>
-                        <input type="month" id="monthFilter" value={monthFilter} onChange={e => {
-                            setMonthFilter(e.target.value);
-                            // Clear date range when month is selected
-                            if (e.target.value) {
-                                setDateFrom('');
-                                setDateTo('');
-                            }
-                        }} className="w-full p-2" />
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end p-4 bg-slate-100 rounded-lg mb-6">
                     <div>
                         <label htmlFor="dateFrom" className="block text-sm font-medium text-slate-600 mb-1">من تاريخ</label>
-                        <input type="date" id="dateFrom" value={dateFrom} onChange={e => {
-                            setDateFrom(e.target.value);
-                            // Clear month filter when date range is selected
-                            if (e.target.value || dateTo) {
-                                setMonthFilter('');
-                            }
-                        }} className="w-full p-2" />
+                        <input type="date" id="dateFrom" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full p-2" />
                     </div>
                     <div>
                         <label htmlFor="dateTo" className="block text-sm font-medium text-slate-600 mb-1">إلى تاريخ</label>
-                        <input type="date" id="dateTo" value={dateTo} onChange={e => {
-                            setDateTo(e.target.value);
-                            // Clear month filter when date range is selected
-                            if (e.target.value || dateFrom) {
-                                setMonthFilter('');
-                            }
-                        }} className="w-full p-2" />
+                        <input type="date" id="dateTo" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full p-2" />
                     </div>
                     <div>
                         <label htmlFor="filterMethod" className="block text-sm font-medium text-slate-600 mb-1">وسيلة الدفع</label>
@@ -170,7 +137,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, allTran
                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
-                     <div className="sm:col-span-2 lg:col-span-5">
+                     <div className="sm:col-span-2 lg:col-span-4">
                         <label htmlFor="searchTerm" className="block text-sm font-medium text-slate-600 mb-1">بحث بالوصف</label>
                         <input type="text" id="searchTerm" placeholder="🔍..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="p-2 w-full" />
                     </div>
