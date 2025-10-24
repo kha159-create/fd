@@ -303,7 +303,7 @@ export const getStorageInfo = async () => {
       keys: keys,
       estimatedSize: await localforage.length()
     };
-    
+
     return info;
   } catch (error) {
     console.error('❌ خطأ في الحصول على معلومات التخزين:', error);
