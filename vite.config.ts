@@ -107,7 +107,8 @@ export default defineConfig(({ mode }) => {
                     manualChunks: {
                         vendor: ['react', 'react-dom'],
                         firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-                        gemini: ['@google/generative-ai']
+                        // bundle the new official SDK chunk name used in code
+                        genai: ['@google/genai']
                     }
                 }
             }
