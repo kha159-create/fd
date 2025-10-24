@@ -84,10 +84,10 @@ const InvestmentTab: React.FC<InvestmentTabProps> = ({ state, setState, calculat
             // تحضير بيانات المحفظة الحالية للتحليل
             const currentPortfolio = {
                 currentValue: state.investments.currentValue,
-                totalDeposited: state.investments.totalDeposited,
-                totalWithdrawn: state.investments.totalWithdrawn,
+                totalDeposited: calculations.totalInvestmentDeposits,
+                totalWithdrawn: calculations.totalInvestmentWithdrawals,
                 transactions: state.transactions.filter(t => t.type === 'investment-deposit' || t.type === 'investment-withdrawal'),
-                recentPerformance: calculations.investments
+                recentPerformance: { currentValue: state.investments.currentValue }
             };
 
             // استخدام المستشار الاستثماري المتقدم

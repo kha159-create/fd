@@ -26,7 +26,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({ onClose, onSave, init
         }
     }, [initialData]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         if (name === 'smsSamples') {
             setAccount(prev => ({ ...prev, smsSamples: value.split(',').map(k => k.trim()).filter(Boolean) }));

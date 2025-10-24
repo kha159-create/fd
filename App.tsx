@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan, Loan } from './types';
+import { AppState, Tab, Transaction, FinancialCalculations, Category, CardConfig, BankAccountConfig, InstallmentPlan, Loan, PaymentMethod } from './types';
 import { t } from './translations';
 import { getInitialState } from './constants';
 import { initializeAi, getExchangeRate } from './services/geminiService';
