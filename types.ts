@@ -26,6 +26,15 @@ export interface Transaction {
     };
 }
 
+export interface Installment {
+    id: string;
+    amount: number;
+    dueDate: string;
+    status: 'pending' | 'paid' | 'overdue';
+    paidDate?: string;
+    notes?: string;
+}
+
 export interface InstallmentPlan {
     id: string;
     provider: 'tabby-bnpl' | 'tamara-bnpl';
@@ -166,6 +175,8 @@ export interface DebtToMe {
     description: string;
     date: string;
     status: 'pending' | 'partial' | 'paid';
+    source: string;
+    reason: string;
     installments?: Installment[];
     createdAt: string;
 }
@@ -177,6 +188,8 @@ export interface DebtFromMe {
     description: string;
     date: string;
     status: 'pending' | 'partial' | 'paid';
+    source: string;
+    reason: string;
     installments?: Installment[];
     createdAt: string;
 }

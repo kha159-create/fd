@@ -13,15 +13,31 @@ interface DebtFormProps {
 }
 
 const DebtForm: React.FC<DebtFormProps> = ({ onClose, onSave, initialData, type, darkMode = false, language = 'ar' }) => {
-    const [debt, setDebt] = useState({
-        [type === 'toMe' ? 'debtor' : 'creditor']: '',
-        amount: 0,
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        status: 'pending' as 'pending' | 'partial' | 'paid',
-        source: '', // مصدر الدين
-        reason: '' // السبب
-    });
+    const [debt, setDebt] = useState<DebtToMe | DebtFromMe>(
+        type === 'toMe' 
+            ? {
+                id: '',
+                debtor: '',
+                amount: 0,
+                description: '',
+                date: new Date().toISOString().split('T')[0],
+                status: 'pending' as 'pending' | 'partial' | 'paid',
+                source: '',
+                reason: '',
+                createdAt: new Date().toISOString()
+            } as DebtToMe
+            : {
+                id: '',
+                creditor: '',
+                amount: 0,
+                description: '',
+                date: new Date().toISOString().split('T')[0],
+                status: 'pending' as 'pending' | 'partial' | 'paid',
+                source: '',
+                reason: '',
+                createdAt: new Date().toISOString()
+            } as DebtFromMe
+    );
 
     const [errors, setErrors] = useState<{[key: string]: string}>({});
 

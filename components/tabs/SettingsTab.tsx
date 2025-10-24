@@ -8,7 +8,7 @@ import { t } from '../../translations';
 
 interface SettingsTabProps {
     state: AppState;
-    setState: (state: AppState) => void;
+    setState: (state: AppState | ((prev: AppState) => AppState)) => void;
     setModal: (config: any) => void;
     setLoading: (loading: boolean, text?: string) => void;
     onRestore?: (restoredState: any) => void;
@@ -384,7 +384,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ state, setState, setModal, se
                                     installments: restoredState.installments || [],
                                     investments: restoredState.investments || { currentValue: 0 },
                                     cards: restoredState.cards || {},
-                                    bankAccounts: restoredState.bankAccounts || {}
+                                    bankAccounts: restoredState.bankAccounts || {},
+                                    loans: restoredState.loans || {},
+                                    debtsToMe: restoredState.debtsToMe || {},
+                                    debtsFromMe: restoredState.debtsFromMe || {},
+                                    settings: restoredState.settings || {}
                                 };
                                 setState(validatedState);
                                 setModal({ title: t('success', language), body: `<p>${t('success', language)}</p>`, confirmText: t('confirm', language), hideCancel: true });
